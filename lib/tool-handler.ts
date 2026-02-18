@@ -159,6 +159,18 @@ export function handleToolCall(
         },
       };
 
+    // -------------------------------------------------------------------------
+    // Layer 3 — Data tools (side-effects, no UI change)
+    // -------------------------------------------------------------------------
+    case 'remember_visitor':
+      // Fire-and-forget POST to save visitor info
+      fetch('/api/visitor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(args),
+      }).catch((err) => console.error('[remember_visitor] failed:', err));
+      return {};
+
     default:
       return {};
   }

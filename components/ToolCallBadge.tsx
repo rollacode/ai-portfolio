@@ -1,78 +1,72 @@
 'use client';
 
-import { motion } from 'framer-motion';
-
 /* ------------------------------------------------------------------ */
-/*  Types                                                              */
+/*  Human-readable tool call labels                                    */
+/*  Displayed as a single comma-separated meta line after a message.   */
 /* ------------------------------------------------------------------ */
 
 interface ToolCallBadgeProps {
-  name: string;
-  arguments: Record<string, unknown>;
+  toolCalls: Array<{ name: string; arguments: Record<string, unknown> }>;
 }
 
 /* ------------------------------------------------------------------ */
-/*  Helpers                                                            */
+/*  Friendly label mapping                                             */
 /* ------------------------------------------------------------------ */
 
-/** Format a single argument value for display. */
-function formatValue(value: unknown): string {
-  if (typeof value === 'string') return `"${value}"`;
-  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
-  if (value === null || value === undefined) return 'null';
-  if (typeof value === 'object') {
-    const entries = Object.entries(value as Record<string, unknown>);
-    if (entries.length === 0) return '{}';
-    return entries.map(([k, v]) => `${k}=${formatValue(v)}`).join(', ');
+function friendlyLabel(name: string, args: Record<string, unknown>): string {
+  switch (name) {
+    case 'show_project':
+      return `opened ${args.slug || 'project'}`;
+    case 'show_projects':
+      return 'opened all projects';
+    case 'show_skills':
+      return args.category && args.category !== 'all'
+        ? `opened ${args.category} skills`
+        : 'opened skills';
+    case 'show_contact':
+      return 'opened contacts';
+    case 'show_timeline':
+      return 'opened timeline';
+    case 'show_gallery':
+      return `opened ${args.slug || 'gallery'}`;
+    case 'hide_panel':
+      return 'closed panel';
+    case 'scroll_timeline_to':
+      return `scrolled to ${args.company}`;
+    case 'highlight_period':
+      return `highlighted ${args.company}`;
+    case 'focus_screenshot':
+      return 'focused screenshot';
+    case 'highlight_skill':
+      return `highlighted ${args.name}`;
+    case 'highlight_project_detail':
+      return `highlighted ${args.field}`;
+    case 'highlight_project':
+      return `highlighted ${args.slug}`;
+    case 'scroll_to_project':
+      return `scrolled to ${args.slug}`;
+    case 'compare_projects':
+      return `compared ${args.slug1} & ${args.slug2}`;
+    case 'remember_visitor':
+      return 'noted';
+    default:
+      return name.replace(/_/g, ' ');
   }
-  return String(value);
-}
-
-/** Build the preview string for a tool call, e.g. `show_project("trax-retail")`. */
-function buildPreview(name: string, args: Record<string, unknown>): string {
-  const entries = Object.entries(args);
-  if (entries.length === 0) return `${name}()`;
-
-  // If there's a single string arg, show it directly: tool("value")
-  if (entries.length === 1 && typeof entries[0][1] === 'string') {
-    return `${name}("${entries[0][1]}")`;
-  }
-
-  const inner = entries
-    .map(([k, v]) => `${k}=${formatValue(v)}`)
-    .join(', ');
-
-  return `${name}(${inner})`;
 }
 
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
-export default function ToolCallBadge({ name, arguments: args }: ToolCallBadgeProps) {
-  const preview = buildPreview(name, args);
+export default function ToolCallBadge({ toolCalls }: ToolCallBadgeProps) {
+  if (!toolCalls.length) return null;
+
+  const labels = toolCalls.map((tc) => friendlyLabel(tc.name, tc.arguments));
+  const text = labels.join(', ');
 
   return (
-    <motion.span
-      initial={{ opacity: 0, scale: 0.92 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.2, ease: 'easeOut' }}
-      className="my-1 inline-flex max-w-full items-center gap-1.5 rounded-full
-                 bg-gray-100 dark:bg-gray-800/60 px-3 py-1
-                 text-xs text-gray-600 dark:text-gray-400
-                 ring-1 ring-gray-200/60 dark:ring-gray-700/50"
-    >
-      {/* Lightning bolt icon */}
-      <svg
-        className="h-3 w-3 flex-shrink-0 text-amber-500"
-        viewBox="0 0 16 16"
-        fill="currentColor"
-        aria-hidden="true"
-      >
-        <path d="M9.5 1L4 9h4l-1.5 6L13 7H9l.5-6z" />
-      </svg>
-
-      <code className="truncate font-mono">{preview}</code>
-    </motion.span>
+    <p className="mt-1.5 text-[11px] text-gray-400 dark:text-gray-600 italic">
+      {text}
+    </p>
   );
 }

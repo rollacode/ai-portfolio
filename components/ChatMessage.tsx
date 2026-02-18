@@ -67,11 +67,7 @@ export default function ChatMessage({ role, content, toolCalls, isError, onRetry
           )}
 
           {hasToolCalls && (
-            <div className="mt-2 flex flex-col gap-1">
-              {toolCalls.map((tc, i) => (
-                <ToolCallBadge key={i} name={tc.name} arguments={tc.arguments} />
-              ))}
-            </div>
+            <ToolCallBadge toolCalls={toolCalls} />
           )}
         </div>
       )}

@@ -329,20 +329,25 @@ export default function Chat() {
             className="fixed inset-0 flex flex-col items-center justify-center z-10"
           >
             <h1 className="text-2xl md:text-3xl font-medium text-gray-500 dark:text-gray-500 mb-6">
-              ask me about <span className="text-black dark:text-white">Andrey</span>
+              ask me about <span className="text-black dark:text-white">{(config as Record<string, unknown>).firstName as string || config.name.split(' ')[0]}</span>
             </h1>
             <div className="w-full max-w-3xl px-4">
               <ChatInput onSend={sendMessage} disabled={isLoading} animatePlaceholder />
               <p className="text-[10px] text-center text-gray-400 dark:text-gray-600 mt-2">
-                Andrey's portfolio agent ·{' '}
-                <a
-                  href="https://github.com/rollacode"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-gray-300 transition-colors"
-                >
-                  GitHub
-                </a>
+                {(config as Record<string, unknown>).firstName as string || config.name.split(' ')[0]}&apos;s portfolio agent
+                {config.social?.github && (
+                  <>
+                    {' · '}
+                    <a
+                      href={config.social.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-gray-300 transition-colors"
+                    >
+                      GitHub
+                    </a>
+                  </>
+                )}
               </p>
             </div>
           </motion.div>
@@ -386,15 +391,7 @@ export default function Chat() {
             <div className={`mx-auto px-4 pb-4 pt-2 pointer-events-auto ${layout === 'split' ? 'max-w-[500px]' : 'max-w-3xl'}`}>
               <ChatInput onSend={sendMessage} disabled={isLoading} />
               <p className="text-[10px] text-center text-gray-400 dark:text-gray-600 mt-2">
-                Andrey's portfolio agent ·{' '}
-                <a
-                  href="https://github.com/rollacode"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-gray-300 transition-colors"
-                >
-                  GitHub
-                </a>
+                AI-powered portfolio agent
               </p>
             </div>
           </div>

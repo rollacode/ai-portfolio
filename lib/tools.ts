@@ -20,7 +20,8 @@ export type ToolName =
   | 'highlight_project_detail'
   | 'compare_projects'
   | 'scroll_to_project'
-  | 'highlight_project';
+  | 'highlight_project'
+  | 'remember_visitor';
 
 export interface ToolCall {
   name: ToolName;
@@ -153,6 +154,47 @@ export const tools: ToolDefinition[] = [
       parameters: {
         type: 'object',
         properties: {},
+      },
+    },
+  },
+
+  // ---------------------------------------------------------------------------
+  // Layer 3 — Data tools (side-effects, no UI)
+  // ---------------------------------------------------------------------------
+  {
+    type: 'function',
+    function: {
+      name: 'remember_visitor',
+      description:
+        'Save visitor info when they share their name, company, role, or contact details. Call this EVERY TIME the visitor reveals personal info — name, company, position, email, etc. You can call it multiple times as you learn more. The data is appended, not overwritten.',
+      parameters: {
+        type: 'object',
+        properties: {
+          name: {
+            type: 'string',
+            description: 'Visitor name (e.g. "Ivan", "Sarah Chen")',
+          },
+          company: {
+            type: 'string',
+            description: 'Company or organization name',
+          },
+          role: {
+            type: 'string',
+            description: 'Job title or role (e.g. "CTO", "recruiter", "developer")',
+          },
+          interest: {
+            type: 'string',
+            description: 'What they are interested in or looking for (e.g. "hiring iOS dev", "collaboration", "curious about CV projects")',
+          },
+          contact: {
+            type: 'string',
+            description: 'Email, Telegram, or any contact info they share',
+          },
+          notes: {
+            type: 'string',
+            description: 'Any other relevant info about the visitor',
+          },
+        },
       },
     },
   },
