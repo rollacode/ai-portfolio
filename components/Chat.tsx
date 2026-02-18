@@ -9,6 +9,7 @@ import ContentPanel from './ContentPanel';
 import { parseStream } from '@/lib/stream-parser';
 import { handleToolCall, type PanelState, type PanelAction } from '@/lib/tool-handler';
 import { ActionQueue } from '@/lib/action-queue';
+import { saveMessages, loadMessages, savePanelState, loadPanelState, clearAll } from '@/lib/chat-store';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import config from '@/data/config.json';
 
@@ -86,6 +87,42 @@ export default function Chat() {
   useEffect(() => { scrollToBottom(); }, [messages, scrollToBottom]);
 
   // ---------------------------------------------------------------------------
+  // IndexedDB persistence
+  // ---------------------------------------------------------------------------
+
+  useEffect(() => {
+    loadMessages().then((saved) => {
+      if (saved.length > 0) setMessages(saved);
+    });
+    loadPanelState().then((saved) => {
+      if (saved) setPanelState(saved as PanelState);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (messages.length > 0) saveMessages(messages);
+  }, [messages]);
+
+  useEffect(() => {
+    savePanelState(panelState);
+  }, [panelState]);
+
+  // ---------------------------------------------------------------------------
+  // Clear chat (via custom event)
+  // ---------------------------------------------------------------------------
+
+  useEffect(() => {
+    const handleClear = () => {
+      clearAll();
+      setMessages([]);
+      setPanelState(DEFAULT_PANEL_STATE);
+      actionQueue.clear();
+    };
+    window.addEventListener('clear-chat', handleClear);
+    return () => window.removeEventListener('clear-chat', handleClear);
+  }, [actionQueue]);
+
+  // ---------------------------------------------------------------------------
   // Panel callbacks
   // ---------------------------------------------------------------------------
 
@@ -130,7 +167,19 @@ export default function Chat() {
         return updated;
       });
       const result = handleToolCall(name, args);
-      if (result.panelState) setPanelState((p) => ({ ...p, ...result.panelState }));
+      if (result.panelState) {
+        // When switching panel type, reset action queue so queued actions
+        // from the old panel don't fire on the new one
+        setPanelState((prev) => {
+          const next = { ...prev, ...result.panelState };
+          if (next.type !== prev.type && prev.open && next.open) {
+            // Panel type is changing while staying open — reset queue
+            actionQueue.clear();
+            actionQueue.setPanelReady(false);
+          }
+          return next;
+        });
+      }
       if (result.action) actionQueue.enqueue(result.action);
     },
     [actionQueue],
@@ -285,7 +334,15 @@ export default function Chat() {
             <div className="w-full max-w-3xl px-4">
               <ChatInput onSend={sendMessage} disabled={isLoading} animatePlaceholder />
               <p className="text-[10px] text-center text-gray-400 dark:text-gray-600 mt-2">
-                AI-powered portfolio agent
+                Andrey's portfolio agent ·{' '}
+                <a
+                  href="https://github.com/rollacode"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-gray-300 transition-colors"
+                >
+                  GitHub
+                </a>
               </p>
             </div>
           </motion.div>
@@ -297,10 +354,9 @@ export default function Chat() {
       {/* ================================================================== */}
       {layout !== 'welcome' && (
         <>
-          <motion.div
-            animate={{ marginLeft: layout === 'split' ? PANEL_WIDTH : '0px' }}
-            transition={SPRING}
-            className="flex flex-col h-screen"
+          <div
+            className="flex flex-col h-screen transition-all duration-300 ease-out"
+            style={layout === 'split' ? { marginLeft: 'calc(100vw - 500px)' } : undefined}
           >
             <div className="flex-1 overflow-y-auto pb-32 pt-6">
               <div className={`mx-auto px-4 space-y-4 ${layout === 'split' ? 'max-w-[500px]' : 'max-w-3xl'}`}>
@@ -322,19 +378,25 @@ export default function Chat() {
                 <div ref={messagesEndRef} />
               </div>
             </div>
-          </motion.div>
+          </div>
 
-          <div className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none">
-            <motion.div
-              animate={{ marginLeft: layout === 'split' ? PANEL_WIDTH : '0px' }}
-              transition={SPRING}
-              className={`mx-auto px-4 pb-4 pt-2 pointer-events-auto ${layout === 'split' ? 'max-w-[500px]' : 'max-w-3xl'}`}
-            >
+          <div className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none"
+               style={layout === 'split' ? { paddingLeft: 'calc(100vw - 500px)' } : undefined}
+          >
+            <div className={`mx-auto px-4 pb-4 pt-2 pointer-events-auto ${layout === 'split' ? 'max-w-[500px]' : 'max-w-3xl'}`}>
               <ChatInput onSend={sendMessage} disabled={isLoading} />
               <p className="text-[10px] text-center text-gray-400 dark:text-gray-600 mt-2">
-                AI-powered portfolio agent
+                Andrey's portfolio agent ·{' '}
+                <a
+                  href="https://github.com/rollacode"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-gray-300 transition-colors"
+                >
+                  GitHub
+                </a>
               </p>
-            </motion.div>
+            </div>
           </div>
         </>
       )}
