@@ -7,6 +7,7 @@
 
 export type ToolName =
   | 'show_project'
+  | 'show_projects'
   | 'show_skills'
   | 'show_contact'
   | 'show_timeline'
@@ -17,7 +18,9 @@ export type ToolName =
   | 'focus_screenshot'
   | 'highlight_skill'
   | 'highlight_project_detail'
-  | 'compare_projects';
+  | 'compare_projects'
+  | 'scroll_to_project'
+  | 'highlight_project';
 
 export interface ToolCall {
   name: ToolName;
@@ -66,6 +69,18 @@ export const tools: ToolDefinition[] = [
           },
         },
         required: ['slug'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'show_projects',
+      description:
+        'Open the projects timeline panel showing ALL projects as a scrollable vertical timeline. Use when the user asks to see all projects, multiple projects, or wants an overview of the portfolio. Prefer this over show_project when showing more than one project.',
+      parameters: {
+        type: 'object',
+        properties: {},
       },
     },
   },
@@ -270,6 +285,42 @@ export const tools: ToolDefinition[] = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'scroll_to_project',
+      description:
+        'Smooth-scroll the projects timeline to a specific project. Only works when the projects timeline panel is already open. Use when narrating through projects sequentially.',
+      parameters: {
+        type: 'object',
+        properties: {
+          slug: {
+            type: 'string',
+            description: 'Project slug to scroll to',
+          },
+        },
+        required: ['slug'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'highlight_project',
+      description:
+        'Highlight a specific project in the projects timeline with a visual pulse. Projects timeline must be open. Use when mentioning a project while the timeline is showing all projects.',
+      parameters: {
+        type: 'object',
+        properties: {
+          slug: {
+            type: 'string',
+            description: 'Project slug to highlight',
+          },
+        },
+        required: ['slug'],
+      },
+    },
+  },
 ];
 
 // -----------------------------------------------------------------------------
@@ -327,6 +378,8 @@ export function getToolsWithContext(
 
       case 'highlight_project_detail':
       case 'compare_projects':
+      case 'scroll_to_project':
+      case 'highlight_project':
         t.function.description += ` Available project slugs: [${slugList}].`;
         if (t.function.parameters.properties.slug) {
           t.function.parameters.properties.slug.enum = projectSlugs;

@@ -9,6 +9,7 @@ import type { HighlightField } from './ProjectCard';
 import SkillsGrid from './SkillsGrid';
 import ContactCard from './ContactCard';
 import Timeline from './Timeline';
+import ProjectsTimeline from './ProjectsTimeline';
 import Gallery from './Gallery';
 
 /* ------------------------------------------------------------------ */
@@ -31,6 +32,8 @@ function panelTitle(type: PanelState['type']): string {
   switch (type) {
     case 'project':
       return 'Project';
+    case 'projects':
+      return 'Projects';
     case 'skills':
       return 'Skills';
     case 'contact':
@@ -82,6 +85,17 @@ export default function ContentPanel({
       (currentAction.type === 'scroll_timeline_to' || currentAction.type === 'highlight_period')
     ) {
       return currentAction as { type: 'scroll_timeline_to'; company: string } | { type: 'highlight_period'; company: string; years?: string };
+    }
+    return null;
+  }, [currentAction, type]);
+
+  const projectsTimelineAction = useMemo(() => {
+    if (!currentAction) return null;
+    if (
+      type === 'projects' &&
+      (currentAction.type === 'scroll_to_project' || currentAction.type === 'highlight_project')
+    ) {
+      return currentAction as { type: 'scroll_to_project'; slug: string } | { type: 'highlight_project'; slug: string };
     }
     return null;
   }, [currentAction, type]);
@@ -140,6 +154,14 @@ export default function ContentPanel({
             highlightField={projectHighlightField}
           />
         ) : null;
+
+      case 'projects':
+        return (
+          <ProjectsTimeline
+            currentAction={projectsTimelineAction}
+            onActionConsumed={onActionConsumed}
+          />
+        );
 
       case 'skills':
         return (

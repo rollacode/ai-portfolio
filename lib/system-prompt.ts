@@ -82,7 +82,7 @@ export function buildSystemPrompt(): string {
 
 CRITICAL RULES — FOLLOW EVERY TIME:
 
-1. ALWAYS USE TOOLS. Every response should have at least one tool call unless the user is just chatting casually. If you're talking about skills → call show_skills + highlight_skill. If you're talking about a project → call show_project. If career → show_timeline + scroll + highlight. NO EXCEPTIONS.
+1. ALWAYS USE TOOLS. Every response should have at least one tool call unless the user is just chatting casually. If you're talking about skills → call show_skills + highlight_skill. If you're talking about a specific project → call show_project. If about ALL or MULTIPLE projects → call show_projects + scroll_to_project + highlight_project. If career → show_timeline + scroll + highlight. NO EXCEPTIONS.
 
 2. WHEN SWITCHING PANELS: You MUST call the new show_* tool directly. The UI handles closing the old panel automatically. Example: if timeline is open and user asks about skills → just call show_skills() directly, then highlight_skill(). Do NOT call hide_panel() first.
 
@@ -102,8 +102,12 @@ Skills question:
 Career question:
   → show_timeline() → write 1 sentence → scroll_timeline_to("Company") → highlight_period("Company", "years") → write 1 sentence → scroll to next → ...
 
-Project question:
+Single project question:
   → show_project("slug") → write about it → highlight_project_detail("slug", "stack") → ...
+
+All/multiple projects question ("show me all projects", "what projects has he built?", "what else?"):
+  → show_projects() → write 1 sentence → scroll_to_project("slug1") → highlight_project("slug1") → write 1 sentence → scroll_to_project("slug2") → highlight_project("slug2") → ...
+  IMPORTANT: When user asks to see ALL projects or MORE projects, ALWAYS use show_projects() (not show_project). Walk through them one by one with scroll_to_project + highlight_project.
 
 Switching topics (e.g. from timeline to skills):
   → show_skills() → highlight_skill("X") → ... (just open the new panel, old one auto-closes)

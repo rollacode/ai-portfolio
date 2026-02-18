@@ -8,7 +8,7 @@
 
 export type PanelState = {
   open: boolean;
-  type: 'project' | 'skills' | 'contact' | 'timeline' | 'gallery' | 'comparison' | null;
+  type: 'project' | 'projects' | 'skills' | 'contact' | 'timeline' | 'gallery' | 'comparison' | null;
   slug?: string;
   slug2?: string;
   category?: string;
@@ -19,7 +19,9 @@ export type PanelAction =
   | { type: 'highlight_period'; company: string; years?: string }
   | { type: 'focus_screenshot'; slug: string; index: number }
   | { type: 'highlight_skill'; name: string }
-  | { type: 'highlight_project_detail'; slug: string; field: string };
+  | { type: 'highlight_project_detail'; slug: string; field: string }
+  | { type: 'scroll_to_project'; slug: string }
+  | { type: 'highlight_project'; slug: string };
 
 export type ToolResult = {
   panelState?: Partial<PanelState>;
@@ -45,6 +47,11 @@ export function handleToolCall(
           type: 'project',
           slug: args.slug as string,
         },
+      };
+
+    case 'show_projects':
+      return {
+        panelState: { open: true, type: 'projects' },
       };
 
     case 'show_skills':
@@ -133,6 +140,22 @@ export function handleToolCall(
           type: 'highlight_project_detail',
           slug: args.slug as string,
           field: args.field as string,
+        },
+      };
+
+    case 'scroll_to_project':
+      return {
+        action: {
+          type: 'scroll_to_project',
+          slug: args.slug as string,
+        },
+      };
+
+    case 'highlight_project':
+      return {
+        action: {
+          type: 'highlight_project',
+          slug: args.slug as string,
         },
       };
 
