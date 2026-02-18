@@ -1,0 +1,151 @@
+[
+  {
+    "slug": "trax-retail",
+    "name": "Trax Retail - Shelf Recognition",
+    "stack": ["Swift", "Python", "Django", "OpenCV", "Spark", "Pinecone", "Firebase"],
+    "period": "Jul 2022 - Aug 2023",
+    "screenshots": ["trax-retail/application.png"],
+    "description": "Computer vision solution for shelf recognition and retail analytics. Built internal SDK architecture for shelf recognition features.",
+    "highlights": [
+      "Advanced computer vision for shelf image analysis",
+      "Real-time mobile reports for retailers",
+      "Vector embeddings with Pinecone",
+      "Internal SDK architecture design"
+    ],
+    "links": {
+      "appStore": "https://apps.apple.com/ru/app/trax-retail/id1092946346"
+    }
+  },
+  {
+    "slug": "scan-mania",
+    "name": "Scan Mania - AR Shopping",
+    "stack": ["Swift", "SwiftUI", "ARKit", "MLKit", "Unity3D", "FastAPI", "ASP.NET"],
+    "period": "Oct 2020 - Oct 2022",
+    "screenshots": ["scan-mania/game-screen.png", "scan-mania/challenges.png", "scan-mania/challenge-completed.png"],
+    "description": "AR rewards app where users earn 'kicks' by scanning barcodes on shelves. Integrated with Shopkick.",
+    "highlights": [
+      "Augmented Reality barcode scanning",
+      "3D product visualization on shelves",
+      "MLKit barcode recognition",
+      "Gamified retail experience"
+    ],
+    "links": {
+      "appStore": "https://apps.apple.com/il/app/scan-mania/id1540764114"
+    }
+  },
+  {
+    "slug": "sos-portal",
+    "name": "SOS Portal - COVID-19 Teleconsultation",
+    "stack": ["ASP.NET", "React Native", "Binah", "REST APIs"],
+    "period": "Mar 2020 - Oct 2020",
+    "screenshots": ["sos-portal/main-screen.png", "sos-portal/incoming-call.png", "sos-portal/medical-card.png"],
+    "description": "Teleconsultation platform for COVID-19 patient management in Brazil. Led team of 17 people.",
+    "highlights": [
+      "Video-based teleconsultations",
+      "Deployed for Brazilian healthcare system",
+      "Team of 17 (DevOps, mobile, web, backend, design, QA)",
+      "Delivered in 6 months during pandemic"
+    ],
+    "links": {
+      "playStore": "https://play.google.com/store/apps/details?id=com.ptm.sosportal"
+    }
+  },
+  {
+    "slug": "bugsee",
+    "name": "Bugsee - Developer Insights SDK",
+    "stack": ["C", "C++", "Objective-C", "JavaScript", "CocoaPods", "SwiftPackages"],
+    "period": "Jan 2016 - Jan 2020",
+    "screenshots": ["bugsee/timeline.png", "bugsee/analytics.png"],
+    "description": "Bug reporting SDK capturing video, network logs, and console output for mobile debugging.",
+    "highlights": [
+      "Automatic video capture of last minute",
+      "Network traffic interceptor",
+      "Custom memory zone for crash report invisibility",
+      "Single line integration"
+    ],
+    "links": {
+      "website": "https://www.bugsee.com"
+    }
+  },
+  {
+    "slug": "minnow",
+    "name": "Minnow - Streaming Aggregator",
+    "stack": ["Swift", "iOS", "tvOS", "C#", "ASP.NET", "Firebase", "CocoaPods"],
+    "period": "Dec 2019 - Feb 2020",
+    "screenshots": ["minnow/search-ios.png", "minnow/main-page-tvos.png", "minnow/user-page-tvos.png"],
+    "description": "Unified streaming aggregator combining Netflix, Disney+, Prime Video, and HBO. Alternative to Trakt.tv.",
+    "highlights": [
+      "Multi-platform (iPhone, iPad, Apple TV)",
+      "Code-sharing between iOS and tvOS",
+      "Backend development experience",
+      "Cross-service discovery"
+    ],
+    "links": {
+      "website": "https://minnowtv.com"
+    }
+  },
+  {
+    "slug": "thinkup",
+    "name": "ThinkUp - Self-Improvement App",
+    "stack": ["Swift", "Interface Builder", "iOS Frameworks", "Unit Testing"],
+    "period": "Jan 2020 - Mar 2020",
+    "screenshots": ["thinkup/dark-theme.png", "thinkup/light-theme.png", "thinkup/music.png"],
+    "description": "Self-improvement app for building positive mindset through personalized affirmations.",
+    "highlights": [
+      "Dark/light theme support",
+      "Published on App Store",
+      "Audio affirmations",
+      "User-friendly iOS UI"
+    ],
+    "links": {
+      "appStore": "https://apps.apple.com/us/app/thinkup-positive-affirmations/id906660772"
+    }
+  },
+  {
+    "slug": "dishero",
+    "name": "Dishero - Restaurant Discovery",
+    "stack": ["Objective-C", "CoreData", "REST APIs"],
+    "period": "May 2015 - May 2017",
+    "screenshots": ["dishero/lineup.jpg"],
+    "description": "San Francisco restaurant discovery app with dish-centric recommendations and complex filtering.",
+    "highlights": [
+      "Dish-centric discovery (not just restaurants)",
+      "User-specific recommendations",
+      "Complex data filters",
+      "CoreData implementation"
+    ],
+    "links": {
+      "appStore": "https://itunes.apple.com/us/app/dishero/id860283032"
+    }
+  },
+  {
+    "slug": "binaura",
+    "name": "Binaura / SoundCalm - Sleep & Sound App",
+    "stack": ["Swift", "SwiftUI", "StoreKit 2", "CloudKit", "Combine"],
+    "period": "2019 - Present",
+    "screenshots": [],
+    "description": "iOS app for sleep improvement and sound therapy. Revenue-generating independent project (~$50k/year).",
+    "highlights": [
+      "Real revenue: ~$50k/year",
+      "Subscription model via Adapty",
+      "App Store featured",
+      "Team of 3 (dev, designer, backend)"
+    ],
+    "links": {}
+  },
+  {
+    "slug": "cops-inc",
+    "name": "Cops Inc. - Mobile Idle Game",
+    "stack": ["Unity3D", "C#"],
+    "period": "Jun 2021 - Jun 2024",
+    "screenshots": ["cops-inc/alpha-test.jpg"],
+    "description": "Co-founded game development company. Idle/tycoon mobile game with ex-Rovio designers.",
+    "highlights": [
+      "Game company co-founder",
+      "Unity3D development",
+      "Team with ex-Rovio designers",
+      "Development paused"
+    ],
+    "links": {}
+  }
+]

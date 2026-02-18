@@ -1,0 +1,45 @@
+{
+  "primary": [
+    { "name": "Swift / iOS", "years": 11, "level": "expert" },
+    { "name": "React / TypeScript", "years": 5, "level": "expert" },
+    { "name": "Python / FastAPI", "years": 4, "level": "expert" },
+    { "name": "System Architecture", "years": 8, "level": "expert" }
+  ],
+  "strong": [
+    { "name": "SwiftUI", "years": 3, "level": "professional" },
+    { "name": "Computer Vision / OpenCV", "years": 3, "level": "professional" },
+    { "name": "ARKit / SceneKit", "years": 2, "level": "professional" },
+    { "name": "Objective-C", "years": 5, "level": "professional" },
+    { "name": "Android / Kotlin", "years": 3, "level": "professional" },
+    { "name": "LLM Agents", "years": 1, "level": "professional" },
+    { "name": "Product Management", "years": 2, "level": "professional" }
+  ],
+  "ai": [
+    { "name": "Claude Code", "level": "expert" },
+    { "name": "OpenCode", "level": "professional" },
+    { "name": "Cursor / Windsurf", "level": "familiar" },
+    { "name": "AI Agent Orchestration", "level": "expert" },
+    { "name": "LangChain / LangGraph", "level": "professional" },
+    { "name": "LangFuse", "level": "professional" },
+    { "name": "Prompt Engineering", "level": "expert" },
+    { "name": "RAG & Vector Search", "level": "professional" },
+    { "name": "OpenAI / Anthropic APIs", "level": "expert" },
+    { "name": "Whisper (OpenAI)", "level": "professional" },
+    { "name": "ElevenLabs", "level": "professional" },
+    { "name": "MCP Protocol", "level": "familiar" },
+    { "name": "SearXNG", "level": "professional" },
+    { "name": "Supabase + Edge Functions", "level": "professional" },
+    { "name": "FastAPI + Dramatiq", "level": "professional" },
+    { "name": "Knowledge Graphs", "level": "professional" },
+    { "name": "Vibe Coding", "level": "expert" }
+  ],
+  "working": [
+    { "name": "Unity3D / C#", "level": "familiar" },
+    { "name": "Unreal Engine / C++", "level": "familiar" },
+    { "name": "Spring Boot / Java", "level": "familiar" },
+    { "name": "WebRTC", "level": "familiar" },
+    { "name": "Docker / DevOps", "level": "familiar" },
+    { "name": "Home Assistant", "level": "familiar" },
+    { "name": "PostgreSQL", "level": "familiar" }
+  ]
+}

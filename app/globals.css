@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #fafafa;
+  --foreground: #1e293b;
+  --surface: #ffffff;
+  --accent: #0ea5e9;
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #e2e8f0;
+  --surface: #111827;
+  --accent: #0ea5e9;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Smooth theme transitions                                           */
+/* ------------------------------------------------------------------ */
+
+*,
+*::before,
+*::after {
+  transition-property: background-color, color, border-color, fill, stroke;
+  transition-duration: 200ms;
+  transition-timing-function: ease;
+}
+
+/* Opt out elements where the transition causes issues (e.g. animations) */
+[data-no-theme-transition],
+[data-no-theme-transition] *,
+.motion-reduce * {
+  transition-property: none !important;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Animated gradient shimmer for welcome name                         */
+/* ------------------------------------------------------------------ */
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient-text {
+  background-size: 200% auto;
+  animation: gradient-shift 3s ease infinite;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
