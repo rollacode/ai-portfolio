@@ -119,10 +119,25 @@
     }
   },
   {
+    "slug": "performica",
+    "name": "Performica - OrgGraph Network Analysis",
+    "stack": ["Product Strategy", "Team Leadership", "Data Analysis", "Stakeholder Management"],
+    "period": "Sep 2023 - Jun 2025",
+    "screenshots": [],
+    "description": "Product Manager role. Led product development of OrgGraph — an organizational network analysis platform mapping relationships and influence across companies. Managed a team of 8 engineers. Performica was later acquired by REKAP.",
+    "highlights": [
+      "Product management of OrgGraph platform",
+      "Team of 8 engineers",
+      "Organizational network analysis and relationship mapping",
+      "Company acquired by REKAP, team transitioned together"
+    ],
+    "links": {}
+  },
+  {
     "slug": "rekap",
     "name": "REKAP - AI Chief of Staff",
     "stack": ["React", "TypeScript", "Python", "Django", "LangChain", "LangGraph", "LiteLLM", "LiveKit", "PostgreSQL", "Redis", "Celery"],
-    "period": "May 2025 - Present",
+    "period": "Feb 2025 - Present",
     "screenshots": [],
     "description": "AI-powered platform that helps teams work smarter through automated meeting intelligence, voice agents, relationship mapping, and action item tracking. Full-stack development with focus on AI agent pipelines.",
     "highlights": [
@@ -138,7 +153,7 @@
     "slug": "binaura",
     "name": "Binaura / SoundCalm - Sleep & Sound App",
     "stack": ["Swift", "SwiftUI", "StoreKit 2", "CloudKit", "Combine", "Firebase", "Next.js", "Python"],
-    "period": "2019 - Present",
+    "period": "Sep 2025 - Present",
     "screenshots": [],
     "description": "Founder project: iOS app for sleep improvement and sound therapy. Multi-platform ecosystem with native iOS app (Live Activities, widgets), web app, Firebase backend, and a Python analytics pipeline processing ~8k data points.",
     "highlights": [
