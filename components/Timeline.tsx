@@ -61,7 +61,7 @@ function TimelineDot({ isActive, isHighlighted }: { isActive: boolean; isHighlig
       <AnimatePresence>
         {isHighlighted && (
           <motion.div
-            className="absolute w-8 h-8 rounded-full border-2 border-sky-400"
+            className="absolute w-8 h-8 rounded-full border-2 border-lime-400"
             initial={{ scale: 0.5, opacity: 1 }}
             animate={{ scale: [1, 1.8, 1], opacity: [0.8, 0, 0.8] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
@@ -72,7 +72,7 @@ function TimelineDot({ isActive, isHighlighted }: { isActive: boolean; isHighlig
       {/* Glow behind the dot */}
       {(isActive || isHighlighted) && (
         <motion.div
-          className="absolute w-5 h-5 rounded-full bg-sky-500/40 blur-sm"
+          className="absolute w-5 h-5 rounded-full bg-lime-500/40 blur-sm"
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ duration: 0.3 }}
@@ -83,9 +83,9 @@ function TimelineDot({ isActive, isHighlighted }: { isActive: boolean; isHighlig
       <motion.div
         className={`relative z-10 w-3.5 h-3.5 rounded-full border-2 transition-colors duration-300 ${
           isHighlighted
-            ? 'bg-sky-400 border-sky-400 shadow-[0_0_12px_rgba(56,189,248,0.6)]'
+            ? 'bg-lime-400 border-lime-400 shadow-[0_0_12px_rgba(132,204,22,0.6)]'
             : isActive
-              ? 'bg-sky-500 border-sky-500'
+              ? 'bg-lime-500 border-lime-500'
               : 'bg-gray-700 border-gray-600 dark:bg-gray-600 dark:border-gray-500'
         }`}
         animate={isHighlighted ? { scale: [1, 1.2, 1] } : { scale: 1 }}
@@ -127,7 +127,7 @@ function TimelineCard({
         }
         border
         ${isHighlighted
-          ? 'border-sky-500/60 shadow-[0_0_24px_rgba(14,165,233,0.25)]'
+          ? 'border-lime-500/60 shadow-[0_0_24px_rgba(132,204,22,0.2)]'
           : 'border-gray-200 dark:border-gray-700/50 hover:border-gray-300 dark:hover:border-gray-600'
         }
       `}
@@ -136,7 +136,7 @@ function TimelineCard({
       <AnimatePresence>
         {isHighlighted && (
           <motion.div
-            className="absolute inset-0 rounded-xl border-2 border-sky-400/50 pointer-events-none"
+            className="absolute inset-0 rounded-xl border-2 border-lime-400/50 pointer-events-none"
             initial={{ opacity: 0 }}
             animate={{ opacity: [0, 1, 0] }}
             transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
@@ -151,7 +151,7 @@ function TimelineCard({
             <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
               {entry.company}
             </h3>
-            <p className="text-sm font-medium text-sky-600 dark:text-sky-400 mt-0.5">
+            <p className="text-sm font-medium text-lime-600 dark:text-lime-400 mt-0.5">
               {entry.role}
             </p>
           </div>
@@ -180,7 +180,7 @@ function TimelineCard({
                 key={item}
                 className="flex items-start text-sm text-gray-600 dark:text-gray-400"
               >
-                <span className="mr-2 mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-sky-500/70" />
+                <span className="mr-2 mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-lime-500/70" />
                 <span>{item}</span>
               </li>
             ))}
@@ -194,7 +194,7 @@ function TimelineCard({
           {entry.stack.map((tech) => (
             <span
               key={tech}
-              className="rounded-full bg-sky-500/10 px-2.5 py-0.5 text-xs font-medium text-sky-600 dark:text-sky-400"
+              className="rounded-full bg-lime-500/10 px-2.5 py-0.5 text-xs font-medium text-lime-600 dark:text-lime-400"
             >
               {tech}
             </span>
@@ -293,7 +293,7 @@ export default function Timeline({ currentAction, onActionConsumed }: TimelinePr
         className="mb-8"
       >
         <div className="flex items-center gap-3">
-          <h2 className="text-lg font-semibold text-sky-500 whitespace-nowrap">
+          <h2 className="text-lg font-semibold text-lime-500 whitespace-nowrap">
             Career Timeline
           </h2>
           <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
@@ -308,10 +308,10 @@ export default function Timeline({ currentAction, onActionConsumed }: TimelinePr
         {/* The vertical timeline line */}
         <div className="absolute left-[7px] top-0 bottom-0 w-0.5">
           {/* Base line */}
-          <div className="absolute inset-0 bg-gradient-to-b from-sky-500/50 via-sky-500/20 to-gray-600/20 dark:from-sky-500/40 dark:via-sky-500/15 dark:to-gray-700/20 rounded-full" />
+          <div className="absolute inset-0 bg-gradient-to-b from-lime-500/50 via-lime-500/20 to-gray-600/20 dark:from-lime-500/40 dark:via-lime-500/15 dark:to-gray-700/20 rounded-full" />
           {/* Glow overlay */}
           <motion.div
-            className="absolute inset-0 bg-gradient-to-b from-sky-400/30 to-transparent rounded-full blur-[2px]"
+            className="absolute inset-0 bg-gradient-to-b from-lime-400/30 to-transparent rounded-full blur-[2px]"
             animate={{ opacity: [0.3, 0.7, 0.3] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
           />

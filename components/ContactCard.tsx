@@ -129,9 +129,9 @@ export default function ContactCard() {
               <button
                 key={key}
                 onClick={handleCopyEmail}
-                className="group flex items-center gap-3 w-full text-left text-sm text-gray-700 dark:text-gray-300 hover:text-sky-500 dark:hover:text-sky-400 transition-colors"
+                className="group flex items-center gap-3 w-full text-left text-sm text-gray-700 dark:text-gray-300 hover:text-lime-500 dark:hover:text-lime-400 transition-colors"
               >
-                <span className="flex-shrink-0 text-gray-400 dark:text-gray-500 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors">
+                <span className="flex-shrink-0 text-gray-400 dark:text-gray-500 group-hover:text-lime-500 dark:group-hover:text-lime-400 transition-colors">
                   <IconComponent />
                 </span>
                 <span className="truncate">{value}</span>
@@ -160,9 +160,9 @@ export default function ContactCard() {
               href={value}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300 hover:text-sky-500 dark:hover:text-sky-400 transition-colors"
+              className="group flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300 hover:text-lime-500 dark:hover:text-lime-400 transition-colors"
             >
-              <span className="flex-shrink-0 text-gray-400 dark:text-gray-500 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors">
+              <span className="flex-shrink-0 text-gray-400 dark:text-gray-500 group-hover:text-lime-500 dark:group-hover:text-lime-400 transition-colors">
                 <IconComponent />
               </span>
               <span className="truncate">{label}</span>

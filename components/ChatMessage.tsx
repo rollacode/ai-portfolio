@@ -43,7 +43,7 @@ export default function ChatMessage({ role, content, toolCalls, isError, onRetry
                           prose-code:text-gray-900 dark:prose-code:text-gray-100
                           prose-code:bg-gray-100 dark:prose-code:bg-gray-800
                           prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-sm
-                          prose-a:text-sky-500 hover:prose-a:text-sky-400 prose-a:no-underline
+                          prose-a:text-lime-500 hover:prose-a:text-lime-400 prose-a:no-underline
                           prose-li:my-0.5
                           text-gray-900 dark:text-gray-100">
             <ReactMarkdown>

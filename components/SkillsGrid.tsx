@@ -104,7 +104,7 @@ export default function SkillsGrid({
             >
               {/* Category header */}
               <div className="flex items-center gap-3 mb-4">
-                <h3 className="text-lg font-semibold text-sky-500 whitespace-nowrap">
+                <h3 className="text-lg font-semibold text-lime-500 whitespace-nowrap">
                   {categoryLabels[cat]}
                 </h3>
                 <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
@@ -138,7 +138,7 @@ export default function SkillsGrid({
                         transition-all duration-300
                         ${
                           isHighlighted
-                            ? 'border-sky-500/60 shadow-[0_0_16px_rgba(14,165,233,0.3)]'
+                            ? 'border-lime-500/60 shadow-[0_0_16px_rgba(132,204,22,0.25)]'
                             : 'hover:border-gray-200 dark:hover:border-gray-700'
                         }
                       `}
@@ -146,7 +146,7 @@ export default function SkillsGrid({
                       {/* Pulse animation for highlighted skill */}
                       {isHighlighted && (
                         <motion.div
-                          className="absolute inset-0 rounded-xl border-2 border-sky-500/40"
+                          className="absolute inset-0 rounded-xl border-2 border-lime-500/40"
                           initial={{ opacity: 1 }}
                           animate={{ opacity: [1, 0.3, 1] }}
                           transition={{

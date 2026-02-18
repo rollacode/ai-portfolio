@@ -169,7 +169,7 @@ export default function Gallery({
             exit={{ opacity: 0, scale: 0.92 }}
             transition={{ duration: 0.25, ease: 'easeOut' }}
             className={`relative w-full max-w-3xl h-full rounded-xl overflow-hidden
-                       ${glowing ? 'ring-2 ring-sky-400 shadow-[0_0_32px_rgba(56,189,248,0.5)]' : ''}`}
+                       ${glowing ? 'ring-2 ring-lime-400 shadow-[0_0_32px_rgba(132,204,22,0.5)]' : ''}`}
           >
             <Image
               src={currentSrc}
@@ -220,7 +220,7 @@ export default function Gallery({
                   className={`relative flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden
                              transition-all duration-200 border-2
                              ${isActive
-                               ? 'border-sky-400 shadow-[0_0_12px_rgba(56,189,248,0.4)]'
+                               ? 'border-lime-400 shadow-[0_0_12px_rgba(132,204,22,0.4)]'
                                : 'border-transparent opacity-60 hover:opacity-100'
                              }`}
                   aria-label={`Screenshot ${idx + 1}`}
