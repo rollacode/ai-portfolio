@@ -199,9 +199,21 @@ export const tools: ToolDefinition[] = [
             type: 'string',
             description: 'What they are interested in or looking for (e.g. "hiring iOS dev", "collaboration", "curious about CV projects")',
           },
-          contact: {
+          email: {
             type: 'string',
-            description: 'Email, Telegram, or any contact info they share',
+            description: 'Email address (e.g. "dolev@gmail.com")',
+          },
+          telegram: {
+            type: 'string',
+            description: 'Telegram username (e.g. "@dolev" or "dolev")',
+          },
+          phone: {
+            type: 'string',
+            description: 'Phone number (e.g. "+972 52-1234567")',
+          },
+          linkedin: {
+            type: 'string',
+            description: 'LinkedIn profile URL or username',
           },
           notes: {
             type: 'string',

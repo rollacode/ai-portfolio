@@ -126,6 +126,49 @@ describe('POST /api/visitor', () => {
   });
 
   // -----------------------------------------------------------------------
+  // 2b. Contact fields overwrite; notes append
+  // -----------------------------------------------------------------------
+
+  it('overwrites contact fields and appends notes on merge', async () => {
+    const visitorId = 'visitor-append-test';
+
+    let savedData = '[]';
+    vi.mocked(fs.writeFileSync).mockImplementation((_path, data) => {
+      savedData = data as string;
+    });
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+    vi.mocked(fs.readFileSync).mockImplementation(() => savedData);
+
+    const { POST } = await import('../app/api/visitor/route');
+
+    // First call — creates entry with name and telegram
+    await POST(postRequest({ visitorId, name: 'Dolev', telegram: '@dolev' }));
+
+    // Second call — adds email and phone (contact fields overwrite, not append)
+    const res2 = await POST(
+      postRequest({ visitorId, email: 'dolev@gmail.com', phone: '+972 521234567' }),
+    );
+    expect((await res2.json()).merged).toBe(true);
+
+    // All three contact fields should exist on the merged record
+    const afterContacts = JSON.parse(savedData);
+    expect(afterContacts).toHaveLength(1);
+    expect(afterContacts[0].telegram).toBe('@dolev');
+    expect(afterContacts[0].email).toBe('dolev@gmail.com');
+    expect(afterContacts[0].phone).toBe('+972 521234567');
+
+    // Third call — first note
+    await POST(postRequest({ visitorId, notes: 'worked at Trax' }));
+
+    // Fourth call — second note should be appended with `;` separator
+    await POST(postRequest({ visitorId, notes: 'interested in collaboration' }));
+
+    const finalData = JSON.parse(savedData);
+    expect(finalData).toHaveLength(1);
+    expect(finalData[0].notes).toBe('worked at Trax; interested in collaboration');
+  });
+
+  // -----------------------------------------------------------------------
   // 3. Filters empty fields — nothing to save
   // -----------------------------------------------------------------------
 

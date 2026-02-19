@@ -53,7 +53,10 @@ function friendlyLabel(name: string, args: Record<string, unknown>): string {
       if (args.company) parts.push(`you're from ${args.company}`);
       if (args.role) parts.push(`you're ${args.role}`);
       if (args.interest) parts.push(`interested in ${args.interest}`);
-      if (args.contact) parts.push(`contact: ${args.contact}`);
+      if (args.email) parts.push(`email: ${args.email}`);
+      if (args.telegram) parts.push(`telegram: ${args.telegram}`);
+      if (args.phone) parts.push(`phone: ${args.phone}`);
+      if (args.linkedin) parts.push(`linkedin: ${args.linkedin}`);
       if (args.notes) parts.push(String(args.notes));
       return parts.length ? `noted that ${parts.join(', ')}` : 'noted';
     }

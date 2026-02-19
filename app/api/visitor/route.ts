@@ -21,7 +21,10 @@ interface VisitorEntry {
   company?: string;
   role?: string;
   interest?: string;
-  contact?: string;
+  email?: string;
+  telegram?: string;
+  phone?: string;
+  linkedin?: string;
   notes?: string;
 }
 
@@ -81,7 +84,7 @@ export async function POST(request: NextRequest) {
 
     // Filter out empty/null fields
     const data: Partial<VisitorEntry> = {};
-    for (const key of ['name', 'company', 'role', 'interest', 'contact', 'notes'] as const) {
+    for (const key of ['name', 'company', 'role', 'interest', 'email', 'telegram', 'phone', 'linkedin', 'notes'] as const) {
       if (body[key] && typeof body[key] === 'string' && body[key].trim()) {
         data[key] = body[key].trim();
       }
@@ -109,10 +112,20 @@ export async function POST(request: NextRequest) {
     }
 
     if (existing) {
-      // Merge new fields into existing entry
+      // Merge new fields into existing entry — append for notes only
+      const appendKeys = new Set(['notes']);
       for (const [key, value] of Object.entries(data)) {
         if (value) {
-          (existing as unknown as Record<string, unknown>)[key] = value;
+          const rec = existing as unknown as Record<string, unknown>;
+          if (appendKeys.has(key) && rec[key] && typeof rec[key] === 'string') {
+            // Avoid duplicates: only append if the new value isn't already in the existing
+            const existing_val = rec[key] as string;
+            if (!existing_val.includes(value as string)) {
+              rec[key] = `${existing_val}; ${value}`;
+            }
+          } else {
+            rec[key] = value;
+          }
         }
       }
       if (visitorId && !existing.visitorId) {
