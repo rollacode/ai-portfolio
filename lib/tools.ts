@@ -12,6 +12,7 @@ export type ToolName =
   | 'show_contact'
   | 'show_timeline'
   | 'show_gallery'
+  | 'show_resume'
   | 'hide_panel'
   | 'scroll_timeline_to'
   | 'highlight_period'
@@ -142,6 +143,18 @@ export const tools: ToolDefinition[] = [
           },
         },
         required: ['slug'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'show_resume',
+      description:
+        'Open the resume/CV panel. Use when the user asks for a resume, CV, or wants to download it. The panel has PDF and Markdown download buttons built in.',
+      parameters: {
+        type: 'object',
+        properties: {},
       },
     },
   },

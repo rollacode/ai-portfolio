@@ -8,7 +8,7 @@
 
 export type PanelState = {
   open: boolean;
-  type: 'project' | 'projects' | 'skills' | 'contact' | 'timeline' | 'gallery' | 'comparison' | null;
+  type: 'project' | 'projects' | 'skills' | 'contact' | 'timeline' | 'gallery' | 'comparison' | 'resume' | null;
   slug?: string;
   slug2?: string;
   category?: string;
@@ -52,6 +52,11 @@ export function handleToolCall(
     case 'show_projects':
       return {
         panelState: { open: true, type: 'projects' },
+      };
+
+    case 'show_resume':
+      return {
+        panelState: { open: true, type: 'resume' },
       };
 
     case 'show_skills':

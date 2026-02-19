@@ -11,6 +11,7 @@ import ContactCard from './ContactCard';
 import Timeline from './Timeline';
 import ProjectsTimeline from './ProjectsTimeline';
 import Gallery from './Gallery';
+import ResumePanel from './ResumePanel';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -44,6 +45,8 @@ function panelTitle(type: PanelState['type']): string {
       return 'Gallery';
     case 'comparison':
       return 'Comparison';
+    case 'resume':
+      return 'Resume';
     default:
       return '';
   }
@@ -221,6 +224,9 @@ export default function ContentPanel({
             )}
           </div>
         );
+
+      case 'resume':
+        return <ResumePanel />;
 
       default:
         return null;

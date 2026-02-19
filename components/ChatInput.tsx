@@ -56,9 +56,10 @@ export default function ChatInput({ onSend, disabled, animatePlaceholder }: Chat
     : STATIC_PLACEHOLDER;
 
   return (
-    <div className="relative flex items-end gap-2 w-full px-3 py-3 bg-transparent
-                    border border-gray-300 dark:border-gray-600 rounded-2xl
-                    focus-within:border-gray-400 dark:focus-within:border-gray-400
+    <div className="relative flex items-end gap-2 w-full px-3 py-3
+                    bg-white/80 dark:bg-black/80 backdrop-blur-sm
+                    border border-gray-300 dark:border-neutral-700 rounded-2xl
+                    focus-within:border-gray-400 dark:focus-within:border-neutral-500
                     transition-all duration-200">
 
       {/* Animated placeholder overlay */}
