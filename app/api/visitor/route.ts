@@ -6,20 +6,16 @@ import path from 'path';
 // POST /api/visitor  — save visitor info (called by agent tool, no auth)
 // GET  /api/visitor  — read all visitors (protected by ADMIN_TOKEN)
 //
-// Appends visitor info to data/visitors.json.
-// Each entry is timestamped. Multiple calls for the same visitor are fine —
-// new fields are merged into the latest entry if the timestamp is within
-// 30 minutes, otherwise a new entry is created.
-//
-// GET usage:
-//   curl -H "Authorization: Bearer YOUR_TOKEN" https://your-site.com/api/visitor
-//   curl "https://your-site.com/api/visitor?token=YOUR_TOKEN"
+// Each visitor is identified by a visitorId (UUID generated on the client).
+// Multiple calls with the same visitorId merge fields into a single entry.
+// If no visitorId is provided, falls back to timestamp-based merge (30 min).
 // ---------------------------------------------------------------------------
 
 const VISITORS_PATH = path.join(process.cwd(), 'data', 'visitors.json');
-const MERGE_WINDOW_MS = 30 * 60 * 1000; // 30 minutes
+const MERGE_WINDOW_MS = 30 * 60 * 1000; // 30 minutes fallback
 
 interface VisitorEntry {
+  visitorId?: string;
   timestamp: string;
   name?: string;
   company?: string;
@@ -52,11 +48,9 @@ function checkToken(request: NextRequest): boolean {
   const token = process.env.ADMIN_TOKEN;
   if (!token) return false;
 
-  // Check Authorization: Bearer header
   const auth = request.headers.get('authorization');
   if (auth?.startsWith('Bearer ') && auth.slice(7) === token) return true;
 
-  // Check ?token= query param
   const param = request.nextUrl.searchParams.get('token');
   if (param === token) return true;
 
@@ -83,6 +77,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    const visitorId = body.visitorId as string | undefined;
 
     // Filter out empty/null fields
     const data: Partial<VisitorEntry> = {};
@@ -98,22 +93,39 @@ export async function POST(request: NextRequest) {
 
     const visitors = loadVisitors();
     const now = new Date();
-    const last = visitors[visitors.length - 1];
 
-    // Merge into last entry if within the merge window
-    if (last && (now.getTime() - new Date(last.timestamp).getTime()) < MERGE_WINDOW_MS) {
+    // Try to find existing entry by visitorId
+    let existing: VisitorEntry | undefined;
+    if (visitorId) {
+      existing = visitors.find((v) => v.visitorId === visitorId);
+    }
+
+    // Fallback: merge by timestamp if no visitorId match
+    if (!existing) {
+      const last = visitors[visitors.length - 1];
+      if (last && (now.getTime() - new Date(last.timestamp).getTime()) < MERGE_WINDOW_MS) {
+        existing = last;
+      }
+    }
+
+    if (existing) {
+      // Merge new fields into existing entry
       for (const [key, value] of Object.entries(data)) {
         if (value) {
-          (last as unknown as Record<string, unknown>)[key] = value;
+          (existing as unknown as Record<string, unknown>)[key] = value;
         }
       }
-      last.timestamp = now.toISOString();
+      if (visitorId && !existing.visitorId) {
+        existing.visitorId = visitorId;
+      }
+      existing.timestamp = now.toISOString();
       saveVisitors(visitors);
       return Response.json({ ok: true, merged: true });
     }
 
     // New entry
     visitors.push({
+      visitorId,
       timestamp: now.toISOString(),
       ...data,
     });

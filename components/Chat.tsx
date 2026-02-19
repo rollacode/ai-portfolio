@@ -365,20 +365,28 @@ export default function Chat() {
           >
             <div className="flex-1 overflow-y-auto pb-32 pt-6">
               <div className={`mx-auto px-4 space-y-4 ${layout === 'split' ? 'max-w-[500px]' : 'max-w-3xl'}`}>
-                {messages.map((msg, i) => (
-                  <ChatMessage
-                    key={i}
-                    role={msg.role}
-                    content={msg.content}
-                    toolCalls={msg.toolCalls}
-                    isError={msg.isError}
-                    onRetry={msg.isError ? handleRetry : undefined}
-                  />
-                ))}
-
-                {isLoading && messages[messages.length - 1]?.content === '' && (
-                  <TypingIndicator />
-                )}
+                {messages.map((msg, i) => {
+                  // Don't render empty assistant message while loading — TypingIndicator replaces it
+                  const isEmptyStreaming = isLoading && msg.role === 'assistant' && msg.content === '' && i === messages.length - 1;
+                  if (isEmptyStreaming) {
+                    return (
+                      <TypingIndicator
+                        key={i}
+                        currentTools={msg.toolCalls}
+                      />
+                    );
+                  }
+                  return (
+                    <ChatMessage
+                      key={i}
+                      role={msg.role}
+                      content={msg.content}
+                      toolCalls={msg.toolCalls}
+                      isError={msg.isError}
+                      onRetry={msg.isError ? handleRetry : undefined}
+                    />
+                  );
+                })}
 
                 <div ref={messagesEndRef} />
               </div>

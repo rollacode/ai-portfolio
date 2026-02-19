@@ -66,7 +66,7 @@ export default function ToolCallBadge({ toolCalls }: ToolCallBadgeProps) {
 
   return (
     <p className="mt-1.5 text-[11px] text-gray-400 dark:text-gray-600 italic">
-      {text}
+      I did: {text}
     </p>
   );
 }

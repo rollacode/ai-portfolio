@@ -2,15 +2,16 @@
   {
     "slug": "trax-retail",
     "name": "Trax Retail - Shelf Recognition",
-    "stack": ["Swift", "Python", "Django", "OpenCV", "Spark", "Pinecone", "Firebase"],
+    "stack": ["Swift", "Objective-C", "C++", "OpenCV", "Pinecone", "Python", "Django", "Spark", "Firebase"],
     "period": "Jul 2022 - Aug 2023",
     "screenshots": ["trax-retail/application.png"],
-    "description": "Computer vision solution for shelf recognition and retail analytics. Built internal SDK architecture for shelf recognition features.",
+    "description": "Leading CV company for retail. Built the flagship iOS app with on-device shelf recognition via OpenCV and designed a reusable internal SDK architecture for other Trax teams.",
     "highlights": [
-      "Advanced computer vision for shelf image analysis",
-      "Real-time mobile reports for retailers",
-      "Vector embeddings with Pinecone",
-      "Internal SDK architecture design"
+      "OpenCV integration for real-time shelf image analysis on-device (Swift + C++)",
+      "Designed internal SDK architecture — reusable CV pipeline for other Trax products",
+      "Pinecone vector embeddings for product matching against catalog at scale",
+      "Real-time mobile reporting for field reps",
+      "Bridged CV/ML research models to production mobile code"
     ],
     "links": {
       "appStore": "https://apps.apple.com/ru/app/trax-retail/id1092946346"
@@ -22,12 +23,13 @@
     "stack": ["Swift", "SwiftUI", "ARKit", "MLKit", "Unity3D", "FastAPI", "ASP.NET"],
     "period": "Oct 2020 - Oct 2022",
     "screenshots": ["scan-mania/game-screen.png", "scan-mania/challenges.png", "scan-mania/challenge-completed.png"],
-    "description": "AR rewards app where users earn 'kicks' by scanning barcodes on shelves. Integrated with Shopkick.",
+    "description": "AR rewards app built from scratch with team of 3. Users scan barcodes on shelves using ARKit + MLKit, see 3D product overlays via Unity3D. Gamified shopping experience integrated with Shopkick.",
     "highlights": [
-      "Augmented Reality barcode scanning",
-      "3D product visualization on shelves",
-      "MLKit barcode recognition",
-      "Gamified retail experience"
+      "Built entire AR experience from scratch — ARKit + MLKit + Unity3D in one camera pipeline",
+      "Real-time barcode detection while maintaining 3D spatial tracking",
+      "Unity3D product visualizations overlaid on physical shelves",
+      "FastAPI backend handling massive spatial data from AR sessions",
+      "Gamified retail — scanning felt like collecting items in a game"
     ],
     "links": {
       "appStore": "https://apps.apple.com/il/app/scan-mania/id1540764114"

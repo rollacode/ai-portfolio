@@ -21,10 +21,10 @@ export default function ChatMessage({ role, content, toolCalls, isError, onRetry
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="py-2"
+      className="py-0.5"
     >
       {isUser ? (
-        <p className="text-sm text-gray-400 dark:text-gray-500 mb-3">{content}</p>
+        <p className="text-sm text-gray-400 dark:text-gray-500 mb-1">{content}</p>
       ) : (
         <div className="w-full">
           {isError && (

@@ -3,6 +3,20 @@
 // Layer 2 tools produce PanelAction (interact within open panels).
 
 // -----------------------------------------------------------------------------
+// Visitor ID — persists per browser session so all remember_visitor calls merge
+// -----------------------------------------------------------------------------
+
+function getVisitorId(): string {
+  if (typeof window === 'undefined') return '';
+  let id = sessionStorage.getItem('visitorId');
+  if (!id) {
+    id = crypto.randomUUID();
+    sessionStorage.setItem('visitorId', id);
+  }
+  return id;
+}
+
+// -----------------------------------------------------------------------------
 // Types
 // -----------------------------------------------------------------------------
 
@@ -168,11 +182,11 @@ export function handleToolCall(
     // Layer 3 — Data tools (side-effects, no UI change)
     // -------------------------------------------------------------------------
     case 'remember_visitor':
-      // Fire-and-forget POST to save visitor info
+      // Fire-and-forget POST to save visitor info with visitorId for merging
       fetch('/api/visitor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(args),
+        body: JSON.stringify({ ...args, visitorId: getVisitorId() }),
       }).catch((err) => console.error('[remember_visitor] failed:', err));
       return {};
 
