@@ -1,10 +1,10 @@
 'use client';
 
 import { useCallback } from 'react';
-import config from '@/data/config.json';
-import experience from '@/data/experience.json';
-import skills from '@/data/skills.json';
-import projects from '@/data/projects.json';
+import config from '@/portfolio/config.json';
+import experience from '@/portfolio/experience.json';
+import skills from '@/portfolio/skills.json';
+import projects from '@/portfolio/projects.json';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -120,7 +120,17 @@ function downloadFile(content: string, filename: string, mime: string) {
 
 export default function ResumePanel() {
   const handleDownloadPdf = useCallback(() => {
-    window.print();
+    // Temporarily force light theme so PDF is always light
+    const html = document.documentElement;
+    const wasDark = html.classList.contains('dark');
+    if (wasDark) html.classList.remove('dark');
+
+    // Small delay to let the browser repaint before opening print dialog
+    requestAnimationFrame(() => {
+      window.print();
+      // Restore dark mode after print dialog closes
+      if (wasDark) html.classList.add('dark');
+    });
   }, []);
 
   const handleDownloadMd = useCallback(() => {
@@ -131,8 +141,8 @@ export default function ResumePanel() {
 
   return (
     <div>
-      {/* Download buttons */}
-      <div className="flex gap-2 mb-6">
+      {/* Download buttons (hidden when printing) */}
+      <div className="flex gap-2 mb-6 print:hidden">
         <button
           onClick={handleDownloadPdf}
           className="px-3 py-1.5 text-xs font-medium rounded-lg
@@ -161,10 +171,10 @@ export default function ResumePanel() {
           <h1 className="text-2xl font-bold text-black dark:text-white print:text-black">
             {config.name}
           </h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 print:text-gray-600">
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 print:text-gray-700">
             {config.bio}
           </p>
-          <div className="mt-2 flex flex-wrap gap-3 text-xs text-gray-500 dark:text-gray-400">
+          <div className="mt-2 flex flex-wrap gap-3 text-xs text-gray-500 dark:text-gray-400 print:text-gray-600">
             {config.location && <span>{config.location}</span>}
             {config.social?.email && (
               <a href={`mailto:${config.social.email}`} className="hover:text-black dark:hover:text-white">
@@ -194,10 +204,10 @@ export default function ResumePanel() {
           <div className="space-y-1.5">
             {Object.entries(allSkills).map(([cat, catSkills]) => (
               <div key={cat} className="flex gap-2 text-xs">
-                <span className="font-medium text-gray-500 dark:text-gray-400 w-16 flex-shrink-0">
+                <span className="font-medium text-gray-500 dark:text-gray-400 print:text-gray-600 w-16 flex-shrink-0">
                   {categoryLabels[cat] || cat}
                 </span>
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                <p className="text-gray-700 dark:text-gray-300 print:text-gray-800 leading-relaxed">
                   {(catSkills as Skill[]).map(s =>
                     s.years ? `${s.name} (${s.years}y)` : s.name
                   ).join(' \u00b7 ')}
@@ -222,21 +232,21 @@ export default function ResumePanel() {
                     <h3 className="text-sm font-semibold text-black dark:text-white">
                       {entry.role}
                     </h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 print:text-gray-600">
                       {entry.company} &middot; {entry.location}
                     </p>
                   </div>
-                  <p className="text-xs text-gray-400 tabular-nums flex-shrink-0">
+                  <p className="text-xs text-gray-400 print:text-gray-500 tabular-nums flex-shrink-0">
                     {entry.period}
                   </p>
                 </div>
-                <p className="mt-1.5 text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+                <p className="mt-1.5 text-xs text-gray-600 dark:text-gray-300 print:text-gray-800 leading-relaxed">
                   {entry.description}
                 </p>
                 {entry.highlights.length > 0 && (
                   <ul className="mt-1.5 space-y-0.5">
                     {entry.highlights.map((h) => (
-                      <li key={h} className="text-xs text-gray-500 dark:text-gray-400 flex items-start">
+                      <li key={h} className="text-xs text-gray-500 dark:text-gray-400 print:text-gray-700 flex items-start">
                         <span className="mr-2 mt-1.5 h-1 w-1 flex-shrink-0 rounded-full bg-gray-400" />
                         {h}
                       </li>
@@ -262,14 +272,14 @@ export default function ResumePanel() {
                   <h3 className="text-sm font-semibold text-black dark:text-white">
                     {project.name}
                   </h3>
-                  <p className="text-xs text-gray-400 tabular-nums flex-shrink-0">
+                  <p className="text-xs text-gray-400 print:text-gray-500 tabular-nums flex-shrink-0">
                     {project.period}
                   </p>
                 </div>
-                <p className="mt-1 text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+                <p className="mt-1 text-xs text-gray-600 dark:text-gray-300 print:text-gray-800 leading-relaxed">
                   {project.description}
                 </p>
-                <p className="mt-1 text-[11px] text-gray-400">
+                <p className="mt-1 text-[11px] text-gray-400 print:text-gray-500">
                   {project.stack.join(' \u00b7 ')}
                 </p>
               </div>

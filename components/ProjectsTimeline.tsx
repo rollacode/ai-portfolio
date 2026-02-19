@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import projectsData from '@/data/projects.json';
+import projectsData from '@/portfolio/projects.json';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */

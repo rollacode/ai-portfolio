@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import config from '@/data/config.json';
+import config from '@/portfolio/config.json';
 
 function GitHubIcon() {
   return (

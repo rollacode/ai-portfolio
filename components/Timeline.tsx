@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import experienceData from '@/data/experience.json';
+import experienceData from '@/portfolio/experience.json';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import config from '@/data/config.json';
+import config from '@/portfolio/config.json';
 
 interface ChatInputProps {
   onSend: (message: string) => void;

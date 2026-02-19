@@ -11,7 +11,7 @@ import { handleToolCall, type PanelState, type PanelAction } from '@/lib/tool-ha
 import { ActionQueue } from '@/lib/action-queue';
 import { saveMessages, loadMessages, savePanelState, loadPanelState, clearAll } from '@/lib/chat-store';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
-import config from '@/data/config.json';
+import config from '@/portfolio/config.json';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -326,7 +326,7 @@ export default function Chat() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, transition: { duration: 0.2 } }}
-            className="fixed inset-0 flex flex-col items-center justify-center z-10"
+            className="fixed inset-0 flex flex-col items-center justify-center z-10 print:hidden"
           >
             <h1 className="text-2xl md:text-3xl font-medium text-gray-500 dark:text-gray-500 mb-6">
               ask me about <span className="text-black dark:text-white">{(config as Record<string, unknown>).firstName as string || config.name.split(' ')[0]}</span>
@@ -360,7 +360,7 @@ export default function Chat() {
       {layout !== 'welcome' && (
         <>
           <div
-            className="flex flex-col h-screen transition-all duration-300 ease-out"
+            className="flex flex-col h-screen transition-all duration-300 ease-out print:hidden"
             style={layout === 'split' ? { marginLeft: 'calc(100vw - 500px)' } : undefined}
           >
             <div className="flex-1 overflow-y-auto pb-32 pt-6">
@@ -385,7 +385,7 @@ export default function Chat() {
             </div>
           </div>
 
-          <div className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none"
+          <div className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none print:hidden"
                style={layout === 'split' ? { paddingLeft: 'calc(100vw - 500px)' } : undefined}
           >
             <div className={`mx-auto px-4 pb-4 pt-2 pointer-events-auto ${layout === 'split' ? 'max-w-[500px]' : 'max-w-3xl'}`}>

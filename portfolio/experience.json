@@ -2,7 +2,7 @@
   {
     "company": "REKAP",
     "role": "Senior Full Stack Engineer",
-    "period": "Feb 2025 — Present",
+    "period": "Feb 2025 - Present",
     "location": "Remote (US-based)",
     "description": "Building an AI-powered \"Chief of Staff\" platform that helps teams work smarter through automated meeting intelligence, relationship mapping, and action item tracking.",
     "highlights": [
@@ -10,26 +10,26 @@
       "React + TypeScript frontend, Python backend with LLM agents",
       "Joined after REKAP acquired Performica, bringing the engineering team aboard"
     ],
-    "stack": ["React", "TypeScript", "Python", "LLM Agents", "LangChain", "Django"]
+    "stack": ["React", "TypeScript", "Python", "Django", "LangChain", "LangGraph", "LiteLLM", "LiveKit", "PostgreSQL", "Redis", "Celery", "WebSocket", "PostHog"]
   },
   {
     "company": "Performica",
     "role": "Product Manager",
-    "period": "Sep 2023 — Jun 2025",
+    "period": "Sep 2023 - Jun 2025",
     "location": "Remote",
-    "description": "Led product development of OrgGraph — an organizational network analysis platform mapping relationships and influence across companies. Managed a team of 8 engineers.",
+    "description": "People analytics platform (similar to Lattice). Led product development of OrgGraph — organizational network analysis visualization. Also hands-on: Django backend, product design in Figma, marketing website redesign.",
     "highlights": [
-      "Built OrgGraph — network analysis tool mapping organizational relationships",
-      "Product acquired by REKAP, entire team transitioned",
-      "Managed team of 8 engineers end-to-end",
-      "Drove product strategy from features to market positioning"
+      "Built OrgGraph — interactive network graph of organizational relationships (Scala + WebSocket + optimized rendering)",
+      "Rewrote entire product vision and user story flow from scratch",
+      "Began LLM integration — caught REKAP's attention, led to acquisition",
+      "Selected as 1 of 2 engineers (out of 7) to transition to REKAP"
     ],
-    "stack": ["Product Strategy", "Team Leadership", "Data Analysis", "Stakeholder Management"]
+    "stack": ["Python", "Django", "Vue.js", "Scala", "WebSocket", "Figma", "Product Strategy"]
   },
   {
     "company": "Trax Retail",
     "role": "Senior Fullstack Developer",
-    "period": "Sep 2020 — Aug 2023",
+    "period": "Sep 2020 - Aug 2023",
     "location": "Via QuantumSoft",
     "description": "Computer vision and retail technology company. Built apps for shelf recognition and AR-powered shopping experiences.",
     "highlights": [
@@ -43,21 +43,21 @@
   {
     "company": "Secret Stronghold",
     "role": "Co-Founder",
-    "period": "Jun 2021 — Jun 2024",
+    "period": "Jun 2021 - Jun 2024",
     "location": "Game Development",
-    "description": "Co-founded a game development company with Tony Grin. Developed Cops Inc., an idle/tycoon mobile game using Unity3D with ex-Rovio designers.",
+    "description": "Co-founded indie game studio. Built Cops Inc. — a GTA-style open-world mobile action game with traffic simulation, drivable vehicles, and mission-based routing powered by Dijkstra and Octree algorithms.",
     "highlights": [
       "Co-founded game development studio from scratch",
-      "Developed Cops Inc. — idle/tycoon mobile game",
-      "Collaborated with ex-Rovio (Angry Birds) designers",
-      "Full game development lifecycle with Unity3D"
+      "GTA-style open-world game with traffic AI simulation",
+      "Dijkstra pathfinding + Octree spatial partitioning for mobile optimization",
+      "Collaborated with ex-Rovio (Angry Birds) designers"
     ],
-    "stack": ["Unity3D", "C#", "Game Design", "Project Management"]
+    "stack": ["Unity3D", "C#", "Dijkstra", "Octree"]
   },
   {
     "company": "QuantumSoft LLC",
     "role": "Senior Fullstack Developer",
-    "period": "Dec 2014 — Present",
+    "period": "Dec 2014 - Present",
     "location": "Riga, Latvia",
     "description": "11+ year tenure at a software outsource company, working across multiple client projects spanning healthcare, entertainment, developer tools, and food tech. Grew from developer to tech lead to architect.",
     "highlights": [
@@ -66,7 +66,7 @@
       "Minnow — streaming aggregator (Lead iOS + backend)",
       "ThinkUp — self-improvement app (iOS Developer)",
       "Dishero — restaurant discovery (Lead iOS Developer)",
-      "EcoIQ — sustainability platform (Architecture + Frontend)"
+      "EcoIQ — ESG/sustainability supply chain platform (Architecture Consultant + LLM integration)"
     ],
     "stack": ["Swift", "Objective-C", "React", "ASP.NET", "C#", "Python", "Django", "Firebase"]
   }

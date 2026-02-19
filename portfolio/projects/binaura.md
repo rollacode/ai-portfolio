@@ -1,23 +1,23 @@
 # Binaura / SoundCalm - Sleep & Sound App
 
-**Period:** 2019 – Present
-**Role:** Founder, iOS Developer
+**Period:** Sep 2025 – Present
+**Role:** Founder, Full-Stack Developer
 
 ## Overview
-iOS app for sleep improvement and sound therapy. Real revenue-generating independent project with organic growth and App Store featuring.
+iOS app for sleep improvement and sound therapy. Real revenue-generating independent project with organic growth and App Store featuring. Multi-platform ecosystem with native iOS app (Live Activities, widgets), web app, Firebase backend, and a Python analytics pipeline.
 
 ## Business Metrics
 - **Revenue:** ~$50k/year
 - **Growth:** Organic (no paid acquisition)
-- **Recognition:** App Store featured
+- **Recognition:** App Store featured multiple times
 - **Team:** 3 people (developer, designer, backend)
 
 ## Stack
-- Swift
-- SwiftUI
-- StoreKit 2 (subscriptions)
-- CloudKit (user data sync)
-- Combine (reactive programming)
+- **iOS:** Swift, SwiftUI, StoreKit 2, CloudKit, Combine
+- **Backend:** Firebase
+- **Web:** Next.js
+- **Analytics:** Python (pipeline processing ~8k data points)
+- **Features:** iOS Live Activities, Home Screen widgets
 
 ## Key Achievements
 - Built and launched revenue-generating iOS app
@@ -45,5 +45,5 @@ This project demonstrates:
 1. **Product thinking** — identified market need, built solution
 2. **Full ownership** — end-to-end development and business management
 3. **Revenue generation** — not just a side project, a real business
-4. **Sustained effort** — 6+ years of active development and maintenance
+4. **Sustained effort** — active development and continuous improvement
 5. **Team leadership** — coordinated designer and backend developer

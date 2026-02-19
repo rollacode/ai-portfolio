@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import allProjects from '@/data/projects.json';
+import allProjects from '@/portfolio/projects.json';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */

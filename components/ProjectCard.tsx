@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import allProjects from '@/data/projects.json';
+import allProjects from '@/portfolio/projects.json';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */

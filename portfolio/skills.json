@@ -2,7 +2,7 @@
   "primary": [
     { "name": "Swift / iOS", "years": 11, "level": "expert" },
     { "name": "React / TypeScript", "years": 5, "level": "expert" },
-    { "name": "Python / FastAPI", "years": 4, "level": "expert" },
+    { "name": "Python / Django / FastAPI", "years": 4, "level": "expert" },
     { "name": "System Architecture", "years": 8, "level": "expert" }
   ],
   "strong": [
@@ -13,7 +13,10 @@
     { "name": "Android / Kotlin", "years": 3, "level": "professional" },
     { "name": "LLM Agents", "years": 1, "level": "professional" },
     { "name": "Product Management", "years": 2, "level": "professional" },
-    { "name": "PostgreSQL", "years": 4, "level": "professional" }
+    { "name": "PostgreSQL", "years": 4, "level": "professional" },
+    { "name": "Redis / Celery", "years": 2, "level": "professional" },
+    { "name": "LiveKit", "years": 1, "level": "professional" },
+    { "name": "Vue.js", "years": 1, "level": "professional" }
   ],
   "ai": [
     { "name": "Claude Code", "level": "expert" },

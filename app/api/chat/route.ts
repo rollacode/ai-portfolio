@@ -1,7 +1,9 @@
 import { NextRequest } from 'next/server';
 import { buildSystemPrompt } from '@/lib/system-prompt';
 import { getToolsWithContext } from '@/lib/tools';
-import projects from '@/data/projects.json';
+import projects from '@/portfolio/projects.json';
+import experience from '@/portfolio/experience.json';
+import skills from '@/portfolio/skills.json';
 
 // ---------------------------------------------------------------------------
 // Multi-provider AI support
@@ -36,32 +38,12 @@ const MODEL = () => env('AI_MODEL', 'XAI_MODEL', 'grok-3-mini-fast');
 // Extract context values from data for tool enrichment
 // ---------------------------------------------------------------------------
 
+// Derive context values dynamically from portfolio data — no hardcoding
 const projectSlugs = projects.map((p) => p.slug);
-
-const companyNames = [
-  'REKAP',
-  'Performica',
-  'QuantumSoft',
-  'Trax Retail',
-  'Secret Stronghold',
-];
-
-const skillNames = [
-  'Swift / iOS',
-  'React / TypeScript',
-  'Python / FastAPI',
-  'System Architecture',
-  'SwiftUI',
-  'Computer Vision / OpenCV',
-  'ARKit / SceneKit',
-  'Objective-C',
-  'Android / Kotlin',
-  'LLM Agents',
-  'Product Management',
-  'Unity3D / C#',
-  'Docker / DevOps',
-  'PostgreSQL',
-];
+const companyNames = (experience as Array<{ company: string }>).map((e) => e.company);
+const skillNames = Object.values(skills as Record<string, Array<{ name: string }>>)
+  .flat()
+  .map((s) => s.name);
 
 // ---------------------------------------------------------------------------
 // POST /api/chat

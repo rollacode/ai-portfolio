@@ -121,33 +121,39 @@
   {
     "slug": "performica",
     "name": "Performica - OrgGraph Network Analysis",
-    "stack": ["Product Strategy", "Team Leadership", "Data Analysis", "Stakeholder Management"],
+    "stack": ["Python", "Django", "Vue.js", "Scala", "WebSocket", "Figma"],
     "period": "Sep 2023 - Jun 2025",
     "screenshots": [],
-    "description": "Product Manager role. Led product development of OrgGraph — an organizational network analysis platform mapping relationships and influence across companies. Managed a team of 8 engineers. Performica was later acquired by REKAP.",
+    "description": "People analytics platform with organizational network visualization (OrgGraph), 360 reviews, and performance management. Product Engineer role: owned product vision, full-stack development, and design.",
     "highlights": [
-      "Product management of OrgGraph platform",
-      "Team of 8 engineers",
-      "Organizational network analysis and relationship mapping",
-      "Company acquired by REKAP, team transitioned together"
+      "Built OrgGraph — interactive network visualization of organizational relationships (hundreds/thousands of nodes)",
+      "Rewrote entire product vision and user story flow from scratch",
+      "360 review cycles, performance reviews, team health reporting",
+      "Began LLM integration — caught REKAP's attention, led to acquisition",
+      "Selected as 1 of 2 engineers (out of 7) to transition to REKAP"
     ],
-    "links": {}
+    "links": {
+      "website": "https://www.performica.com"
+    }
   },
   {
     "slug": "rekap",
     "name": "REKAP - AI Chief of Staff",
-    "stack": ["React", "TypeScript", "Python", "Django", "LangChain", "LangGraph", "LiteLLM", "LiveKit", "PostgreSQL", "Redis", "Celery"],
+    "stack": ["React", "TypeScript", "Python", "Django", "LangChain", "LangGraph", "LiteLLM", "LiveKit", "PostgreSQL", "Redis", "Celery", "PostHog", "WebSocket"],
     "period": "Feb 2025 - Present",
     "screenshots": [],
-    "description": "AI-powered platform that helps teams work smarter through automated meeting intelligence, voice agents, relationship mapping, and action item tracking. Full-stack development with focus on AI agent pipelines.",
+    "description": "AI intelligence layer for organizations. Built real-time chat with WebSocket-driven agentic pipelines, voice agents, meeting scribe, and AI CRM. Startup role: product + full-stack + design.",
     "highlights": [
-      "AI agent pipelines with LangChain/LangGraph",
-      "Real-time voice agents via LiveKit",
-      "Meeting intelligence and automated scribe",
-      "SQL agent for natural language data analysis",
-      "CRM and relationship mapping (Rolodex)"
+      "WebSocket chat orchestrating LangGraph agentic pipelines with streaming",
+      "LiveKit voice agents for real-time meeting transcription",
+      "Meeting scribe — automated action items, decisions, follow-ups",
+      "SQL agent for natural language data queries",
+      "Rolodex (AI CRM) — relationship mapping from meeting interactions",
+      "Product design in Figma + PostHog analytics setup"
     ],
-    "links": {}
+    "links": {
+      "website": "https://www.rekap.com"
+    }
   },
   {
     "slug": "binaura",
@@ -162,23 +168,41 @@
       "iOS Live Activities + Home Screen widgets",
       "Web app (Next.js) with embedding server",
       "Analytics pipeline (Python) for business intelligence",
-      "Team of 3, full product ownership for 6+ years"
+      "Team of 3, full product ownership"
     ],
     "links": {}
   },
   {
     "slug": "cops-inc",
-    "name": "Cops Inc. - Mobile Idle Game",
-    "stack": ["Unity3D", "C#"],
+    "name": "Cops Inc. - GTA-Style Mobile Action Game",
+    "stack": ["Unity3D", "C#", "Dijkstra", "Octree"],
     "period": "Jun 2021 - Jun 2024",
     "screenshots": ["cops-inc/alpha-test.jpg"],
-    "description": "Co-founded game development company. Idle/tycoon mobile game with ex-Rovio designers.",
+    "description": "Co-founded indie game studio. Open-world mobile game with GTA-style gameplay, traffic simulation, drivable vehicles, and mission-based routing powered by Dijkstra and Octree algorithms.",
     "highlights": [
-      "Game company co-founder",
-      "Unity3D development",
-      "Team with ex-Rovio designers",
-      "Development paused"
+      "Game studio co-founder, built from scratch with a friend",
+      "Dijkstra pathfinding for mission routing across open-world map",
+      "Octree spatial partitioning for optimized entity queries",
+      "Traffic AI simulation with road-network navigation",
+      "Collaborated with ex-Rovio (Angry Birds) designers"
     ],
     "links": {}
+  },
+  {
+    "slug": "ecoiq",
+    "name": "EcoIQ - ESG Supply Chain Platform",
+    "stack": ["Next.js", "FastAPI", "Python", "LLM"],
+    "period": "2025 - Present",
+    "screenshots": [],
+    "description": "ESG reporting and supply chain risk management platform. Architecture consultant role: migrating from monolithic Next.js to FastAPI + Next.js, integrating LLM capabilities for automated ESG insights.",
+    "highlights": [
+      "Architecture consulting — redesigning system from monolithic Next.js to FastAPI + Next.js",
+      "LLM integration for automated ESG analysis and reporting",
+      "Mentoring the engineering team on backend architecture best practices",
+      "Supply chain ESG compliance (CSRD, ESRS, ISSB standards)"
+    ],
+    "links": {
+      "website": "https://eco-iq.com"
+    }
   }
 ]

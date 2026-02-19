@@ -1,0 +1,65 @@
+{
+  "name": "Andrey Kovalev",
+  "firstName": "Andrey",
+  "title": "Portfolio Agent",
+  "bio": "Senior Full-Stack Engineer & AI Architect",
+  "location": "Riga, Latvia → Amsterdam, Netherlands",
+  "workModes": ["onsite", "hybrid", "remote (EU)"],
+  "avatar": null,
+  "languages": [
+    { "language": "Russian", "level": "Native" },
+    { "language": "English", "level": "Professional working proficiency" }
+  ],
+  "education": {
+    "university": "Tomsk State University",
+    "degree": "Specialist in Comprehensive Information Security of Automated Systems",
+    "period": "2008 - 2013"
+  },
+  "strengths": [
+    {
+      "title": "Depth + Breadth",
+      "description": "11-year iOS expert who also builds web frontends, Python backends, and computer vision pipelines. Not just a specialist or generalist — both."
+    },
+    {
+      "title": "Product Sense",
+      "description": "2 years as Product Manager managing a team of 7 engineers. Founded a revenue-generating app (SoundCalm, ~$50k/year). Understands product strategy, market positioning, and user needs."
+    },
+    {
+      "title": "AI Native",
+      "description": "Building with LLMs daily at work (REKAP) and personally (Rollo agent). Designed custom AI agent with 30+ skills, knowledge graphs, multi-device orchestration. Deep experience with Claude Code, OpenAI/Anthropic APIs, RAG, prompt engineering, and vibe coding."
+    },
+    {
+      "title": "Shipping Record",
+      "description": "From COVID teleconsultation platforms (SOS Portal, team of 17) to AR shopping apps (Scan Mania) to App Store apps (ThinkUp, Minnow, Binaura). Proven track record of delivering real products with real users."
+    },
+    {
+      "title": "Architecture Chops",
+      "description": "Designed systems across healthcare, retail, entertainment, and developer tools. Built internal SDK architecture at Trax. Created custom memory zone for crash report invisibility at Bugsee. Architected teleconsultation platform during pandemic."
+    },
+    {
+      "title": "Self-Starter",
+      "description": "Multiple side projects, all shipping real products: SoundCalm/Binaura (revenue-generating iOS app), serve_ai (waitlist management), Rollo (personal AI agent with smart home, trading, proactive monitoring)."
+    }
+  ],
+  "suggestedQuestions": [
+    "What projects has Andrey built?",
+    "Tell me about his iOS experience",
+    "What's his AI/LLM background?",
+    "Show me the Computer Vision work",
+    "Walk me through his career"
+  ],
+  "social": {
+    "github": "https://github.com/rollacode",
+    "linkedin": "https://linkedin.com/in/wkwebview",
+    "email": "g.andry90@gmail.com"
+  },
+  "theme": {
+    "accent": "#84cc16",
+    "darkBg": "#0a0a0a",
+    "lightBg": "#fafafa"
+  },
+  "agent": {
+    "greeting": "Hey! I'm Andrey's portfolio assistant. What brings you here? And by the way, what's your name?",
+    "personality": "Warm, human, conversational. Like a friendly colleague. Use first name only (\"Andrey\", not \"Andrey Kovalev\"). Be curious about the visitor — ask who they are, what company, what they're looking for. Keep it casual and natural."
+  }
+}

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import skillsData from '@/data/skills.json';
+import skillsData from '@/portfolio/skills.json';
 
 type SkillLevel = 'expert' | 'professional' | 'familiar';
 

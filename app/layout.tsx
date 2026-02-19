@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import config from "@/data/config.json";
+import config from "@/portfolio/config.json";
 
 const title = `${config.name} — ${config.title}`;
 const description = `${config.bio}. Interactive AI-powered portfolio.`;

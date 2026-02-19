@@ -273,7 +273,7 @@ export default function ContentPanel({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-black/40 z-30 md:hidden"
+            className="fixed inset-0 bg-black/40 z-30 md:hidden print:hidden"
             onClick={onClose}
           />
         )}
@@ -298,6 +298,7 @@ export default function ContentPanel({
                 }
               }
             }}
+            data-print-content
             className={
               isDesktop
                 ? // Desktop: left sidebar
@@ -307,8 +308,8 @@ export default function ContentPanel({
             }
           >
             <div className="p-4 md:p-6">
-              {/* Header */}
-              <div className="flex justify-between items-center mb-4 md:mb-6">
+              {/* Header (hidden when printing) */}
+              <div className="flex justify-between items-center mb-4 md:mb-6 print:hidden">
                 <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
                   {panelTitle(type)}
                 </h2>

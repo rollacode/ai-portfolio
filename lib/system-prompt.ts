@@ -1,10 +1,10 @@
-// Loads all portfolio markdown files + config and constructs system prompt
+// Builds system prompt from structured JSON data + project writeups (markdown)
 
 import fs from 'fs';
 import path from 'path';
 
 // -----------------------------------------------------------------------------
-// Config types
+// Types
 // -----------------------------------------------------------------------------
 
 interface AgentConfig {
@@ -12,48 +12,222 @@ interface AgentConfig {
   greeting?: string;
 }
 
+interface Language {
+  language: string;
+  level: string;
+}
+
+interface Education {
+  university: string;
+  degree: string;
+  period: string;
+}
+
+interface Strength {
+  title: string;
+  description: string;
+}
+
+interface Social {
+  github?: string;
+  linkedin?: string;
+  email?: string;
+}
+
 interface PortfolioConfig {
   name: string;
+  firstName?: string;
   title?: string;
   bio?: string;
+  location?: string;
+  workModes?: string[];
+  languages?: Language[];
+  education?: Education;
+  strengths?: Strength[];
+  social?: Social;
   agent?: AgentConfig;
   [key: string]: unknown;
+}
+
+interface ExperienceEntry {
+  company: string;
+  role: string;
+  period: string;
+  location: string;
+  description: string;
+  highlights: string[];
+  stack: string[];
+}
+
+interface Skill {
+  name: string;
+  years?: number;
+  level: string;
+}
+
+interface Project {
+  slug: string;
+  name: string;
+  stack: string[];
+  period: string;
+  description: string;
+  highlights: string[];
+  links?: Record<string, string>;
+}
+
+interface Recommendation {
+  name: string;
+  title: string;
+  date: string;
+  relation: string;
+  text: string;
 }
 
 // -----------------------------------------------------------------------------
 // Loaders
 // -----------------------------------------------------------------------------
 
-function loadConfig(): PortfolioConfig {
-  const configPath = path.join(process.cwd(), 'data', 'config.json');
-  if (!fs.existsSync(configPath)) {
-    return { name: 'Unknown' };
-  }
-  return JSON.parse(fs.readFileSync(configPath, 'utf-8')) as PortfolioConfig;
+const portfolioDir = path.join(process.cwd(), 'portfolio');
+
+function loadJSON<T>(filename: string): T | null {
+  const filePath = path.join(portfolioDir, filename);
+  if (!fs.existsSync(filePath)) return null;
+  return JSON.parse(fs.readFileSync(filePath, 'utf-8')) as T;
 }
 
-export function loadPortfolioContent(): string {
-  const portfolioDir = path.join(process.cwd(), 'portfolio');
+// -----------------------------------------------------------------------------
+// Content formatters (JSON → readable text for the agent)
+// -----------------------------------------------------------------------------
 
-  // Load main portfolio files
-  const files = ['about.md', 'experience.md', 'skills.md', 'meta.md', 'recommendations.md'];
-  const sections = files.map((file) => {
-    const filePath = path.join(portfolioDir, file);
-    return fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf-8') : '';
-  });
+function formatAbout(config: PortfolioConfig): string {
+  const lines: string[] = ['# About'];
+  lines.push(`**${config.name}** — ${config.bio || ''}`);
+  if (config.location) lines.push(`Location: ${config.location}`);
+  if (config.workModes?.length) lines.push(`Work modes: ${config.workModes.join(', ')}`);
+  if (config.social?.email) lines.push(`Email: ${config.social.email}`);
+  if (config.social?.github) lines.push(`GitHub: ${config.social.github}`);
+  if (config.social?.linkedin) lines.push(`LinkedIn: ${config.social.linkedin}`);
 
-  // Load project files
-  const projectsDir = path.join(portfolioDir, 'projects');
-  let projects = '';
-
-  if (fs.existsSync(projectsDir)) {
-    const projectFiles = fs.readdirSync(projectsDir).filter((f) => f.endsWith('.md'));
-    projects = projectFiles
-      .map((file) => fs.readFileSync(path.join(projectsDir, file), 'utf-8'))
-      .join('\n\n---\n\n');
+  if (config.languages?.length) {
+    lines.push('\n## Languages');
+    for (const lang of config.languages) {
+      lines.push(`- ${lang.language}: ${lang.level}`);
+    }
   }
 
-  return [...sections, `# Projects\n\n${projects}`].filter(Boolean).join('\n\n');
+  if (config.education) {
+    lines.push('\n## Education');
+    lines.push(`${config.education.university} — ${config.education.degree} (${config.education.period})`);
+  }
+
+  return lines.join('\n');
+}
+
+function formatStrengths(strengths: Strength[]): string {
+  const lines: string[] = ['# What Makes Him Special'];
+  for (const s of strengths) {
+    lines.push(`\n### ${s.title}`);
+    lines.push(s.description);
+  }
+  return lines.join('\n');
+}
+
+function formatExperience(entries: ExperienceEntry[]): string {
+  const lines: string[] = ['# Work Experience'];
+  for (const e of entries) {
+    lines.push(`\n## ${e.role} — ${e.company}`);
+    lines.push(`${e.period} | ${e.location}`);
+    lines.push(e.description);
+    if (e.highlights.length) {
+      for (const h of e.highlights) lines.push(`- ${h}`);
+    }
+    if (e.stack.length) lines.push(`Stack: ${e.stack.join(', ')}`);
+  }
+  return lines.join('\n');
+}
+
+function formatSkills(skills: Record<string, Skill[]>): string {
+  const labels: Record<string, string> = {
+    primary: 'Expert',
+    strong: 'Strong',
+    ai: 'AI / LLM',
+    working: 'Working Knowledge',
+  };
+  const lines: string[] = ['# Skills'];
+  for (const [cat, catSkills] of Object.entries(skills)) {
+    const label = labels[cat] || cat;
+    const items = catSkills.map(s => {
+      const parts = [s.name];
+      if (s.years) parts.push(`${s.years}y`);
+      if (s.level && s.level !== label.toLowerCase()) parts.push(s.level);
+      return parts.length > 1 ? `${parts[0]} (${parts.slice(1).join(', ')})` : parts[0];
+    }).join(' · ');
+    lines.push(`\n**${label}:** ${items}`);
+  }
+  return lines.join('\n');
+}
+
+function formatProjects(projects: Project[]): string {
+  const lines: string[] = ['# Projects Index (use these slugs with show_project tool)'];
+  for (const p of projects) {
+    lines.push(`\n## ${p.name} [slug: "${p.slug}"]`);
+    lines.push(`Period: ${p.period}`);
+    lines.push(`Stack: ${p.stack.join(', ')}`);
+    lines.push(p.description);
+    if (p.highlights.length) {
+      for (const h of p.highlights) lines.push(`- ${h}`);
+    }
+    if (p.links && Object.keys(p.links).length) {
+      const linkParts = Object.entries(p.links).map(([k, v]) => `${k}: ${v}`);
+      lines.push(`Links: ${linkParts.join(' | ')}`);
+    }
+  }
+  return lines.join('\n');
+}
+
+function formatRecommendations(recs: Recommendation[]): string {
+  const lines: string[] = ['# Recommendations'];
+  for (const r of recs) {
+    lines.push(`\n## ${r.name}`);
+    lines.push(`*${r.title}* — ${r.date} (${r.relation})`);
+    lines.push(r.text);
+  }
+  return lines.join('\n');
+}
+
+function loadProjectWriteups(): string {
+  const projectsDir = path.join(portfolioDir, 'projects');
+  if (!fs.existsSync(projectsDir)) return '';
+  const files = fs.readdirSync(projectsDir).filter(f => f.endsWith('.md'));
+  if (!files.length) return '';
+  const content = files
+    .map(f => fs.readFileSync(path.join(projectsDir, f), 'utf-8'))
+    .join('\n\n---\n\n');
+  return `# Project Deep Dives\n\n${content}`;
+}
+
+// -----------------------------------------------------------------------------
+// Public: load all portfolio content as text
+// -----------------------------------------------------------------------------
+
+export function loadPortfolioContent(): string {
+  const config = loadJSON<PortfolioConfig>('config.json');
+  const experience = loadJSON<ExperienceEntry[]>('experience.json');
+  const skills = loadJSON<Record<string, Skill[]>>('skills.json');
+  const projects = loadJSON<Project[]>('projects.json');
+  const recommendations = loadJSON<Recommendation[]>('recommendations.json');
+
+  const sections: string[] = [];
+
+  if (config) sections.push(formatAbout(config));
+  if (config?.strengths?.length) sections.push(formatStrengths(config.strengths));
+  if (experience) sections.push(formatExperience(experience));
+  if (skills) sections.push(formatSkills(skills));
+  if (projects) sections.push(formatProjects(projects));
+  if (recommendations) sections.push(formatRecommendations(recommendations));
+  sections.push(loadProjectWriteups());
+
+  return sections.filter(Boolean).join('\n\n---\n\n');
 }
 
 // -----------------------------------------------------------------------------
@@ -61,11 +235,11 @@ export function loadPortfolioContent(): string {
 // -----------------------------------------------------------------------------
 
 export function buildSystemPrompt(): string {
-  const config = loadConfig();
+  const config = loadJSON<PortfolioConfig>('config.json') ?? { name: 'Unknown' };
   const name = config.name;
+  const firstName = config.firstName || name.split(' ')[0];
   const portfolioContent = loadPortfolioContent();
 
-  // Personality — use config override or default
   const personality =
     config.agent?.personality ??
     `- Speak in third person about ${name} ("he built...", "his experience includes...")
@@ -73,12 +247,9 @@ export function buildSystemPrompt(): string {
 - Concise but informative — don't write walls of text
 - If you don't know something, say so honestly`;
 
-  // Greeting — available for downstream use, included as a hint if present
   const greetingHint = config.agent?.greeting
     ? `\nDEFAULT GREETING (use this when the conversation starts):\n"${config.agent.greeting}"\n`
     : '';
-
-  const firstName = (config as Record<string, unknown>).firstName as string || name.split(' ')[0];
 
   return `You are a portfolio assistant for ${firstName}. You talk about ${firstName} (not "${name}" — just the first name, keep it casual). You ALWAYS use tools to show things visually. You are an agent that ACTS on the UI.
 
@@ -120,5 +291,4 @@ ${greetingHint}
 ## Portfolio Content
 
 ${portfolioContent}`;
-
 }

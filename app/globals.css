@@ -96,3 +96,50 @@ body {
     text-wrap: balance;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/*  Print styles — clean resume export                                 */
+/* ------------------------------------------------------------------ */
+
+@media print {
+  @page {
+    margin: 0.6in 0.5in;
+    size: A4;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  html, body {
+    background: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* The panel container — make it static full-width for print */
+  [data-print-content] {
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    max-width: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    overflow: visible !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Dark class is removed programmatically before print, but as a
+     safety net force light CSS variables anyway. */
+  .dark {
+    --background: #fafafa !important;
+    --foreground: #1e293b !important;
+    --surface: #ffffff !important;
+    color-scheme: light !important;
+  }
+}
