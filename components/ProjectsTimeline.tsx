@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import projectsData from '@/portfolio/projects.json';
 
@@ -17,6 +17,7 @@ interface Project {
   description: string;
   highlights: string[];
   links: Record<string, string>;
+  skillIds?: string[];
 }
 
 interface ProjectsTimelineAction {
@@ -27,6 +28,8 @@ interface ProjectsTimelineAction {
 interface ProjectsTimelineProps {
   currentAction?: ProjectsTimelineAction | null;
   onActionConsumed?: () => void;
+  filter?: string;
+  skillId?: string;
 }
 
 /* ------------------------------------------------------------------ */
@@ -35,8 +38,22 @@ interface ProjectsTimelineProps {
 
 const HIGHLIGHT_DURATION_MS = 3000;
 
+const THEME_SKILL_IDS: Record<string, string[]> = {
+  ai: ['langchain-langgraph', 'llm-agents', 'ai-agent-orchestration', 'whisper-openai', 'rag-vector-search', 'computer-vision-opencv'],
+  mobile: ['swift-ios', 'swiftui', 'react-native', 'objective-c', 'arkit-scenekit'],
+  web: ['react-typescript', 'python-django-fastapi', 'vue-js', 'aspnet-csharp'],
+  ar: ['arkit-scenekit', 'computer-vision-opencv', 'unity3d-csharp'],
+};
+
+const FILTER_LABELS: Record<string, string> = {
+  ai: 'AI projects',
+  mobile: 'Mobile projects',
+  web: 'Web projects',
+  ar: 'AR projects',
+};
+
 // Sort projects by period (newest first) — parse start year from period string
-const projects = (projectsData as unknown as Project[]).sort((a, b) => {
+const allProjects = (projectsData as unknown as Project[]).sort((a, b) => {
   const yearA = parseInt(a.period.match(/\d{4}/)?.[0] ?? '0', 10);
   const yearB = parseInt(b.period.match(/\d{4}/)?.[0] ?? '0', 10);
   return yearB - yearA;
@@ -51,9 +68,9 @@ function extractYear(period: string): string {
   return match ? match[1] : '';
 }
 
-function shouldShowYear(index: number): boolean {
+function shouldShowYear(list: Project[], index: number): boolean {
   if (index === 0) return true;
-  return extractYear(projects[index].period) !== extractYear(projects[index - 1].period);
+  return extractYear(list[index].period) !== extractYear(list[index - 1].period);
 }
 
 /* ------------------------------------------------------------------ */
@@ -202,9 +219,31 @@ function ProjectTimelineCard({
 export default function ProjectsTimeline({
   currentAction,
   onActionConsumed,
+  filter,
+  skillId,
 }: ProjectsTimelineProps) {
   const [highlightedSlug, setHighlightedSlug] = useState<string | null>(null);
   const entryRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  /* Filter projects based on theme or specific skillId ------------- */
+  const filteredProjects = useMemo(() => {
+    let result = allProjects;
+
+    // Filter by theme
+    if (filter && filter !== 'all') {
+      const relevantSkills = new Set(THEME_SKILL_IDS[filter] || []);
+      result = result.filter((p) =>
+        p.skillIds?.some((sid) => relevantSkills.has(sid)),
+      );
+    }
+
+    // Filter by specific skillId
+    if (skillId) {
+      result = result.filter((p) => p.skillIds?.includes(skillId));
+    }
+
+    return result;
+  }, [filter, skillId]);
   const highlightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const setEntryRef = useCallback(
@@ -259,75 +298,120 @@ export default function ProjectsTimeline({
     };
   }, []);
 
+  const isFiltered = (filter && filter !== 'all') || !!skillId;
+
+  /* Build filter label for indicator ------------------------------- */
+  const filterLabel = useMemo(() => {
+    const parts: string[] = [];
+    if (filter && filter !== 'all' && FILTER_LABELS[filter]) {
+      parts.push(FILTER_LABELS[filter]);
+    }
+    if (skillId) {
+      parts.push(skillId);
+    }
+    return parts.join(' · ');
+  }, [filter, skillId]);
+
   return (
     <div className="relative py-2">
+      {/* Filter indicator */}
+      {isFiltered && (
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="mb-4"
+        >
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-lime-500/10 border border-lime-500/20 px-3 py-1 text-xs font-medium text-lime-600 dark:text-lime-400">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            </svg>
+            {filterLabel}
+          </span>
+        </motion.div>
+      )}
+
       {/* Subtitle */}
       <p className="mb-6 text-xs text-gray-400 dark:text-gray-500">
-        {projects.length} projects
+        {filteredProjects.length} project{filteredProjects.length !== 1 ? 's' : ''}
+        {isFiltered && ` (of ${allProjects.length} total)`}
       </p>
 
+      {/* Empty state */}
+      {filteredProjects.length === 0 && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-sm text-gray-400 dark:text-gray-500 text-center py-12"
+        >
+          No matching projects found.
+        </motion.p>
+      )}
+
       {/* Timeline entries */}
-      <div className="relative">
-        {/* The vertical timeline line */}
-        <div className="absolute left-[7px] top-0 bottom-0 w-0.5">
-          <div className="absolute inset-0 bg-gradient-to-b from-lime-500/50 via-lime-500/20 to-gray-600/20 dark:from-lime-500/40 dark:via-lime-500/15 dark:to-gray-700/20 rounded-full" />
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-b from-lime-400/30 to-transparent rounded-full blur-[2px]"
-            animate={{ opacity: [0.3, 0.7, 0.3] }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-          />
-        </div>
+      {filteredProjects.length > 0 && (
+        <div className="relative">
+          {/* The vertical timeline line */}
+          <div className="absolute left-[7px] top-0 bottom-0 w-0.5">
+            <div className="absolute inset-0 bg-gradient-to-b from-lime-500/50 via-lime-500/20 to-gray-600/20 dark:from-lime-500/40 dark:via-lime-500/15 dark:to-gray-700/20 rounded-full" />
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-b from-lime-400/30 to-transparent rounded-full blur-[2px]"
+              animate={{ opacity: [0.3, 0.7, 0.3] }}
+              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          </div>
 
-        {/* Entries */}
-        <div className="space-y-6">
-          {projects.map((project, index) => {
-            const isHighlighted = highlightedSlug === project.slug;
-            const showYear = shouldShowYear(index);
-            const year = extractYear(project.period);
+          {/* Entries */}
+          <div className="space-y-6">
+            {filteredProjects.map((project, index) => {
+              const isHighlighted = highlightedSlug === project.slug;
+              const showYear = shouldShowYear(filteredProjects, index);
+              const year = extractYear(project.period);
 
-            return (
-              <div key={project.slug}>
-                {/* Year marker */}
-                {showYear && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: index * 0.06 }}
-                    className="flex items-center gap-3 mb-4 pl-7"
+              return (
+                <div key={project.slug}>
+                  {/* Year marker */}
+                  {showYear && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: index * 0.06 }}
+                      className="flex items-center gap-3 mb-4 pl-7"
+                    >
+                      <span className="text-sm font-bold text-lime-500 tabular-nums">
+                        {year}
+                      </span>
+                      <div className="flex-1 h-px bg-lime-500/20" />
+                    </motion.div>
+                  )}
+
+                  <div
+                    ref={setEntryRef(project.slug)}
+                    className="relative flex gap-5 pl-0"
                   >
-                    <span className="text-sm font-bold text-lime-500 tabular-nums">
-                      {year}
-                    </span>
-                    <div className="flex-1 h-px bg-lime-500/20" />
-                  </motion.div>
-                )}
+                    {/* Timeline dot */}
+                    <div className="flex-shrink-0 w-[15px] relative z-10 pt-6">
+                      <TimelineDot isHighlighted={isHighlighted} />
+                    </div>
 
-                <div
-                  ref={setEntryRef(project.slug)}
-                  className="relative flex gap-5 pl-0"
-                >
-                  {/* Timeline dot */}
-                  <div className="flex-shrink-0 w-[15px] relative z-10 pt-6">
-                    <TimelineDot isHighlighted={isHighlighted} />
-                  </div>
-
-                  {/* Card */}
-                  <div className="flex-1 min-w-0">
-                    <ProjectTimelineCard
-                      project={project}
-                      index={index}
-                      isHighlighted={isHighlighted}
-                    />
+                    {/* Card */}
+                    <div className="flex-1 min-w-0">
+                      <ProjectTimelineCard
+                        project={project}
+                        index={index}
+                        isHighlighted={isHighlighted}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
 
-        {/* Terminal dot */}
-        <div className="absolute left-[5px] bottom-0 w-[5px] h-[5px] rounded-full bg-gray-500/40 dark:bg-gray-600/40" />
-      </div>
+          {/* Terminal dot */}
+          <div className="absolute left-[5px] bottom-0 w-[5px] h-[5px] rounded-full bg-gray-500/40 dark:bg-gray-600/40" />
+        </div>
+      )}
     </div>
   );
 }

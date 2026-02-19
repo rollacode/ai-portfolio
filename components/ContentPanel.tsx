@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useCallback, useState } from 'react';
+import { useMemo, useCallback, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { PanelState, PanelAction } from '@/lib/tool-handler';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
@@ -12,6 +12,11 @@ import Timeline from './Timeline';
 import ProjectsTimeline from './ProjectsTimeline';
 import Gallery from './Gallery';
 import ResumePanel from './ResumePanel';
+import TechRadar from './TechRadar';
+import QuickFacts from './QuickFacts';
+import Recommendations from './Recommendations';
+import SnakeGame from './SnakeGame';
+import Game2048 from './Game2048';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -29,7 +34,7 @@ interface ContentPanelProps {
 /*  Panel title helper                                                 */
 /* ------------------------------------------------------------------ */
 
-function panelTitle(type: PanelState['type']): string {
+function panelTitle(type: PanelState['type'], state?: PanelState): string {
   switch (type) {
     case 'project':
       return 'Project';
@@ -47,6 +52,18 @@ function panelTitle(type: PanelState['type']): string {
       return 'Comparison';
     case 'resume':
       return 'Resume';
+    case 'tech-radar':
+      return 'Tech Radar';
+    case 'quick-facts':
+      return 'Quick Facts';
+    case 'recommendations':
+      return 'Recommendations';
+    case 'game': {
+      const game = state?.game;
+      if (game === 'snake') return 'Snake';
+      if (game === '2048') return '2048';
+      return 'Game';
+    }
     default:
       return '';
   }
@@ -111,6 +128,20 @@ export default function ContentPanel({
     return null;
   }, [currentAction, type]);
 
+  const highlightedSkillForRadar = useMemo(() => {
+    if (!currentAction) return null;
+    if (type === 'tech-radar' && currentAction.type === 'highlight_skill') {
+      return currentAction.name;
+    }
+    return null;
+  }, [currentAction, type]);
+
+  const radarFocusCategory = useMemo(() => {
+    if (type !== 'tech-radar' || !currentAction) return null;
+    if (currentAction.type === 'focus_radar_section') return currentAction.category;
+    return null;
+  }, [type, currentAction]);
+
   const projectHighlightField: HighlightField = useMemo(() => {
     if (!currentAction) return null;
     if (
@@ -138,6 +169,33 @@ export default function ContentPanel({
     }
   }, [type, focusScreenshotIndex]);
 
+  /* Recommendation highlight ---------------------------------------- */
+  const highlightedRecommendation = useMemo(() => {
+    if (!currentAction) return null;
+    if (type === 'recommendations' && currentAction.type === 'highlight_recommendation') {
+      return currentAction.name;
+    }
+    return null;
+  }, [currentAction, type]);
+
+  // Discard actions that don't match the current panel type so the queue
+  // doesn't get stuck waiting for onActionConsumed that never fires.
+  useEffect(() => {
+    if (!currentAction) return;
+    const actionMatchesPanel =
+      timelineAction !== null ||
+      projectsTimelineAction !== null ||
+      highlightedSkill !== null ||
+      highlightedSkillForRadar !== null ||
+      radarFocusCategory !== null ||
+      projectHighlightField !== null ||
+      focusScreenshotIndex !== null ||
+      highlightedRecommendation !== null;
+    if (!actionMatchesPanel) {
+      onActionConsumed();
+    }
+  }, [currentAction, timelineAction, projectsTimelineAction, highlightedSkill, highlightedSkillForRadar, radarFocusCategory, projectHighlightField, focusScreenshotIndex, highlightedRecommendation, onActionConsumed]);
+
   const handleGalleryFocusConsumed = useCallback(() => {
     setGalleryFocusIndex(null);
     onActionConsumed();
@@ -163,6 +221,8 @@ export default function ContentPanel({
           <ProjectsTimeline
             currentAction={projectsTimelineAction}
             onActionConsumed={onActionConsumed}
+            filter={panelState.filter}
+            skillId={panelState.skillId}
           />
         );
 
@@ -225,8 +285,35 @@ export default function ContentPanel({
           </div>
         );
 
+      case 'tech-radar':
+        return (
+          <TechRadar
+            highlightedSkill={highlightedSkillForRadar}
+            focusCategory={radarFocusCategory}
+            onActionConsumed={onActionConsumed}
+          />
+        );
+
       case 'resume':
         return <ResumePanel />;
+
+      case 'quick-facts':
+        return <QuickFacts />;
+
+      case 'recommendations':
+        return (
+          <Recommendations
+            highlightedName={highlightedRecommendation}
+            onActionConsumed={onActionConsumed}
+          />
+        );
+
+      case 'game': {
+        const game = panelState?.game;
+        if (game === 'snake') return <SnakeGame />;
+        if (game === '2048') return <Game2048 />;
+        return null;
+      }
 
       default:
         return null;
@@ -283,6 +370,7 @@ export default function ContentPanel({
       <AnimatePresence>
         {open && type && (
           <motion.div
+            key={type}
             initial={panelInitial}
             animate={panelAnimate}
             exit={panelExit}
@@ -311,7 +399,7 @@ export default function ContentPanel({
               {/* Header (hidden when printing) */}
               <div className="flex justify-between items-center mb-4 md:mb-6 print:hidden">
                 <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
-                  {panelTitle(type)}
+                  {panelTitle(type, panelState)}
                 </h2>
                 <motion.button
                   whileHover={{ scale: 1.1 }}

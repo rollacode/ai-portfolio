@@ -22,10 +22,13 @@ function getVisitorId(): string {
 
 export type PanelState = {
   open: boolean;
-  type: 'project' | 'projects' | 'skills' | 'contact' | 'timeline' | 'gallery' | 'comparison' | 'resume' | null;
+  type: 'project' | 'projects' | 'skills' | 'contact' | 'timeline' | 'gallery' | 'comparison' | 'resume' | 'tech-radar' | 'recommendations' | 'quick-facts' | 'game' | null;
   slug?: string;
   slug2?: string;
   category?: string;
+  filter?: string;
+  skillId?: string;
+  game?: string;
 };
 
 export type PanelAction =
@@ -35,7 +38,10 @@ export type PanelAction =
   | { type: 'highlight_skill'; name: string }
   | { type: 'highlight_project_detail'; slug: string; field: string }
   | { type: 'scroll_to_project'; slug: string }
-  | { type: 'highlight_project'; slug: string };
+  | { type: 'highlight_project'; slug: string }
+  | { type: 'highlight_recommendation'; name: string }
+  | { type: 'focus_radar_section'; category: string }
+  | { type: 'set_theme'; theme: string };
 
 export type ToolResult = {
   panelState?: Partial<PanelState>;
@@ -65,7 +71,12 @@ export function handleToolCall(
 
     case 'show_projects':
       return {
-        panelState: { open: true, type: 'projects' },
+        panelState: {
+          open: true,
+          type: 'projects',
+          filter: args.filter as string | undefined,
+          skillId: args.skillId as string | undefined,
+        },
       };
 
     case 'show_resume':
@@ -101,6 +112,32 @@ export function handleToolCall(
         },
       };
 
+    case 'show_tech_radar':
+      return {
+        panelState: { open: true, type: 'tech-radar' },
+      };
+
+    case 'focus_radar_section':
+      return {
+        panelState: { open: true, type: 'tech-radar' },
+        action: { type: 'focus_radar_section', category: args.category as string },
+      };
+
+    case 'show_quick_facts':
+      return {
+        panelState: { open: true, type: 'quick-facts' },
+      };
+
+    case 'show_recommendations':
+      return {
+        panelState: { open: true, type: 'recommendations' },
+      };
+
+    case 'play_game':
+      return {
+        panelState: { open: true, type: 'game', game: args.game as string },
+      };
+
     case 'hide_panel':
       return {
         panelState: { open: false, type: null },
@@ -121,6 +158,7 @@ export function handleToolCall(
     // -------------------------------------------------------------------------
     case 'scroll_timeline_to':
       return {
+        panelState: { open: true, type: 'timeline' },
         action: {
           type: 'scroll_timeline_to',
           company: args.company as string,
@@ -129,6 +167,7 @@ export function handleToolCall(
 
     case 'highlight_period':
       return {
+        panelState: { open: true, type: 'timeline' },
         action: {
           type: 'highlight_period',
           company: args.company as string,
@@ -138,6 +177,7 @@ export function handleToolCall(
 
     case 'focus_screenshot':
       return {
+        panelState: { open: true, type: 'gallery', slug: args.slug as string },
         action: {
           type: 'focus_screenshot',
           slug: args.slug as string,
@@ -147,6 +187,7 @@ export function handleToolCall(
 
     case 'highlight_skill':
       return {
+        panelState: { open: true, type: 'skills' },
         action: {
           type: 'highlight_skill',
           name: args.name as string,
@@ -155,6 +196,7 @@ export function handleToolCall(
 
     case 'highlight_project_detail':
       return {
+        panelState: { open: true, type: 'project', slug: args.slug as string },
         action: {
           type: 'highlight_project_detail',
           slug: args.slug as string,
@@ -164,6 +206,7 @@ export function handleToolCall(
 
     case 'scroll_to_project':
       return {
+        panelState: { open: true, type: 'projects' },
         action: {
           type: 'scroll_to_project',
           slug: args.slug as string,
@@ -172,11 +215,27 @@ export function handleToolCall(
 
     case 'highlight_project':
       return {
+        panelState: { open: true, type: 'projects' },
         action: {
           type: 'highlight_project',
           slug: args.slug as string,
         },
       };
+
+    case 'highlight_recommendation':
+      return {
+        panelState: { open: true, type: 'recommendations' },
+        action: {
+          type: 'highlight_recommendation',
+          name: args.name as string,
+        },
+      };
+
+    // -------------------------------------------------------------------------
+    // Layer 4 — Side-effect tools (modify UI outside panels)
+    // -------------------------------------------------------------------------
+    case 'set_theme':
+      return { action: { type: 'set_theme', theme: args.theme as string } };
 
     // -------------------------------------------------------------------------
     // Layer 3 — Data tools (side-effects, no UI change)

@@ -4,6 +4,7 @@ import { getToolsWithContext } from '@/lib/tools';
 import projects from '@/portfolio/projects.json';
 import experience from '@/portfolio/experience.json';
 import skills from '@/portfolio/skills.json';
+import recommendations from '@/portfolio/recommendations.json';
 
 // ---------------------------------------------------------------------------
 // Multi-provider AI support
@@ -44,6 +45,7 @@ const companyNames = (experience as Array<{ company: string }>).map((e) => e.com
 const skillNames = Object.values(skills as Record<string, Array<{ name: string }>>)
   .flat()
   .map((s) => s.name);
+const recommendationAuthors = (recommendations as Array<{ name: string }>).map((r) => r.name);
 
 // ---------------------------------------------------------------------------
 // POST /api/chat
@@ -65,7 +67,7 @@ export async function POST(request: NextRequest) {
     };
 
     const systemPrompt = buildSystemPrompt();
-    const tools = getToolsWithContext(projectSlugs, companyNames, skillNames);
+    const tools = getToolsWithContext(projectSlugs, companyNames, skillNames, recommendationAuthors);
 
     const response = await fetch(`${BASE_URL()}/chat/completions`, {
       method: 'POST',

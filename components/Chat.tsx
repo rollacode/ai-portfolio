@@ -167,6 +167,22 @@ export default function Chat() {
         return updated;
       });
       const result = handleToolCall(name, args);
+
+      // Handle set_theme immediately — it's a side effect, not a panel action
+      if (result.action?.type === 'set_theme') {
+        const html = document.documentElement;
+        const theme = result.action.theme;
+        if (theme === 'toggle') {
+          html.classList.toggle('dark');
+        } else if (theme === 'dark') {
+          html.classList.add('dark');
+        } else {
+          html.classList.remove('dark');
+        }
+        localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+        return;
+      }
+
       if (result.panelState) {
         // When switching panel type, reset action queue so queued actions
         // from the old panel don't fire on the new one

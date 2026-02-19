@@ -42,6 +42,8 @@ function friendlyLabel(name: string, args: Record<string, unknown>): string {
       return `scrolling to ${args.slug}`;
     case 'compare_projects':
       return `comparing ${args.slug1} & ${args.slug2}`;
+    case 'play_game':
+      return `opening ${args.game}`;
     case 'remember_visitor': {
       const parts: string[] = [];
       if (args.name) parts.push(`name: ${args.name}`);

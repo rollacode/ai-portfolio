@@ -22,7 +22,14 @@ export type ToolName =
   | 'compare_projects'
   | 'scroll_to_project'
   | 'highlight_project'
-  | 'remember_visitor';
+  | 'show_tech_radar'
+  | 'focus_radar_section'
+  | 'show_quick_facts'
+  | 'show_recommendations'
+  | 'highlight_recommendation'
+  | 'remember_visitor'
+  | 'set_theme'
+  | 'play_game';
 
 export interface ToolCall {
   name: ToolName;
@@ -82,7 +89,17 @@ export const tools: ToolDefinition[] = [
         'Open the projects timeline panel showing ALL projects as a scrollable vertical timeline. Use when the user asks to see all projects, multiple projects, or wants an overview of the portfolio. Prefer this over show_project when showing more than one project.',
       parameters: {
         type: 'object',
-        properties: {},
+        properties: {
+          filter: {
+            type: 'string',
+            description: 'Filter projects by theme/category. Options: "ai" (AI/LLM projects), "mobile" (iOS/mobile), "web" (web apps), "ar" (AR/computer vision). Omit to show all.',
+            enum: ['all', 'ai', 'mobile', 'web', 'ar'],
+          },
+          skillId: {
+            type: 'string',
+            description: 'Filter to only show projects that use this skill ID (e.g. "swift-ios", "langchain"). Omit to show all.',
+          },
+        },
       },
     },
   },
@@ -161,6 +178,61 @@ export const tools: ToolDefinition[] = [
   {
     type: 'function',
     function: {
+      name: 'show_tech_radar',
+      description:
+        'Open an interactive tech radar visualization showing all skills as a concentric ring chart. Expert skills are in the center, working knowledge on the outside. Use when the user asks about the tech stack overview, skill levels, or wants a visual summary of technical expertise.',
+      parameters: {
+        type: 'object',
+        properties: {},
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'focus_radar_section',
+      description:
+        'Zoom into a specific ring/category of the tech radar. Tech radar must be open. Use to highlight a specific expertise area.',
+      parameters: {
+        type: 'object',
+        properties: {
+          category: {
+            type: 'string',
+            description: 'Ring to zoom into',
+            enum: ['primary', 'strong', 'ai', 'working'],
+          },
+        },
+        required: ['category'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'show_quick_facts',
+      description:
+        'Show animated quick facts/stats about the portfolio — project count, skill count, years of experience, etc. Use when the user asks for a quick overview or summary stats.',
+      parameters: {
+        type: 'object',
+        properties: {},
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'show_recommendations',
+      description:
+        'Open the recommendations panel showing LinkedIn recommendations from colleagues and managers. Use when the user asks about references, what others think, testimonials, or recommendations.',
+      parameters: {
+        type: 'object',
+        properties: {},
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
       name: 'hide_panel',
       description:
         'Close the currently open side panel. Use when the conversation moves to a different topic and the current panel is no longer relevant, or when the user explicitly asks to close/dismiss it.',
@@ -220,6 +292,51 @@ export const tools: ToolDefinition[] = [
             description: 'Any other relevant info about the visitor',
           },
         },
+      },
+    },
+  },
+
+  // ---------------------------------------------------------------------------
+  // Layer 4 — Side-effect tools (modify UI outside panels)
+  // ---------------------------------------------------------------------------
+  {
+    type: 'function',
+    function: {
+      name: 'set_theme',
+      description:
+        'Switch the UI theme to dark or light mode. Use when the visitor asks to change theme, or proactively offer it. Fun to use when the visitor asks about preferences.',
+      parameters: {
+        type: 'object',
+        properties: {
+          theme: {
+            type: 'string',
+            description: 'Theme to set',
+            enum: ['dark', 'light', 'toggle'],
+          },
+        },
+        required: ['theme'],
+      },
+    },
+  },
+
+  // ---------------------------------------------------------------------------
+  // Easter eggs
+  // ---------------------------------------------------------------------------
+  {
+    type: 'function',
+    function: {
+      name: 'play_game',
+      description: 'Open a mini-game in the side panel for the visitor to play. A fun easter egg! Use when the visitor asks to play, is bored, or you want to lighten the mood.',
+      parameters: {
+        type: 'object',
+        properties: {
+          game: {
+            type: 'string',
+            description: 'Which game to open',
+            enum: ['snake', '2048'],
+          },
+        },
+        required: ['game'],
       },
     },
   },
@@ -388,6 +505,24 @@ export const tools: ToolDefinition[] = [
       },
     },
   },
+  {
+    type: 'function',
+    function: {
+      name: 'highlight_recommendation',
+      description:
+        'Highlight a specific recommendation by author name. Recommendations panel must be open. Use when discussing a specific person\'s recommendation.',
+      parameters: {
+        type: 'object',
+        properties: {
+          name: {
+            type: 'string',
+            description: 'Author name of the recommendation to highlight',
+          },
+        },
+        required: ['name'],
+      },
+    },
+  },
 ];
 
 // -----------------------------------------------------------------------------
@@ -403,10 +538,12 @@ export function getToolsWithContext(
   projectSlugs: string[],
   companies: string[],
   skillNames: string[],
+  recommendationAuthors: string[] = [],
 ): ToolDefinition[] {
   const slugList = projectSlugs.join(', ');
   const companyList = companies.join(', ');
   const skillList = skillNames.join(', ');
+  const authorList = recommendationAuthors.join(', ');
 
   return tools.map((tool) => {
     const t = structuredClone(tool);
@@ -456,6 +593,15 @@ export function getToolsWithContext(
         }
         if (t.function.parameters.properties.slug2) {
           t.function.parameters.properties.slug2.enum = projectSlugs;
+        }
+        break;
+
+      case 'highlight_recommendation':
+        if (recommendationAuthors.length > 0) {
+          t.function.description += ` Available authors: [${authorList}].`;
+          if (t.function.parameters.properties.name) {
+            t.function.parameters.properties.name.enum = recommendationAuthors;
+          }
         }
         break;
     }
