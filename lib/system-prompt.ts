@@ -36,7 +36,7 @@ export function loadPortfolioContent(): string {
   const portfolioDir = path.join(process.cwd(), 'portfolio');
 
   // Load main portfolio files
-  const files = ['about.md', 'experience.md', 'skills.md', 'meta.md'];
+  const files = ['about.md', 'experience.md', 'skills.md', 'meta.md', 'recommendations.md'];
   const sections = files.map((file) => {
     const filePath = path.join(portfolioDir, file);
     return fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf-8') : '';
