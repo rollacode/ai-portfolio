@@ -391,7 +391,20 @@ export default function Chat() {
             <div className={`mx-auto px-4 pb-4 pt-2 pointer-events-auto ${layout === 'split' ? 'max-w-[500px]' : 'max-w-3xl'}`}>
               <ChatInput onSend={sendMessage} disabled={isLoading} />
               <p className="text-[10px] text-center text-gray-400 dark:text-gray-600 mt-2">
-                AI-powered portfolio agent
+                {(config as Record<string, unknown>).firstName as string || config.name.split(' ')[0]}&apos;s portfolio agent
+                {config.social?.github && (
+                  <>
+                    {' · '}
+                    <a
+                      href={config.social.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-gray-300 transition-colors"
+                    >
+                      GitHub
+                    </a>
+                  </>
+                )}
               </p>
             </div>
           </div>
