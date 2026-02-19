@@ -47,8 +47,16 @@ function friendlyLabel(name: string, args: Record<string, unknown>): string {
       return `scrolled to ${args.slug}`;
     case 'compare_projects':
       return `compared ${args.slug1} & ${args.slug2}`;
-    case 'remember_visitor':
-      return 'noted';
+    case 'remember_visitor': {
+      const parts: string[] = [];
+      if (args.name) parts.push(`your name is ${args.name}`);
+      if (args.company) parts.push(`you're from ${args.company}`);
+      if (args.role) parts.push(`you're ${args.role}`);
+      if (args.interest) parts.push(`interested in ${args.interest}`);
+      if (args.contact) parts.push(`contact: ${args.contact}`);
+      if (args.notes) parts.push(String(args.notes));
+      return parts.length ? `noted that ${parts.join(', ')}` : 'noted';
+    }
     default:
       return name.replace(/_/g, ' ');
   }

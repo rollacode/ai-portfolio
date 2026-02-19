@@ -36,7 +36,7 @@ interface ProjectsTimelineProps {
 const HIGHLIGHT_DURATION_MS = 3000;
 
 // Sort projects by period (newest first) — parse start year from period string
-const projects = (projectsData as Project[]).sort((a, b) => {
+const projects = (projectsData as unknown as Project[]).sort((a, b) => {
   const yearA = parseInt(a.period.match(/\d{4}/)?.[0] ?? '0', 10);
   const yearB = parseInt(b.period.match(/\d{4}/)?.[0] ?? '0', 10);
   return yearB - yearA;

@@ -1,4 +1,4 @@
-// Builds system prompt from structured JSON data + project writeups (markdown)
+// Builds system prompt from structured JSON data
 
 import fs from 'fs';
 import path from 'path';
@@ -60,6 +60,7 @@ interface ExperienceEntry {
 }
 
 interface Skill {
+  id: string;
   name: string;
   years?: number;
   level: string;
@@ -73,6 +74,8 @@ interface Project {
   description: string;
   highlights: string[];
   links?: Record<string, string>;
+  skillIds?: string[];
+  writeup?: string;
 }
 
 interface Recommendation {
@@ -177,9 +180,15 @@ function formatProjects(projects: Project[]): string {
     if (p.highlights.length) {
       for (const h of p.highlights) lines.push(`- ${h}`);
     }
+    if (p.skillIds?.length) {
+      lines.push(`Skill IDs: ${p.skillIds.join(', ')}`);
+    }
     if (p.links && Object.keys(p.links).length) {
       const linkParts = Object.entries(p.links).map(([k, v]) => `${k}: ${v}`);
       lines.push(`Links: ${linkParts.join(' | ')}`);
+    }
+    if (p.writeup) {
+      lines.push(`\n### Deep Dive\n${p.writeup}`);
     }
   }
   return lines.join('\n');
@@ -193,17 +202,6 @@ function formatRecommendations(recs: Recommendation[]): string {
     lines.push(r.text);
   }
   return lines.join('\n');
-}
-
-function loadProjectWriteups(): string {
-  const projectsDir = path.join(portfolioDir, 'projects');
-  if (!fs.existsSync(projectsDir)) return '';
-  const files = fs.readdirSync(projectsDir).filter(f => f.endsWith('.md'));
-  if (!files.length) return '';
-  const content = files
-    .map(f => fs.readFileSync(path.join(projectsDir, f), 'utf-8'))
-    .join('\n\n---\n\n');
-  return `# Project Deep Dives\n\n${content}`;
 }
 
 // -----------------------------------------------------------------------------
@@ -225,7 +223,6 @@ export function loadPortfolioContent(): string {
   if (skills) sections.push(formatSkills(skills));
   if (projects) sections.push(formatProjects(projects));
   if (recommendations) sections.push(formatRecommendations(recommendations));
-  sections.push(loadProjectWriteups());
 
   return sections.filter(Boolean).join('\n\n---\n\n');
 }

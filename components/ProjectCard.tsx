@@ -77,7 +77,7 @@ export default function ProjectCard({
 }: ProjectCardProps) {
   /* Resolve project data ------------------------------------------- */
   const project: ProjectData | undefined =
-    projectProp ?? (allProjects as ProjectData[]).find((p) => p.slug === slug);
+    projectProp ?? (allProjects as unknown as ProjectData[]).find((p) => p.slug === slug);
 
   /* Highlight field auto-dismiss ----------------------------------- */
   const [activeHighlight, setActiveHighlight] = useState<HighlightField>(highlightFieldProp);
