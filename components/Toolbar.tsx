@@ -11,7 +11,7 @@ export default function Toolbar() {
     <div className="flex items-center gap-1">
       <button
         onClick={handleClear}
-        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
         aria-label="Clear chat"
         title="Clear chat"
       >

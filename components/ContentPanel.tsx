@@ -295,9 +295,9 @@ export default function ContentPanel({
             className={
               isDesktop
                 ? // Desktop: left sidebar
-                   'fixed left-0 top-0 h-full w-[calc(100vw-500px)] bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 shadow-2xl overflow-y-auto z-40'
+                   'fixed left-0 top-0 h-full w-[calc(100vw-500px)] bg-white dark:bg-black border-r border-gray-200 dark:border-gray-800 shadow-2xl overflow-y-auto z-40'
                 : // Mobile: full-screen sheet from bottom
-                  'fixed inset-0 w-screen h-screen bg-white dark:bg-gray-900 overflow-y-auto z-50'
+                  'fixed inset-0 w-screen h-screen bg-white dark:bg-black overflow-y-auto z-50'
             }
           >
             <div className="p-4 md:p-6">
@@ -310,7 +310,7 @@ export default function ContentPanel({
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={onClose}
-                  className="p-3 md:p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                  className="p-3 md:p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-colors"
                   aria-label="Close panel"
                 >
                   <svg className="w-7 h-7 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

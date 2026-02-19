@@ -109,7 +109,7 @@ export default function ProjectCard({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: 'easeOut' }}
-      className="space-y-5 rounded-xl bg-gray-50 dark:bg-gray-800/80 p-5 shadow-sm"
+      className="space-y-5 rounded-xl bg-gray-50 dark:bg-neutral-900 p-5 shadow-sm"
     >
       {/* Header ---------------------------------------------------- */}
       <div>

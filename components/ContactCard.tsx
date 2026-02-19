@@ -92,7 +92,7 @@ export default function ContactCard() {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
-      className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 space-y-5"
+      className="rounded-2xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 space-y-5"
     >
       {/* Name & bio */}
       <div>
@@ -115,7 +115,7 @@ export default function ContactCard() {
       )}
 
       {/* Divider */}
-      <div className="h-px bg-gray-100 dark:bg-gray-800" />
+      <div className="h-px bg-gray-100 dark:bg-neutral-800" />
 
       {/* Social links */}
       <div className="space-y-3">

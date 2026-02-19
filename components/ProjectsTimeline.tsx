@@ -87,7 +87,7 @@ function TimelineDot({ isHighlighted }: { isHighlighted: boolean }) {
         className={`relative z-10 w-3.5 h-3.5 rounded-full border-2 transition-colors duration-300 ${
           isHighlighted
             ? 'bg-lime-400 border-lime-400 shadow-[0_0_12px_rgba(132,204,22,0.6)]'
-            : 'bg-gray-700 border-gray-600 dark:bg-gray-600 dark:border-gray-500'
+            : 'bg-gray-400 border-gray-400 dark:bg-neutral-600 dark:border-neutral-500'
         }`}
         animate={isHighlighted ? { scale: [1, 1.2, 1] } : { scale: 1 }}
         transition={isHighlighted ? { duration: 0.8, repeat: Infinity, ease: 'easeInOut' } : {}}
@@ -120,11 +120,11 @@ function ProjectTimelineCard({
       }}
       className={`
         relative rounded-xl p-5 transition-all duration-500
-        bg-gray-50 dark:bg-gray-800/80
+        bg-gray-50/70 dark:bg-white/[0.05]
         border
         ${isHighlighted
-          ? 'border-lime-500/60 shadow-[0_0_24px_rgba(132,204,22,0.2)]'
-          : 'border-gray-200 dark:border-gray-700/50 hover:border-gray-300 dark:hover:border-gray-600'
+          ? 'border-lime-500/40 shadow-[0_0_24px_rgba(132,204,22,0.15)]'
+          : 'border-gray-200/60 dark:border-white/[0.08] hover:border-gray-300/70 dark:hover:border-white/[0.12]'
         }
       `}
     >
@@ -261,23 +261,10 @@ export default function ProjectsTimeline({
 
   return (
     <div className="relative py-2">
-      {/* Section header */}
-      <motion.div
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="mb-8"
-      >
-        <div className="flex items-center gap-3">
-          <h2 className="text-lg font-semibold text-lime-500 whitespace-nowrap">
-            Projects
-          </h2>
-          <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
-        </div>
-        <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-          {projects.length} projects
-        </p>
-      </motion.div>
+      {/* Subtitle */}
+      <p className="mb-6 text-xs text-gray-400 dark:text-gray-500">
+        {projects.length} projects
+      </p>
 
       {/* Timeline entries */}
       <div className="relative">

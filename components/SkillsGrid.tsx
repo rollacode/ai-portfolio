@@ -133,13 +133,13 @@ export default function SkillsGrid({
                       }}
                       className={`
                         relative flex items-center gap-3 px-4 py-3
-                        bg-gray-50 dark:bg-gray-900 rounded-xl
+                        bg-gray-50 dark:bg-neutral-900 rounded-xl
                         border border-transparent
                         transition-all duration-300
                         ${
                           isHighlighted
                             ? 'border-lime-500/60 shadow-[0_0_16px_rgba(132,204,22,0.25)]'
-                            : 'hover:border-gray-200 dark:hover:border-gray-700'
+                            : 'hover:border-gray-200 dark:hover:border-neutral-700'
                         }
                       `}
                     >

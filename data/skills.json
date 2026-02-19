@@ -12,7 +12,8 @@
     { "name": "Objective-C", "years": 5, "level": "professional" },
     { "name": "Android / Kotlin", "years": 3, "level": "professional" },
     { "name": "LLM Agents", "years": 1, "level": "professional" },
-    { "name": "Product Management", "years": 2, "level": "professional" }
+    { "name": "Product Management", "years": 2, "level": "professional" },
+    { "name": "PostgreSQL", "years": 4, "level": "professional" }
   ],
   "ai": [
     { "name": "Claude Code", "level": "expert" },
@@ -39,7 +40,6 @@
     { "name": "Spring Boot / Java", "level": "familiar" },
     { "name": "WebRTC", "level": "familiar" },
     { "name": "Docker / DevOps", "level": "familiar" },
-    { "name": "Home Assistant", "level": "familiar" },
-    { "name": "PostgreSQL", "level": "familiar" }
+    { "name": "Home Assistant", "level": "familiar" }
   ]
 }

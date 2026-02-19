@@ -39,9 +39,9 @@ export default function ChatMessage({ role, content, toolCalls, isError, onRetry
           <div className="prose prose-sm dark:prose-invert max-w-none
                           prose-p:my-1.5 prose-p:leading-relaxed
                           prose-headings:font-medium prose-headings:mt-4 prose-headings:mb-2
-                          prose-pre:bg-gray-100 dark:prose-pre:bg-gray-800 prose-pre:text-gray-900 dark:prose-pre:text-gray-100
-                          prose-code:text-gray-900 dark:prose-code:text-gray-100
-                          prose-code:bg-gray-100 dark:prose-code:bg-gray-800
+                          prose-pre:bg-neutral-100 dark:prose-pre:bg-neutral-900 prose-pre:text-black dark:prose-pre:text-white
+                          prose-code:text-black dark:prose-code:text-white
+                          prose-code:bg-neutral-100 dark:prose-code:bg-neutral-900
                           prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-sm
                           prose-a:text-lime-500 hover:prose-a:text-lime-400 prose-a:no-underline
                           prose-li:my-0.5
