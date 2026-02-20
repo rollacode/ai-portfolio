@@ -87,7 +87,7 @@ export default function ChatInput({ onSend, disabled, animatePlaceholder }: Chat
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.25, ease: 'easeInOut' }}
-              className="text-sm md:text-base text-gray-400 dark:text-gray-500 whitespace-nowrap"
+              className="text-base text-gray-400 dark:text-gray-500 whitespace-nowrap"
             >
               {currentPlaceholder}
             </motion.span>
@@ -100,9 +100,10 @@ export default function ChatInput({ onSend, disabled, animatePlaceholder }: Chat
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={handleKeyDown}
+        enterKeyHint="send"
         disabled={disabled}
         rows={1}
-        className="flex-1 resize-none bg-transparent text-sm md:text-base
+        className="flex-1 resize-none bg-transparent text-base
                    focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed
                    max-h-[200px] py-1 leading-relaxed"
       />

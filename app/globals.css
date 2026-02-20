@@ -91,6 +91,18 @@ body {
   scrollbar-color: rgba(128, 128, 128, 0.3) transparent;
 }
 
+/* ------------------------------------------------------------------ */
+/*  Prevent iOS Safari auto-zoom on input focus (requires >= 16px)     */
+/* ------------------------------------------------------------------ */
+
+@media screen and (hover: none) and (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
