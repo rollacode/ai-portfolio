@@ -6,6 +6,7 @@ import {
   AnimatePresence,
   useMotionValue,
   useTransform,
+  useDragControls,
   type PanInfo,
 } from 'framer-motion';
 import ChatMessage from './ChatMessage';
@@ -61,6 +62,7 @@ export default function MobileChatSheet({
 
   const dragY = useMotionValue(0);
   const sheetOpacity = useTransform(dragY, [0, 300], [1, 0.5]);
+  const dragControls = useDragControls();
 
   const clearCollapseTimer = useCallback(() => {
     if (collapseTimerRef.current) {
@@ -94,6 +96,12 @@ export default function MobileChatSheet({
     setExpanded(true);
     setUserExpanded(true);
     clearCollapseTimer();
+    // Scroll chat to bottom instantly so user sees latest messages
+    requestAnimationFrame(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      }
+    });
   }, [clearCollapseTimer]);
 
   // On first mount: auto-expand after a short pause so user sees the transition
@@ -140,27 +148,7 @@ export default function MobileChatSheet({
   // Cleanup timer on unmount
   useEffect(() => clearCollapseTimer, [clearCollapseTimer]);
 
-  // Collapse expanded sheet when user scrolls the panel underneath
-  useEffect(() => {
-    if (!expanded) return;
 
-    const onScroll = () => {
-      // Only auto-collapse, not user-initiated sessions where they're actively typing
-      setExpanded(false);
-      setUserExpanded(false);
-      clearCollapseTimer();
-    };
-
-    // Capture scroll on any element except our own scroll area
-    const handler = (e: Event) => {
-      // Ignore scrolls inside our own sheet
-      if (sheetRef.current?.contains(e.target as Node)) return;
-      onScroll();
-    };
-
-    window.addEventListener('scroll', handler, { capture: true, passive: true });
-    return () => window.removeEventListener('scroll', handler, { capture: true });
-  }, [expanded, clearCollapseTimer]);
 
   // Last assistant message for the collapsed tab preview
   const lastAssistantMsg = [...messages]
@@ -229,6 +217,8 @@ export default function MobileChatSheet({
             exit={{ y: '100%' }}
             transition={SPRING}
             drag="y"
+            dragControls={dragControls}
+            dragListener={false}
             dragConstraints={{ top: 0, bottom: 0 }}
             dragElastic={0.3}
             dragMomentum={false}
@@ -245,6 +235,7 @@ export default function MobileChatSheet({
             <div
               className="flex items-center justify-between px-4 pt-3 pb-1"
               style={{ touchAction: 'none' }}
+              onPointerDown={(e) => dragControls.start(e)}
             >
               {/* Spacer for centering */}
               <div className="w-8" />

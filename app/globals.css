@@ -120,6 +120,149 @@ body {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Fallout / Pip-Boy easter egg theme                                 */
+/* ------------------------------------------------------------------ */
+
+.fallout {
+  --background: #0b0c0a;
+  --foreground: #33ff33;
+  --surface: #0b0c0a;
+  --accent: #33ff33;
+}
+
+.fallout body {
+  font-family: 'Courier New', Courier, monospace;
+  background: #0b0c0a;
+  color: #33ff33;
+}
+
+/* Green tint on everything */
+.fallout * {
+  color: #33ff33 !important;
+  border-color: #33ff3322 !important;
+}
+
+.fallout a,
+.fallout button {
+  color: #33ff33 !important;
+}
+
+.fallout h1, .fallout h2, .fallout h3, .fallout h4 {
+  color: #44ff44 !important;
+}
+
+/* Dimmed text */
+.fallout .text-gray-400,
+.fallout .text-gray-500,
+.fallout .text-gray-600,
+.fallout .text-neutral-400,
+.fallout .text-neutral-500 {
+  color: #22aa22 !important;
+}
+
+/* Backgrounds */
+.fallout .bg-white,
+.fallout .dark\:bg-black,
+.fallout .dark\:bg-neutral-900,
+.fallout .dark\:bg-neutral-900\/80,
+.fallout .dark\:bg-neutral-950\/80,
+.fallout .bg-neutral-50\/80 {
+  background-color: #0b0c0a !important;
+}
+
+.fallout .bg-gray-50,
+.fallout .dark\:bg-white\/\[0\.05\],
+.fallout .dark\:bg-neutral-800,
+.fallout .dark\:bg-neutral-800\/50 {
+  background-color: #111210 !important;
+}
+
+/* Accent override — lime becomes Pip-Boy green */
+.fallout .text-lime-500,
+.fallout .bg-lime-500 {
+  color: #33ff33 !important;
+}
+.fallout .bg-lime-500 {
+  background-color: #33ff33 !important;
+  color: #0b0c0a !important;
+}
+
+/* Borders */
+.fallout .border-gray-200,
+.fallout .border-gray-300,
+.fallout .dark\:border-neutral-700,
+.fallout .dark\:border-neutral-800,
+.fallout .dark\:border-gray-800 {
+  border-color: #33ff3320 !important;
+}
+
+/* Scrollbar */
+.fallout ::-webkit-scrollbar-thumb {
+  background: rgba(51, 255, 51, 0.25) !important;
+}
+.fallout ::-webkit-scrollbar-thumb:hover {
+  background: rgba(51, 255, 51, 0.4) !important;
+}
+.fallout * {
+  scrollbar-color: rgba(51, 255, 51, 0.25) transparent !important;
+}
+
+/* CRT scanlines overlay */
+.fallout body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15) 0px,
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+/* CRT flicker */
+.fallout body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.4) 100%);
+  animation: fallout-flicker 4s ease-in-out infinite;
+}
+
+@keyframes fallout-flicker {
+  0%, 100% { opacity: 0.97; }
+  50% { opacity: 1; }
+  92% { opacity: 0.98; }
+  94% { opacity: 0.95; }
+  96% { opacity: 0.99; }
+}
+
+/* Glow on text */
+.fallout body {
+  text-shadow: 0 0 4px rgba(51, 255, 51, 0.3);
+}
+
+/* Input styling */
+.fallout input,
+.fallout textarea,
+.fallout select {
+  background-color: #111210 !important;
+  color: #33ff33 !important;
+  border-color: #33ff3330 !important;
+  caret-color: #33ff33;
+}
+
+.fallout input::placeholder,
+.fallout textarea::placeholder {
+  color: #22aa22 !important;
+}
+
+/* ------------------------------------------------------------------ */
 /*  Print styles — clean resume export                                 */
 /* ------------------------------------------------------------------ */
 

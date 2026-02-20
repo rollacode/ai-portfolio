@@ -44,12 +44,16 @@ export default function RootLayout({
             __html: `
               (function() {
                 var stored = localStorage.getItem('theme');
-                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                var isDark = stored ? stored === 'dark' : prefersDark;
-                if (isDark) {
-                  document.documentElement.classList.add('dark');
+                if (stored === 'fallout') {
+                  document.documentElement.classList.add('dark', 'fallout');
                 } else {
-                  document.documentElement.classList.remove('dark');
+                  var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  var isDark = stored ? stored === 'dark' : prefersDark;
+                  if (isDark) {
+                    document.documentElement.classList.add('dark');
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                  }
                 }
               })();
             `,

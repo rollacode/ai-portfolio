@@ -4,11 +4,21 @@
   "title": "Portfolio Agent",
   "bio": "Senior Full-Stack Engineer & AI Architect",
   "location": "Riga, Latvia",
-  "workModes": ["onsite", "hybrid", "remote (EU)"],
+  "workModes": [
+    "onsite",
+    "hybrid",
+    "remote (EU)"
+  ],
   "avatar": null,
   "languages": [
-    { "language": "Russian", "level": "Native" },
-    { "language": "English", "level": "Professional working proficiency" }
+    {
+      "language": "Russian",
+      "level": "Native"
+    },
+    {
+      "language": "English",
+      "level": "Professional working proficiency"
+    }
   ],
   "education": {
     "university": "Tomsk State University",
@@ -47,8 +57,7 @@
     "What's his AI/LLM background?",
     "Show me the Computer Vision work",
     "Walk me through his career",
-    "What makes him different from other devs?",
-    "Can you summarize his full portfolio?",
+    "Summarize his full portfolio?",
     "What do his colleagues say about him?",
     "Show me something cool",
     "What's his tech stack look like?",
