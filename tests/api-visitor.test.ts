@@ -267,10 +267,10 @@ describe('GET /api/visitor', () => {
   });
 
   // -----------------------------------------------------------------------
-  // 7. Returns visitors with query param token
+  // 7. Rejects query param token (only Bearer header accepted)
   // -----------------------------------------------------------------------
 
-  it('returns visitors when valid query param token is provided', async () => {
+  it('returns 401 when token is provided via query param instead of header', async () => {
     vi.stubEnv('ADMIN_TOKEN', 'qp-token');
     vi.mocked(fs.existsSync).mockReturnValue(true);
     vi.mocked(fs.readFileSync).mockReturnValue(
@@ -280,10 +280,6 @@ describe('GET /api/visitor', () => {
     const { GET } = await import('../app/api/visitor/route');
 
     const res = await GET(getRequest({ queryToken: 'qp-token' }));
-    expect(res.status).toBe(200);
-
-    const json = await res.json();
-    expect(json.count).toBe(1);
-    expect(json.visitors[0].name).toBe('Bob');
+    expect(res.status).toBe(401);
   });
 });

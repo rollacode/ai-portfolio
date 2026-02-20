@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
 // ---------------------------------------------------------------------------
 // POST /api/visitor  — save visitor info (called by agent tool, no auth)
@@ -13,6 +14,14 @@ import path from 'path';
 
 const VISITORS_PATH = path.join(process.cwd(), 'data', 'visitors.json');
 const MERGE_WINDOW_MS = 30 * 60 * 1000; // 30 minutes fallback
+
+// Simple async mutex for file write serialization
+let writeLock: Promise<void> = Promise.resolve();
+function withLock<T>(fn: () => Promise<T>): Promise<T> {
+  const result = writeLock.then(fn);
+  writeLock = result.then(() => {}, () => {});
+  return result;
+}
 
 interface VisitorEntry {
   visitorId?: string;
@@ -54,9 +63,6 @@ function checkToken(request: NextRequest): boolean {
   const auth = request.headers.get('authorization');
   if (auth?.startsWith('Bearer ') && auth.slice(7) === token) return true;
 
-  const param = request.nextUrl.searchParams.get('token');
-  if (param === token) return true;
-
   return false;
 }
 
@@ -78,6 +84,11 @@ export async function GET(request: NextRequest) {
 // ---------------------------------------------------------------------------
 
 export async function POST(request: NextRequest) {
+  const ip = getClientIp(request);
+  if (!rateLimit(ip, 30)) {
+    return Response.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
   try {
     const body = await request.json();
     const visitorId = body.visitorId as string | undefined;
@@ -94,56 +105,58 @@ export async function POST(request: NextRequest) {
       return Response.json({ ok: true, merged: false });
     }
 
-    const visitors = loadVisitors();
-    const now = new Date();
+    return await withLock(async () => {
+      const visitors = loadVisitors();
+      const now = new Date();
 
-    // Try to find existing entry by visitorId
-    let existing: VisitorEntry | undefined;
-    if (visitorId) {
-      existing = visitors.find((v) => v.visitorId === visitorId);
-    }
-
-    // Fallback: merge by timestamp if no visitorId match
-    if (!existing) {
-      const last = visitors[visitors.length - 1];
-      if (last && (now.getTime() - new Date(last.timestamp).getTime()) < MERGE_WINDOW_MS) {
-        existing = last;
+      // Try to find existing entry by visitorId
+      let existing: VisitorEntry | undefined;
+      if (visitorId) {
+        existing = visitors.find((v) => v.visitorId === visitorId);
       }
-    }
 
-    if (existing) {
-      // Merge new fields into existing entry — append for notes only
-      const appendKeys = new Set(['notes']);
-      for (const [key, value] of Object.entries(data)) {
-        if (value) {
-          const rec = existing as unknown as Record<string, unknown>;
-          if (appendKeys.has(key) && rec[key] && typeof rec[key] === 'string') {
-            // Avoid duplicates: only append if the new value isn't already in the existing
-            const existing_val = rec[key] as string;
-            if (!existing_val.includes(value as string)) {
-              rec[key] = `${existing_val}; ${value}`;
-            }
-          } else {
-            rec[key] = value;
-          }
+      // Fallback: merge by timestamp if no visitorId match
+      if (!existing) {
+        const last = visitors[visitors.length - 1];
+        if (last && (now.getTime() - new Date(last.timestamp).getTime()) < MERGE_WINDOW_MS) {
+          existing = last;
         }
       }
-      if (visitorId && !existing.visitorId) {
-        existing.visitorId = visitorId;
-      }
-      existing.timestamp = now.toISOString();
-      saveVisitors(visitors);
-      return Response.json({ ok: true, merged: true });
-    }
 
-    // New entry
-    visitors.push({
-      visitorId,
-      timestamp: now.toISOString(),
-      ...data,
+      if (existing) {
+        // Merge new fields into existing entry — append for notes only
+        const appendKeys = new Set(['notes']);
+        for (const [key, value] of Object.entries(data)) {
+          if (value) {
+            const rec = existing as unknown as Record<string, unknown>;
+            if (appendKeys.has(key) && rec[key] && typeof rec[key] === 'string') {
+              // Avoid duplicates: only append if the new value isn't already in the existing
+              const existing_val = rec[key] as string;
+              if (!existing_val.includes(value as string)) {
+                rec[key] = `${existing_val}; ${value}`;
+              }
+            } else {
+              rec[key] = value;
+            }
+          }
+        }
+        if (visitorId && !existing.visitorId) {
+          existing.visitorId = visitorId;
+        }
+        existing.timestamp = now.toISOString();
+        saveVisitors(visitors);
+        return Response.json({ ok: true, merged: true });
+      }
+
+      // New entry
+      visitors.push({
+        visitorId,
+        timestamp: now.toISOString(),
+        ...data,
+      });
+      saveVisitors(visitors);
+      return Response.json({ ok: true, merged: false });
     });
-    saveVisitors(visitors);
-    return Response.json({ ok: true, merged: false });
   } catch (error) {
     console.error('[visitor API] error:', error);
     return Response.json({ error: 'Failed to save visitor info' }, { status: 500 });

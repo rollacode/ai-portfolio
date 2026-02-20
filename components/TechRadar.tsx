@@ -15,7 +15,7 @@ interface Skill {
   level: string;
 }
 
-type Ring = 'primary' | 'strong' | 'ai' | 'working';
+type Ring = 'primary' | 'strong' | 'ai' | 'working' | 'hobby';
 
 interface TechRadarProps {
   highlightedSkill?: string | null;
@@ -32,6 +32,7 @@ const RINGS: { key: Ring; label: string; radius: number }[] = [
   { key: 'strong', label: 'Strong', radius: 170 },
   { key: 'ai', label: 'AI / LLM', radius: 250 },
   { key: 'working', label: 'Working Knowledge', radius: 330 },
+  { key: 'hobby', label: 'Hobby', radius: 400 },
 ];
 
 const VIEW_SIZE = 750;

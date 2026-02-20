@@ -155,6 +155,7 @@ function formatSkills(skills: Record<string, Skill[]>): string {
     strong: 'Strong',
     ai: 'AI / LLM',
     working: 'Working Knowledge',
+    hobby: 'Hobby / Side Projects',
   };
   const lines: string[] = ['# Skills'];
   for (const [cat, catSkills] of Object.entries(skills)) {

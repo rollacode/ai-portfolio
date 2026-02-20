@@ -49,6 +49,7 @@ const categoryLabels: Record<string, string> = {
   strong: 'Strong',
   ai: 'AI / LLM',
   working: 'Familiar',
+  hobby: 'Hobby',
 };
 
 /* ------------------------------------------------------------------ */

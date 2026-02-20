@@ -15,7 +15,8 @@
     { "id": "postgresql", "name": "PostgreSQL", "years": 4, "level": "professional" },
     { "id": "redis-celery", "name": "Redis / Celery", "years": 2, "level": "professional" },
     { "id": "livekit", "name": "LiveKit", "years": 1, "level": "professional" },
-    { "id": "vue-js", "name": "Vue.js", "years": 1, "level": "professional" }
+
+    { "id": "firebase", "name": "Firebase", "years": 4, "level": "professional" }
   ],
   "ai": [
     { "id": "claude-code", "name": "Claude Code", "level": "expert" },
@@ -30,10 +31,7 @@
     { "id": "whisper-openai", "name": "Whisper (OpenAI)", "level": "professional" },
     { "id": "elevenlabs", "name": "ElevenLabs", "level": "professional" },
     { "id": "mcp-protocol", "name": "MCP Protocol", "level": "familiar" },
-    { "id": "searxng", "name": "SearXNG", "level": "professional" },
-    { "id": "supabase-edge-functions", "name": "Supabase + Edge Functions", "level": "professional" },
-    { "id": "fastapi-dramatiq", "name": "FastAPI + Dramatiq", "level": "professional" },
-    { "id": "knowledge-graphs", "name": "Knowledge Graphs", "level": "professional" },
+
     { "id": "vibe-coding", "name": "Vibe Coding", "level": "expert" }
   ],
   "working": [
@@ -42,9 +40,14 @@
     { "id": "spring-boot-java", "name": "Spring Boot / Java", "level": "familiar" },
     { "id": "webrtc", "name": "WebRTC", "level": "familiar" },
     { "id": "docker-devops", "name": "Docker / DevOps", "level": "familiar" },
-    { "id": "home-assistant", "name": "Home Assistant", "level": "familiar" },
+
     { "id": "aspnet-csharp", "name": "ASP.NET / C#", "level": "familiar" },
     { "id": "react-native", "name": "React Native", "level": "familiar" },
-    { "id": "firebase", "name": "Firebase", "level": "familiar" }
+    { "id": "vue-js", "name": "Vue.js", "level": "familiar" },
+    { "id": "knowledge-graphs", "name": "Knowledge Graphs", "level": "familiar" }
+  ],
+  "hobby": [
+    { "id": "home-assistant", "name": "Home Assistant", "level": "familiar" },
+    { "id": "open-claw", "name": "Open Claw", "level": "familiar" }
   ]
 }

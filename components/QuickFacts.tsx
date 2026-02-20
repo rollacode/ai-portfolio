@@ -20,7 +20,8 @@ function computeStats() {
     skills.primary.length +
     skills.strong.length +
     skills.ai.length +
-    skills.working.length;
+    skills.working.length +
+    (skills.hobby?.length ?? 0);
 
   // Years of experience: earliest start year → current year
   const startYears = experience.map((e) => {

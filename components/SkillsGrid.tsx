@@ -12,13 +12,14 @@ interface Skill {
   level: SkillLevel;
 }
 
-type Category = 'primary' | 'strong' | 'ai' | 'working';
+type Category = 'primary' | 'strong' | 'ai' | 'working' | 'hobby';
 
 const categoryLabels: Record<Category, string> = {
   primary: 'Primary (Expert)',
   strong: 'Strong (Professional)',
   ai: 'AI / LLM Tooling',
   working: 'Working Knowledge',
+  hobby: 'Hobby / Side Projects',
 };
 
 const levelColors: Record<SkillLevel, string> = {

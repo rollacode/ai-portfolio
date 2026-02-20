@@ -1,6 +1,8 @@
 import { NextRequest } from 'next/server';
 import { buildSystemPrompt } from '@/lib/system-prompt';
 import { getToolsWithContext } from '@/lib/tools';
+import { trimMessages } from '@/lib/message-window';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import projects from '@/portfolio/projects.json';
 import experience from '@/portfolio/experience.json';
 import skills from '@/portfolio/skills.json';
@@ -48,10 +50,64 @@ const skillNames = Object.values(skills as Record<string, Array<{ name: string }
 const recommendationAuthors = (recommendations as Array<{ name: string }>).map((r) => r.name);
 
 // ---------------------------------------------------------------------------
+// Input validation
+// ---------------------------------------------------------------------------
+
+const VALID_ROLES = new Set(['user', 'assistant', 'system', 'tool']);
+const MAX_MESSAGES = 200;
+const MAX_CONTENT_LENGTH = 50_000;
+
+interface ChatMessage {
+  role: string;
+  content: string | null;
+}
+
+function validateMessages(messages: unknown): string | null {
+  if (!Array.isArray(messages)) {
+    return 'messages must be a non-empty array';
+  }
+
+  if (messages.length === 0) {
+    return 'messages must be a non-empty array';
+  }
+
+  if (messages.length > MAX_MESSAGES) {
+    return `messages array exceeds maximum length of ${MAX_MESSAGES}`;
+  }
+
+  for (let i = 0; i < messages.length; i++) {
+    const msg = messages[i];
+
+    if (typeof msg !== 'object' || msg === null) {
+      return `messages[${i}] must be an object`;
+    }
+
+    if (typeof msg.role !== 'string' || !VALID_ROLES.has(msg.role)) {
+      return `messages[${i}].role must be one of: ${[...VALID_ROLES].join(', ')}`;
+    }
+
+    if (msg.content !== null && typeof msg.content !== 'string') {
+      return `messages[${i}].content must be a string or null`;
+    }
+
+    if (typeof msg.content === 'string' && msg.content.length > MAX_CONTENT_LENGTH) {
+      return `messages[${i}].content exceeds maximum length of ${MAX_CONTENT_LENGTH} characters`;
+    }
+  }
+
+  return null;
+}
+
+// ---------------------------------------------------------------------------
 // POST /api/chat
 // ---------------------------------------------------------------------------
 
 export async function POST(request: NextRequest) {
+  const ip = getClientIp(request);
+  if (!rateLimit(ip, 20)) {
+    return Response.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
   const apiKey = API_KEY();
 
   if (!apiKey) {
@@ -62,9 +118,20 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { messages } = (await request.json()) as {
-      messages: Array<{ role: string; content: string }>;
-    };
+    const body = await request.json();
+    const { messages } = body as { messages: unknown };
+
+    const validationError = validateMessages(messages);
+    if (validationError) {
+      return Response.json({ error: validationError }, { status: 400 });
+    }
+
+    // Safe to cast after validation
+    const validMessages = messages as ChatMessage[];
+
+    // Sliding window — keep only the most recent messages so long
+    // conversations don't exceed the provider's context window.
+    const trimmed = trimMessages(validMessages);
 
     const systemPrompt = buildSystemPrompt();
     const tools = getToolsWithContext(projectSlugs, companyNames, skillNames, recommendationAuthors);
@@ -77,7 +144,7 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({
         model: MODEL(),
-        messages: [{ role: 'system', content: systemPrompt }, ...messages],
+        messages: [{ role: 'system', content: systemPrompt }, ...trimmed],
         tools,
         stream: true,
         temperature: 0.7,
