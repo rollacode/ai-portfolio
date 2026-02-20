@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@upstash/redis": "^1.36.2",
+    "@vercel/analytics": "^1.6.1",
     "framer-motion": "^12.34.0",
     "next": "^15",
     "react": "^19",

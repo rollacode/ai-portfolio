@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import config from "@/portfolio/config.json";
 import CookieConsent from "@/components/CookieConsent";
+import { Analytics } from "@vercel/analytics/next";
 
 const title = `${config.name} — ${config.title}`;
 const description = `${config.bio}. Interactive AI-powered portfolio.`;
@@ -57,6 +58,7 @@ export default function RootLayout({
       <body className="antialiased">
         {children}
         <CookieConsent />
+        <Analytics />
       </body>
     </html>
   );
