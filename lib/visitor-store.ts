@@ -74,11 +74,15 @@ async function saveToFile(visitors: VisitorEntry[]): Promise<void> {
   const fs = await import('fs');
   const path = await import('path');
   const dirPath = path.join(process.cwd(), 'data');
-  if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath, { recursive: true });
+  try {
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true });
+    }
+    const filePath = path.join(dirPath, 'visitors.json');
+    fs.writeFileSync(filePath, JSON.stringify(visitors, null, 2) + '\n', 'utf-8');
+  } catch {
+    // Read-only filesystem (Vercel serverless) — silently skip
   }
-  const filePath = path.join(dirPath, 'visitors.json');
-  fs.writeFileSync(filePath, JSON.stringify(visitors, null, 2) + '\n', 'utf-8');
 }
 
 // ---------------------------------------------------------------------------
