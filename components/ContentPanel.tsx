@@ -403,12 +403,12 @@ export default function ContentPanel({
             data-print-content
             className={
               isDesktop
-                ? 'fixed left-0 top-0 h-full w-[calc(100vw-500px)] bg-white dark:bg-black border-r border-gray-200 dark:border-gray-800 shadow-2xl overflow-y-auto z-40'
+                ? 'fixed left-0 top-0 h-full w-[calc(100vw-500px)] bg-white dark:bg-black border-r border-gray-200 dark:border-gray-800 shadow-2xl z-40'
                 : 'fixed inset-0 w-screen bg-white dark:bg-black z-50'
             }
           >
-            {/* Separate scroll container so iOS Safari transform bug doesn't kill scroll */}
-            <div className={isDesktop ? '' : 'h-full overflow-y-auto'}>
+            {/* Separate scroll container so transform from Framer Motion doesn't kill scroll */}
+            <div className="h-full overflow-y-auto">
             <div className="p-4 md:p-6">
               {/* Header (hidden when printing) */}
               <div className="flex justify-between items-center mb-4 md:mb-6 print:hidden">
