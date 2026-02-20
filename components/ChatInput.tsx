@@ -102,7 +102,7 @@ export default function ChatInput({ onSend, disabled, animatePlaceholder }: Chat
         onKeyDown={handleKeyDown}
         disabled={disabled}
         rows={1}
-        className="flex-1 resize-none bg-transparent text-sm md:text-base
+        className="flex-1 resize-none bg-transparent text-base
                    focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed
                    max-h-[200px] py-1 leading-relaxed"
       />

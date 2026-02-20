@@ -9,6 +9,7 @@ const description = `${config.bio}. Interactive AI-powered portfolio.`;
 
 export const viewport: Viewport = {
   themeColor: config.theme.accent || "#0ea5e9",
+  initialScale: 1,
   maximumScale: 1,
   userScalable: false,
 };
