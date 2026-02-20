@@ -233,7 +233,7 @@ function QuotesSection({ data, index }: { data: QuoteData[]; index: number }) {
       <p className="mt-4 text-[11px] text-neutral-400 dark:text-neutral-500">
         All recommendations are from{' '}
         <a
-          href="https://www.linkedin.com/in/andrey-roll/details/recommendations/"
+          href="https://www.linkedin.com/in/wkwebview/details/recommendations/"
           target="_blank"
           rel="noopener noreferrer"
           className="underline hover:text-lime-500 transition-colors"

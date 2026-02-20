@@ -176,7 +176,7 @@ export function useChatStream({
                   setMessages,
                   "Daily message limit reached! Thanks for the interest though — really appreciate it.\n\nIf you'd like to continue the conversation, reach out directly:\n\n" +
                   "- Email: [g.andry90@gmail.com](mailto:g.andry90@gmail.com)\n" +
-                  "- LinkedIn: [linkedin.com/in/andrey-roll](https://www.linkedin.com/in/andrey-roll/)\n\n" +
+                  "- LinkedIn: [linkedin.com/in/wkwebview](https://www.linkedin.com/in/wkwebview/)\n\n" +
                   "The limit resets tomorrow, so feel free to come back!"
                 );
               } else {
