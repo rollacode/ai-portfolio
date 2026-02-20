@@ -14,6 +14,7 @@ import { useAutoScroll } from '@/hooks/useAutoScroll';
 import { useChatStream } from '@/hooks/useChatStream';
 import { useLayoutMode } from '@/hooks/useLayoutMode';
 import type { Message } from '@/hooks/types';
+import MobileChatSheet from './MobileChatSheet';
 import Link from 'next/link';
 import config from '@/portfolio/config.json';
 
@@ -130,8 +131,18 @@ export default function Chat() {
         )}
       </AnimatePresence>
 
-      {/* CHAT / SPLIT — messages + floating input */}
-      {layout !== 'welcome' && (
+      {/* Mobile: collapsed chat tab + bottom sheet when panel is open */}
+      {layout !== 'welcome' && !isDesktop && panelState.open && (
+        <MobileChatSheet
+          messages={messages}
+          isLoading={isLoading}
+          onSend={sendMessage}
+          onRetry={retryLast}
+        />
+      )}
+
+      {/* CHAT / SPLIT — messages + floating input (hidden on mobile when panel open) */}
+      {layout !== 'welcome' && !(! isDesktop && panelState.open) && (
         <>
           <div
             className="flex flex-col h-screen transition-all duration-300 ease-out print:hidden"

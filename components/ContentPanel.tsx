@@ -416,8 +416,8 @@ export default function ContentPanel({
               isDesktop
                 ? // Desktop: left sidebar
                    'fixed left-0 top-0 h-full w-[calc(100vw-500px)] bg-white dark:bg-black border-r border-gray-200 dark:border-gray-800 shadow-2xl overflow-y-auto z-40'
-                : // Mobile: full-screen sheet from bottom
-                  'fixed inset-0 w-screen h-screen bg-white dark:bg-black overflow-y-auto z-50'
+                : // Mobile: sheet from bottom, leave space for chat tab
+                  'fixed inset-0 bottom-[60px] w-screen bg-white dark:bg-black overflow-y-auto z-50'
             }
           >
             <div className="p-4 md:p-6">
