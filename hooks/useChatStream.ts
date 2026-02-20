@@ -155,21 +155,44 @@ export function useChatStream({
       setIsLoading(true);
       setLastUserMessage(content);
 
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30_000); // 30s timeout
+
       try {
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ messages: updatedHistory }),
+          signal: controller.signal,
         });
 
         if (!response.ok) {
           if (response.status === 429) {
-            appendError(setMessages, "I'm getting a lot of questions! Please wait a moment and try again.");
+            try {
+              const body = await response.json();
+              if (body.remaining === 0 && body.limit) {
+                // Daily quota exhausted — show friendly message with contact links
+                appendError(
+                  setMessages,
+                  "Daily message limit reached! Thanks for the interest though — really appreciate it.\n\nIf you'd like to continue the conversation, reach out directly:\n\n" +
+                  "- Email: [g.andry90@gmail.com](mailto:g.andry90@gmail.com)\n" +
+                  "- LinkedIn: [linkedin.com/in/andrey-roll](https://www.linkedin.com/in/andrey-roll/)\n\n" +
+                  "The limit resets tomorrow, so feel free to come back!"
+                );
+              } else {
+                appendError(setMessages, "I'm getting a lot of questions! Please wait a moment and try again.");
+              }
+            } catch {
+              appendError(setMessages, "I'm getting a lot of questions! Please wait a moment and try again.");
+            }
           } else {
             appendError(setMessages, "Sorry, I'm having trouble connecting. Please try again.");
           }
           return;
         }
+
+        // Response received — clear the connection timeout (stream can take longer)
+        clearTimeout(timeout);
 
         setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
         let hadContent = false;
@@ -194,25 +217,32 @@ export function useChatStream({
           }
         }
       } catch (err) {
-        console.error('Error sending message:', err);
-        setMessages((prev) => {
-          const last = prev[prev.length - 1];
-          if (last?.role === 'assistant' && last.content.length > 0 && !last.isError) {
-            const updated = [...prev];
-            updated[updated.length - 1] = {
-              ...last,
-              content: last.content + '\n\nSorry, the response was interrupted. Please try again.',
-              isError: true,
-            };
-            return updated;
-          }
-          return prev;
-        });
-        setMessages((prev) => {
-          const last = prev[prev.length - 1];
-          if (last?.isError) return prev;
-          return [...prev, { role: 'assistant' as const, content: "Sorry, I'm having trouble connecting. Please try again.", isError: true }];
-        });
+        clearTimeout(timeout);
+
+        const isTimeout = err instanceof DOMException && err.name === 'AbortError';
+        if (isTimeout) {
+          appendError(setMessages, "Response is taking too long — the AI server might be overloaded. Please try again in a moment.");
+        } else {
+          console.error('Error sending message:', err);
+          setMessages((prev) => {
+            const last = prev[prev.length - 1];
+            if (last?.role === 'assistant' && last.content.length > 0 && !last.isError) {
+              const updated = [...prev];
+              updated[updated.length - 1] = {
+                ...last,
+                content: last.content + '\n\nSorry, the response was interrupted. Please try again.',
+                isError: true,
+              };
+              return updated;
+            }
+            return prev;
+          });
+          setMessages((prev) => {
+            const last = prev[prev.length - 1];
+            if (last?.isError) return prev;
+            return [...prev, { role: 'assistant' as const, content: "Sorry, I'm having trouble connecting. Please try again.", isError: true }];
+          });
+        }
       } finally {
         setIsLoading(false);
       }

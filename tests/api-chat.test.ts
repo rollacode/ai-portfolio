@@ -30,6 +30,20 @@ vi.mock('../portfolio/skills.json', () => ({
   default: { primary: [{ name: 'TypeScript' }] },
 }));
 
+vi.mock('../portfolio/recommendations.json', () => ({
+  default: [],
+}));
+
+// Daily quota mock — default: allowed
+const mockQuota = { allowed: true, remaining: 39, limit: 40 };
+vi.mock('../lib/rate-limit', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../lib/rate-limit')>();
+  return {
+    ...actual,
+    checkDailyQuota: vi.fn(async () => mockQuota),
+  };
+});
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -195,5 +209,50 @@ describe('POST /api/chat', () => {
 
     const json = await res.json();
     expect(json.error).toBeTruthy();
+  });
+
+  // -----------------------------------------------------------------------
+  // 6. Daily quota — blocks when limit reached
+  // -----------------------------------------------------------------------
+
+  it('returns 429 when daily quota is exhausted', async () => {
+    vi.stubEnv('AI_API_KEY', 'test-key');
+    mockFetchSuccess();
+
+    // Override quota to simulate exhaustion
+    mockQuota.allowed = false;
+    mockQuota.remaining = 0;
+
+    const { POST } = await import('../app/api/chat/route');
+
+    const res = await POST(makeRequest({ messages: [{ role: 'user', content: 'hi' }] }));
+    expect(res.status).toBe(429);
+
+    const json = await res.json();
+    expect(json.error).toMatch(/daily|limit/i);
+    expect(json.remaining).toBe(0);
+    expect(json.limit).toBe(40);
+
+    // Restore for other tests
+    mockQuota.allowed = true;
+    mockQuota.remaining = 39;
+  });
+
+  // -----------------------------------------------------------------------
+  // 7. Daily quota — allows when under limit
+  // -----------------------------------------------------------------------
+
+  it('allows request when daily quota is available', async () => {
+    vi.stubEnv('AI_API_KEY', 'test-key');
+    mockFetchSuccess();
+
+    mockQuota.allowed = true;
+    mockQuota.remaining = 25;
+
+    const { POST } = await import('../app/api/chat/route');
+
+    const res = await POST(makeRequest({ messages: [{ role: 'user', content: 'hi' }] }));
+    // Should not be 429 — request goes through to AI API
+    expect(res.status).toBe(200);
   });
 });

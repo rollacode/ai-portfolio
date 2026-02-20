@@ -210,6 +210,12 @@ export default function ContentPanel({
     onActionConsumed();
   }, [onActionConsumed]);
 
+  /* Open gallery when a screenshot is clicked in ProjectCard -------- */
+  const handleScreenshotClick = useCallback((projectSlug: string, index: number) => {
+    onNavigate?.({ open: true, type: 'gallery', slug: projectSlug });
+    setGalleryFocusIndex(index);
+  }, [onNavigate]);
+
   /* Render panel content ------------------------------------------- */
   function renderContent() {
     switch (type) {
@@ -218,6 +224,7 @@ export default function ContentPanel({
           <ProjectCard
             slug={slug}
             highlightField={projectHighlightField}
+            onScreenshotClick={handleScreenshotClick}
           />
         ) : null;
 
@@ -272,6 +279,7 @@ export default function ContentPanel({
                     ? projectHighlightField
                     : null
                 }
+                onScreenshotClick={handleScreenshotClick}
               />
             )}
             {slug2 && (
@@ -284,6 +292,7 @@ export default function ContentPanel({
                       ? projectHighlightField
                       : null
                   }
+                  onScreenshotClick={handleScreenshotClick}
                 />
               </div>
             )}

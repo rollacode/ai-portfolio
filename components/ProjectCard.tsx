@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import allProjects from '@/portfolio/projects.json';
 
@@ -25,6 +26,7 @@ interface ProjectCardProps {
   slug: string;
   project?: ProjectData;
   highlightField?: HighlightField;
+  onScreenshotClick?: (slug: string, index: number) => void;
 }
 
 /* ------------------------------------------------------------------ */
@@ -67,6 +69,62 @@ function HighlightSection({
 }
 
 /* ------------------------------------------------------------------ */
+/*  Screenshots masonry grid                                           */
+/* ------------------------------------------------------------------ */
+
+const MAX_VISIBLE = 4;
+
+function ScreenshotsMasonry({
+  slug,
+  screenshots,
+  onScreenshotClick,
+}: {
+  slug: string;
+  screenshots: string[];
+  onScreenshotClick?: (slug: string, index: number) => void;
+}) {
+  if (screenshots.length === 0) return null;
+
+  const visible = screenshots.slice(0, MAX_VISIBLE);
+  const overflow = screenshots.length - MAX_VISIBLE;
+
+  return (
+    <div className="columns-2 gap-2 [column-fill:_balance]">
+      {visible.map((src, idx) => {
+        const imgSrc = `/screenshots/${src}`;
+        const isLast = idx === visible.length - 1 && overflow > 0;
+
+        return (
+          <button
+            key={src}
+            onClick={() => onScreenshotClick?.(slug, idx)}
+            className="relative mb-2 block w-full break-inside-avoid overflow-hidden rounded-lg
+                       bg-gray-100 dark:bg-white/[0.04]
+                       ring-1 ring-gray-200/60 dark:ring-white/[0.06]
+                       hover:ring-lime-500/50 transition-all cursor-pointer group"
+          >
+            <Image
+              src={imgSrc}
+              alt=""
+              width={400}
+              height={0}
+              sizes="(max-width: 768px) 45vw, 200px"
+              className="w-full h-auto object-cover group-hover:scale-[1.02] transition-transform duration-300"
+              loading="lazy"
+            />
+            {isLast && (
+              <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-sm font-semibold">
+                +{overflow}
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
@@ -74,6 +132,7 @@ export default function ProjectCard({
   slug,
   project: projectProp,
   highlightField: highlightFieldProp = null,
+  onScreenshotClick,
 }: ProjectCardProps) {
   /* Resolve project data ------------------------------------------- */
   const project: ProjectData | undefined =
@@ -118,6 +177,15 @@ export default function ProjectCard({
           {project.period}
         </p>
       </div>
+
+      {/* Screenshots ----------------------------------------------- */}
+      {project.screenshots.length > 0 && (
+        <ScreenshotsMasonry
+          slug={project.slug}
+          screenshots={project.screenshots}
+          onScreenshotClick={onScreenshotClick}
+        />
+      )}
 
       {/* Description ----------------------------------------------- */}
       <HighlightSection active={activeHighlight === 'description'}>

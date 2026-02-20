@@ -2,18 +2,16 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { NextRequest } from 'next/server';
 
 // ---------------------------------------------------------------------------
-// Mock the fs module before importing the route
+// Mock the visitor-store module before importing the route
 // ---------------------------------------------------------------------------
 
-vi.mock('fs', () => ({
-  default: {
-    existsSync: vi.fn().mockReturnValue(false),
-    readFileSync: vi.fn().mockReturnValue('[]'),
-    writeFileSync: vi.fn(),
-  },
-  existsSync: vi.fn().mockReturnValue(false),
-  readFileSync: vi.fn().mockReturnValue('[]'),
-  writeFileSync: vi.fn(),
+let mockVisitors: Array<Record<string, unknown>> = [];
+
+vi.mock('@/lib/visitor-store', () => ({
+  loadVisitors: vi.fn(async () => mockVisitors),
+  saveVisitors: vi.fn(async (visitors: Array<Record<string, unknown>>) => {
+    mockVisitors = visitors;
+  }),
 }));
 
 // ---------------------------------------------------------------------------
@@ -54,14 +52,9 @@ function getRequest(opts?: { bearerToken?: string; queryToken?: string }): NextR
 // ---------------------------------------------------------------------------
 
 describe('POST /api/visitor', () => {
-  let fs: typeof import('fs');
-
-  beforeEach(async () => {
+  beforeEach(() => {
     vi.unstubAllEnvs();
-    fs = (await import('fs')).default as unknown as typeof import('fs');
-    vi.mocked(fs.existsSync).mockReturnValue(false);
-    vi.mocked(fs.readFileSync).mockReturnValue('[]');
-    vi.mocked(fs.writeFileSync).mockReset();
+    mockVisitors = [];
   });
 
   afterEach(() => {
@@ -81,15 +74,9 @@ describe('POST /api/visitor', () => {
 
     expect(res.status).toBe(200);
     expect(json).toEqual({ ok: true, merged: false });
-    expect(fs.writeFileSync).toHaveBeenCalledOnce();
-
-    // Verify the written data contains our visitor
-    const written = JSON.parse(
-      vi.mocked(fs.writeFileSync).mock.calls[0][1] as string,
-    );
-    expect(written).toHaveLength(1);
-    expect(written[0].name).toBe('Alice');
-    expect(written[0].company).toBe('Acme');
+    expect(mockVisitors).toHaveLength(1);
+    expect(mockVisitors[0].name).toBe('Alice');
+    expect(mockVisitors[0].company).toBe('Acme');
   });
 
   // -----------------------------------------------------------------------
@@ -98,15 +85,6 @@ describe('POST /api/visitor', () => {
 
   it('merges data when same visitorId is sent twice', async () => {
     const visitorId = 'visitor-uuid-123';
-
-    // After first POST writes, second POST should see that data on read
-    let savedData = '[]';
-    vi.mocked(fs.writeFileSync).mockImplementation((_path, data) => {
-      savedData = data as string;
-    });
-    vi.mocked(fs.existsSync).mockReturnValue(true);
-    vi.mocked(fs.readFileSync).mockImplementation(() => savedData);
-
     const { POST } = await import('../app/api/visitor/route');
 
     // First call — creates entry
@@ -118,11 +96,10 @@ describe('POST /api/visitor', () => {
     expect((await res2.json()).merged).toBe(true);
 
     // Verify the merged result
-    const finalData = JSON.parse(savedData);
-    expect(finalData).toHaveLength(1);
-    expect(finalData[0].name).toBe('Bob');
-    expect(finalData[0].company).toBe('BobCorp');
-    expect(finalData[0].visitorId).toBe(visitorId);
+    expect(mockVisitors).toHaveLength(1);
+    expect(mockVisitors[0].name).toBe('Bob');
+    expect(mockVisitors[0].company).toBe('BobCorp');
+    expect(mockVisitors[0].visitorId).toBe(visitorId);
   });
 
   // -----------------------------------------------------------------------
@@ -131,14 +108,6 @@ describe('POST /api/visitor', () => {
 
   it('overwrites contact fields and appends notes on merge', async () => {
     const visitorId = 'visitor-append-test';
-
-    let savedData = '[]';
-    vi.mocked(fs.writeFileSync).mockImplementation((_path, data) => {
-      savedData = data as string;
-    });
-    vi.mocked(fs.existsSync).mockReturnValue(true);
-    vi.mocked(fs.readFileSync).mockImplementation(() => savedData);
-
     const { POST } = await import('../app/api/visitor/route');
 
     // First call — creates entry with name and telegram
@@ -151,11 +120,10 @@ describe('POST /api/visitor', () => {
     expect((await res2.json()).merged).toBe(true);
 
     // All three contact fields should exist on the merged record
-    const afterContacts = JSON.parse(savedData);
-    expect(afterContacts).toHaveLength(1);
-    expect(afterContacts[0].telegram).toBe('@dolev');
-    expect(afterContacts[0].email).toBe('dolev@gmail.com');
-    expect(afterContacts[0].phone).toBe('+972 521234567');
+    expect(mockVisitors).toHaveLength(1);
+    expect(mockVisitors[0].telegram).toBe('@dolev');
+    expect(mockVisitors[0].email).toBe('dolev@gmail.com');
+    expect(mockVisitors[0].phone).toBe('+972 521234567');
 
     // Third call — first note
     await POST(postRequest({ visitorId, notes: 'worked at Trax' }));
@@ -163,9 +131,8 @@ describe('POST /api/visitor', () => {
     // Fourth call — second note should be appended with `;` separator
     await POST(postRequest({ visitorId, notes: 'interested in collaboration' }));
 
-    const finalData = JSON.parse(savedData);
-    expect(finalData).toHaveLength(1);
-    expect(finalData[0].notes).toBe('worked at Trax; interested in collaboration');
+    expect(mockVisitors).toHaveLength(1);
+    expect(mockVisitors[0].notes).toBe('worked at Trax; interested in collaboration');
   });
 
   // -----------------------------------------------------------------------
@@ -180,8 +147,8 @@ describe('POST /api/visitor', () => {
 
     expect(res.status).toBe(200);
     expect(json).toEqual({ ok: true, merged: false });
-    // Should NOT write to disk when there's nothing to save
-    expect(fs.writeFileSync).not.toHaveBeenCalled();
+    // Should NOT save when there's nothing to save
+    expect(mockVisitors).toHaveLength(0);
   });
 
   // -----------------------------------------------------------------------
@@ -204,14 +171,9 @@ describe('POST /api/visitor', () => {
 // ---------------------------------------------------------------------------
 
 describe('GET /api/visitor', () => {
-  let fs: typeof import('fs');
-
-  beforeEach(async () => {
+  beforeEach(() => {
     vi.unstubAllEnvs();
-    fs = (await import('fs')).default as unknown as typeof import('fs');
-    vi.mocked(fs.existsSync).mockReturnValue(true);
-    vi.mocked(fs.readFileSync).mockReturnValue('[]');
-    vi.mocked(fs.writeFileSync).mockReset();
+    mockVisitors = [];
   });
 
   afterEach(() => {
@@ -250,10 +212,7 @@ describe('GET /api/visitor', () => {
 
   it('returns visitors when valid Bearer token is provided', async () => {
     vi.stubEnv('ADMIN_TOKEN', 'secret-admin-token');
-    vi.mocked(fs.existsSync).mockReturnValue(true);
-    vi.mocked(fs.readFileSync).mockReturnValue(
-      JSON.stringify([{ name: 'Alice', timestamp: '2025-01-01T00:00:00Z' }]),
-    );
+    mockVisitors = [{ name: 'Alice', timestamp: '2025-01-01T00:00:00Z' }];
 
     const { GET } = await import('../app/api/visitor/route');
 
@@ -272,10 +231,7 @@ describe('GET /api/visitor', () => {
 
   it('returns 401 when token is provided via query param instead of header', async () => {
     vi.stubEnv('ADMIN_TOKEN', 'qp-token');
-    vi.mocked(fs.existsSync).mockReturnValue(true);
-    vi.mocked(fs.readFileSync).mockReturnValue(
-      JSON.stringify([{ name: 'Bob', timestamp: '2025-02-01T00:00:00Z' }]),
-    );
+    mockVisitors = [{ name: 'Bob', timestamp: '2025-02-01T00:00:00Z' }];
 
     const { GET } = await import('../app/api/visitor/route');
 
