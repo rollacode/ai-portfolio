@@ -11,6 +11,7 @@ import {
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
 import TypingIndicator from './TypingIndicator';
+import ToolCallBadge from './ToolCallBadge';
 import { useAutoScroll } from '@/hooks/useAutoScroll';
 import type { Message } from '@/hooks/types';
 
@@ -18,9 +19,10 @@ import type { Message } from '@/hooks/types';
 /*  Constants                                                          */
 /* ------------------------------------------------------------------ */
 
-const SHEET_HEIGHT_VH = 50; // percent of viewport
-const DRAG_CLOSE_THRESHOLD = 80; // px to swipe down to collapse
-const AUTO_COLLAPSE_DELAY = 4000; // ms — how long to show before auto-collapsing
+const SHEET_HEIGHT_VH = 50;
+const DRAG_CLOSE_THRESHOLD = 80;
+const AUTO_COLLAPSE_DELAY = 6000; // ms — hold open so user can read
+const INITIAL_EXPAND_DELAY = 600; // ms — slight pause before first expand
 const SPRING = { type: 'spring' as const, damping: 28, stiffness: 260 };
 
 /* ------------------------------------------------------------------ */
@@ -32,6 +34,8 @@ interface MobileChatSheetProps {
   isLoading: boolean;
   onSend: (message: string) => void;
   onRetry: () => void;
+  prefillText?: string;
+  onPrefillConsumed?: () => void;
 }
 
 /* ------------------------------------------------------------------ */
@@ -43,38 +47,77 @@ export default function MobileChatSheet({
   isLoading,
   onSend,
   onRetry,
+  prefillText,
+  onPrefillConsumed,
 }: MobileChatSheetProps) {
   const [expanded, setExpanded] = useState(false);
-  const [userExpanded, setUserExpanded] = useState(false); // true when user tapped to open
+  const [userExpanded, setUserExpanded] = useState(false);
   const sheetRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useAutoScroll(messages);
   const prevMsgCountRef = useRef(messages.length);
   const collapseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const mountedRef = useRef(false);
 
-  // Drag-to-dismiss
   const dragY = useMotionValue(0);
   const sheetOpacity = useTransform(dragY, [0, 300], [1, 0.5]);
+
+  const clearCollapseTimer = useCallback(() => {
+    if (collapseTimerRef.current) {
+      clearTimeout(collapseTimerRef.current);
+      collapseTimerRef.current = null;
+    }
+  }, []);
+
+  const scheduleCollapse = useCallback((delay: number) => {
+    clearCollapseTimer();
+    collapseTimerRef.current = setTimeout(() => {
+      setExpanded(false);
+      setUserExpanded(false);
+      collapseTimerRef.current = null;
+    }, delay);
+  }, [clearCollapseTimer]);
 
   const handleDragEnd = useCallback(
     (_: unknown, info: PanInfo) => {
       if (info.offset.y > DRAG_CLOSE_THRESHOLD) {
         setExpanded(false);
         setUserExpanded(false);
+        clearCollapseTimer();
       }
     },
-    [],
+    [clearCollapseTimer],
   );
 
-  // User taps the tab — expand and mark as user-initiated
+  // User taps the tab — expand and mark as user-initiated (no auto-collapse)
   const handleUserExpand = useCallback(() => {
     setExpanded(true);
     setUserExpanded(true);
-    // Clear any pending auto-collapse
-    if (collapseTimerRef.current) {
-      clearTimeout(collapseTimerRef.current);
-      collapseTimerRef.current = null;
+    clearCollapseTimer();
+  }, [clearCollapseTimer]);
+
+  // On first mount: auto-expand after a short pause so user sees the transition
+  useEffect(() => {
+    if (mountedRef.current) return;
+    mountedRef.current = true;
+
+    const timer = setTimeout(() => {
+      setExpanded(true);
+      // Auto-collapse after reading time
+      scheduleCollapse(AUTO_COLLAPSE_DELAY);
+    }, INITIAL_EXPAND_DELAY);
+
+    return () => clearTimeout(timer);
+  }, [scheduleCollapse]);
+
+  // Auto-expand when prefill text arrives (e.g. skill click)
+  useEffect(() => {
+    if (prefillText) {
+      setExpanded(true);
+      setUserExpanded(true);
+      clearCollapseTimer();
     }
-  }, []);
+  }, [prefillText, clearCollapseTimer]);
 
   // Auto-expand when new assistant message arrives, then auto-collapse
   useEffect(() => {
@@ -82,51 +125,61 @@ export default function MobileChatSheet({
     const prevCount = prevMsgCountRef.current;
     prevMsgCountRef.current = newCount;
 
-    // Only trigger on new messages, not initial render
     if (newCount <= prevCount) return;
 
     const lastMsg = messages[newCount - 1];
     if (!lastMsg || lastMsg.role !== 'assistant' || !lastMsg.content) return;
 
-    // Don't auto-expand if user manually opened the sheet
+    // Don't auto-collapse if user manually opened the sheet
     if (userExpanded) return;
 
-    // Auto-expand to show new message
     setExpanded(true);
+    scheduleCollapse(AUTO_COLLAPSE_DELAY);
+  }, [messages, userExpanded, scheduleCollapse]);
 
-    // Clear previous timer
-    if (collapseTimerRef.current) {
-      clearTimeout(collapseTimerRef.current);
-    }
+  // Cleanup timer on unmount
+  useEffect(() => clearCollapseTimer, [clearCollapseTimer]);
 
-    // Auto-collapse after delay
-    collapseTimerRef.current = setTimeout(() => {
+  // Collapse expanded sheet when user scrolls the panel underneath
+  useEffect(() => {
+    if (!expanded) return;
+
+    const onScroll = () => {
+      // Only auto-collapse, not user-initiated sessions where they're actively typing
       setExpanded(false);
-      collapseTimerRef.current = null;
-    }, AUTO_COLLAPSE_DELAY);
-
-    return () => {
-      if (collapseTimerRef.current) {
-        clearTimeout(collapseTimerRef.current);
-        collapseTimerRef.current = null;
-      }
+      setUserExpanded(false);
+      clearCollapseTimer();
     };
-  }, [messages, userExpanded]);
 
-  // When user collapses manually, reset userExpanded
-  const handleBackdropClose = useCallback(() => {
-    setExpanded(false);
-    setUserExpanded(false);
-  }, []);
+    // Capture scroll on any element except our own scroll area
+    const handler = (e: Event) => {
+      // Ignore scrolls inside our own sheet
+      if (sheetRef.current?.contains(e.target as Node)) return;
+      onScroll();
+    };
+
+    window.addEventListener('scroll', handler, { capture: true, passive: true });
+    return () => window.removeEventListener('scroll', handler, { capture: true });
+  }, [expanded, clearCollapseTimer]);
 
   // Last assistant message for the collapsed tab preview
   const lastAssistantMsg = [...messages]
     .reverse()
     .find((m) => m.role === 'assistant' && m.content);
 
-  const previewText = lastAssistantMsg
-    ? lastAssistantMsg.content.slice(0, 60) + (lastAssistantMsg.content.length > 60 ? '...' : '')
-    : 'Tap to continue chatting';
+  // Show the END of the last message, trimmed to last whole word
+  let previewText = 'Tap to continue chatting';
+  if (lastAssistantMsg) {
+    const content = lastAssistantMsg.content;
+    if (content.length <= 140) {
+      previewText = content;
+    } else {
+      // Slice from end, find first space to start at a word boundary
+      const raw = content.slice(-140);
+      const spaceIdx = raw.indexOf(' ');
+      previewText = '...' + (spaceIdx >= 0 ? raw.slice(spaceIdx + 1) : raw);
+    }
+  }
 
   return (
     <>
@@ -139,105 +192,116 @@ export default function MobileChatSheet({
             exit={{ y: 20, opacity: 0 }}
             transition={SPRING}
             onClick={handleUserExpand}
-            className="fixed bottom-3 left-3 right-3 z-[60] flex items-center gap-3
-                       h-14 px-4 rounded-2xl
-                       bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md
-                       border border-gray-200 dark:border-neutral-700
-                       shadow-lg shadow-black/10 dark:shadow-black/30
+            className="fixed bottom-2 left-2 right-2 z-[60] flex items-start gap-3
+                       min-h-[56px] px-4 py-3 rounded-2xl text-left
+                       bg-gray-100/95 dark:bg-[#0d0d0d]/95 backdrop-blur-md
+                       border border-gray-300 dark:border-neutral-800
+                       shadow-lg shadow-black/15 dark:shadow-black/70
                        active:scale-[0.98] transition-transform"
           >
-            {/* Chat bubble icon */}
-            <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center
-                            rounded-full bg-lime-500/15 text-lime-500">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round"
-                  d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
-              </svg>
+            <div className="flex-1 min-w-0">
+              {/* Preview text — end of message */}
+              <span className="block text-sm leading-snug text-gray-600 dark:text-gray-300
+                               line-clamp-3">
+                {previewText}
+              </span>
+              {/* What the agent did */}
+              {lastAssistantMsg?.toolCalls?.length ? (
+                <ToolCallBadge toolCalls={lastAssistantMsg.toolCalls} />
+              ) : null}
             </div>
 
-            {/* Preview text */}
-            <span className="flex-1 text-left text-sm text-gray-600 dark:text-gray-400 truncate">
-              {previewText}
-            </span>
-
             {/* Chevron up */}
-            <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <svg className="w-4 h-4 text-gray-400 flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
             </svg>
           </motion.button>
         )}
       </AnimatePresence>
 
-      {/* ---- Expanded bottom sheet ---- */}
+      {/* ---- Expanded bottom sheet (no backdrop — panel stays interactive) ---- */}
       <AnimatePresence>
         {expanded && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-black/30 z-[60]"
-              onClick={handleBackdropClose}
-            />
-
-            {/* Sheet */}
-            <motion.div
-              ref={sheetRef}
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={SPRING}
-              drag="y"
-              dragConstraints={{ top: 0, bottom: 0 }}
-              dragElastic={0.4}
-              onDragEnd={handleDragEnd}
-              style={{ opacity: sheetOpacity, height: `${SHEET_HEIGHT_VH}vh` }}
-              className="fixed bottom-0 left-0 right-0 z-[70]
-                         flex flex-col
-                         bg-white dark:bg-black
-                         rounded-t-2xl
-                         shadow-2xl shadow-black/20"
+          <motion.div
+            ref={sheetRef}
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={SPRING}
+            drag="y"
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={0.3}
+            dragMomentum={false}
+            onDragEnd={handleDragEnd}
+            style={{ opacity: sheetOpacity, height: `${SHEET_HEIGHT_VH}vh` }}
+            className="fixed bottom-0 left-0 right-0 z-[60]
+                       flex flex-col
+                       bg-white dark:bg-black
+                       rounded-t-2xl
+                       border-t border-x border-gray-200 dark:border-neutral-700
+                       shadow-[0_-4px_24px_rgba(0,0,0,0.12)] dark:shadow-[0_-4px_24px_rgba(0,0,0,0.4)]"
+          >
+            {/* Drag handle area — large touch target */}
+            <div
+              className="flex items-center justify-between px-4 pt-3 pb-1"
+              style={{ touchAction: 'none' }}
             >
-              {/* Drag handle */}
-              <div className="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing">
-                <div className="w-10 h-1 rounded-full bg-gray-300 dark:bg-neutral-600" />
+              {/* Spacer for centering */}
+              <div className="w-8" />
+
+              {/* Drag handle pill */}
+              <div className="flex-1 flex justify-center py-3 -my-3 cursor-grab active:cursor-grabbing">
+                <div className="w-12 h-1.5 rounded-full bg-gray-300 dark:bg-neutral-600" />
               </div>
 
-              {/* Messages area */}
-              <div className="flex-1 overflow-y-auto px-4 pb-2">
-                <div className="space-y-4">
-                  {messages.map((msg, i) => {
-                    const isEmptyStreaming =
-                      isLoading &&
-                      msg.role === 'assistant' &&
-                      msg.content === '' &&
-                      i === messages.length - 1;
-                    if (isEmptyStreaming) {
-                      return <TypingIndicator key={i} currentTools={msg.toolCalls} />;
-                    }
-                    return (
-                      <ChatMessage
-                        key={i}
-                        role={msg.role}
-                        content={msg.content}
-                        toolCalls={msg.toolCalls}
-                        isError={msg.isError}
-                        onRetry={msg.isError ? onRetry : undefined}
-                      />
-                    );
-                  })}
-                  <div ref={messagesEndRef} />
-                </div>
-              </div>
+              {/* Close / collapse button */}
+              <button
+                onClick={() => { setExpanded(false); setUserExpanded(false); clearCollapseTimer(); }}
+                className="w-8 h-8 flex items-center justify-center rounded-full
+                           hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors"
+                aria-label="Collapse chat"
+              >
+                <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
 
-              {/* Input */}
-              <div className="px-3 pb-4 pt-2 border-t border-gray-100 dark:border-neutral-800">
-                <ChatInput onSend={onSend} disabled={isLoading} />
+            {/* Messages area */}
+            <div
+              ref={scrollRef}
+              className="flex-1 overflow-y-auto overscroll-contain px-4 pb-2"
+            >
+              <div className="space-y-4">
+                {messages.map((msg, i) => {
+                  const isEmptyStreaming =
+                    isLoading &&
+                    msg.role === 'assistant' &&
+                    msg.content === '' &&
+                    i === messages.length - 1;
+                  if (isEmptyStreaming) {
+                    return <TypingIndicator key={i} currentTools={msg.toolCalls} />;
+                  }
+                  return (
+                    <ChatMessage
+                      key={i}
+                      role={msg.role}
+                      content={msg.content}
+                      toolCalls={msg.toolCalls}
+                      isError={msg.isError}
+                      onRetry={msg.isError ? onRetry : undefined}
+                    />
+                  );
+                })}
+                <div ref={messagesEndRef} />
               </div>
-            </motion.div>
-          </>
+            </div>
+
+            {/* Input */}
+            <div className="px-3 pb-4 pt-2 border-t border-gray-100 dark:border-neutral-800">
+              <ChatInput onSend={onSend} disabled={isLoading} prefillText={prefillText} onPrefillConsumed={onPrefillConsumed} />
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </>

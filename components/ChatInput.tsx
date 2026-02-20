@@ -8,6 +8,8 @@ interface ChatInputProps {
   onSend: (message: string) => void;
   disabled?: boolean;
   animatePlaceholder?: boolean;
+  prefillText?: string;
+  onPrefillConsumed?: () => void;
 }
 
 const STATIC_PLACEHOLDER = 'Ask me anything...';
@@ -24,11 +26,21 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-export default function ChatInput({ onSend, disabled, animatePlaceholder }: ChatInputProps) {
+export default function ChatInput({ onSend, disabled, animatePlaceholder, prefillText, onPrefillConsumed }: ChatInputProps) {
   const [input, setInput] = useState('');
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Prefill input from external source (e.g. skill click)
+  useEffect(() => {
+    if (prefillText) {
+      setInput(prefillText);
+      onPrefillConsumed?.();
+      // Focus the textarea so user can immediately type or send
+      setTimeout(() => textareaRef.current?.focus(), 100);
+    }
+  }, [prefillText, onPrefillConsumed]);
 
   // Shuffle on client only to avoid hydration mismatch
   useEffect(() => {

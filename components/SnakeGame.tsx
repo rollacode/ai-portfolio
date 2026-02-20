@@ -276,14 +276,6 @@ export default function SnakeGame() {
         ArrowDown: 'DOWN',
         ArrowLeft: 'LEFT',
         ArrowRight: 'RIGHT',
-        w: 'UP',
-        W: 'UP',
-        s: 'DOWN',
-        S: 'DOWN',
-        a: 'LEFT',
-        A: 'LEFT',
-        d: 'RIGHT',
-        D: 'RIGHT',
       };
 
       const newDir = keyMap[e.key];
@@ -378,12 +370,12 @@ export default function SnakeGame() {
         Score: {score}
       </p>
       <div className="relative" style={{ width: canvasSize, height: canvasSize }}>
-        <canvas
+          <canvas
           ref={canvasRef}
           width={canvasSize}
           height={canvasSize}
           className="rounded-lg shadow-sm"
-          style={{ width: canvasSize, height: canvasSize }}
+          style={{ width: canvasSize, height: canvasSize, touchAction: 'none' }}
         />
         {/* Clickable overlay — initial state */}
         {!started && !gameOver && (
@@ -403,10 +395,13 @@ export default function SnakeGame() {
                          bg-lime-500 text-neutral-900 hover:bg-lime-400
                          transition-colors shadow-md"
             >
-              Click to Start
+              Tap to Start
             </button>
-            <p className="text-xs font-mono text-neutral-400">
-              Arrow keys / WASD to move
+            <p className="text-xs font-mono text-neutral-400 hidden md:block">
+              Arrow keys to move
+            </p>
+            <p className="text-xs font-mono text-neutral-400 md:hidden">
+              Swipe to move
             </p>
           </div>
         )}
@@ -428,14 +423,14 @@ export default function SnakeGame() {
                          bg-lime-500 text-neutral-900 hover:bg-lime-400
                          transition-colors shadow-md"
             >
-              Click to Restart
+              Tap to Restart
             </button>
           </div>
         )}
       </div>
       {started && !gameOver && (
-        <p className="text-xs font-mono text-neutral-400">
-          Arrow keys / WASD to move
+        <p className="text-xs font-mono text-neutral-400 hidden md:block">
+          Arrow keys to move
         </p>
       )}
     </div>

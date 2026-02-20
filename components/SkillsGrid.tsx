@@ -38,12 +38,14 @@ interface SkillsGridProps {
   category?: string;
   highlightedSkill?: string | null;
   onHighlightConsumed?: () => void;
+  onSkillClick?: (skillName: string) => void;
 }
 
 export default function SkillsGrid({
   category,
   highlightedSkill,
   onHighlightConsumed,
+  onSkillClick,
 }: SkillsGridProps) {
   const [activeHighlight, setActiveHighlight] = useState<string | null>(null);
   const highlightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -132,11 +134,13 @@ export default function SkillsGrid({
                         duration: 0.3,
                         ease: 'easeOut',
                       }}
+                      onClick={() => onSkillClick?.(skill.name)}
                       className={`
                         relative flex items-center gap-3 px-4 py-3
                         bg-gray-50 dark:bg-neutral-900 rounded-xl
                         border border-transparent
                         transition-all duration-300
+                        ${onSkillClick ? 'cursor-pointer active:scale-[0.98]' : ''}
                         ${
                           isHighlighted
                             ? 'border-lime-500/60 shadow-[0_0_16px_rgba(132,204,22,0.25)]'

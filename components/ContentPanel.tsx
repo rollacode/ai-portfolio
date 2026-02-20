@@ -30,6 +30,7 @@ interface ContentPanelProps {
   onAnimationComplete: () => void;
   onClose: () => void;
   onNavigate?: (panelState: Partial<PanelState>) => void;
+  onPrefillChat?: (text: string) => void;
 }
 
 /* ------------------------------------------------------------------ */
@@ -94,6 +95,7 @@ export default function ContentPanel({
   onAnimationComplete,
   onClose,
   onNavigate,
+  onPrefillChat,
 }: ContentPanelProps) {
   const { open, type, slug, slug2, category } = panelState;
 
@@ -244,6 +246,7 @@ export default function ContentPanel({
             category={category}
             highlightedSkill={highlightedSkill}
             onHighlightConsumed={handleSkillHighlightConsumed}
+            onSkillClick={(name) => onPrefillChat?.(`Tell me about ${name} `)}
           />
         );
 
@@ -377,20 +380,6 @@ export default function ContentPanel({
 
   return (
     <>
-      {/* Mobile backdrop */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 bg-black/40 z-30 md:hidden print:hidden"
-            onClick={onClose}
-          />
-        )}
-      </AnimatePresence>
-
       {/* Panel */}
       <AnimatePresence>
         {open && type && (
@@ -416,8 +405,8 @@ export default function ContentPanel({
               isDesktop
                 ? // Desktop: left sidebar
                    'fixed left-0 top-0 h-full w-[calc(100vw-500px)] bg-white dark:bg-black border-r border-gray-200 dark:border-gray-800 shadow-2xl overflow-y-auto z-40'
-                : // Mobile: sheet from bottom, leave space for chat tab
-                  'fixed inset-0 bottom-[60px] w-screen bg-white dark:bg-black overflow-y-auto z-50'
+                : // Mobile: fullscreen, chat tab floats on top
+                  'fixed inset-0 w-screen bg-white dark:bg-black overflow-y-auto z-50'
             }
           >
             <div className="p-4 md:p-6">
@@ -426,21 +415,13 @@ export default function ContentPanel({
                 <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
                   {panelTitle(type, panelState)}
                 </h2>
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={onClose}
-                  className="p-3 md:p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-colors"
-                  aria-label="Close panel"
-                >
-                  <svg className="w-7 h-7 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </motion.button>
               </div>
 
               {/* Content */}
               <div>{renderContent()}</div>
+
+              {/* Extra space so last content can scroll to center of viewport */}
+              <div className="h-[50vh]" />
             </div>
           </motion.div>
         )}

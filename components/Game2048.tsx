@@ -343,14 +343,6 @@ export default function Game2048() {
         ArrowRight: 'right',
         ArrowUp: 'up',
         ArrowDown: 'down',
-        a: 'left',
-        d: 'right',
-        w: 'up',
-        s: 'down',
-        A: 'left',
-        D: 'right',
-        W: 'up',
-        S: 'down',
       };
       const dir = map[e.key];
       if (dir) {
@@ -431,6 +423,7 @@ export default function Game2048() {
       {/* Grid */}
       <div
         className="relative bg-neutral-200/50 dark:bg-neutral-800/50 rounded-xl p-2 w-full max-w-[320px] sm:max-w-[360px] aspect-square"
+        style={{ touchAction: 'none' }}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
@@ -503,8 +496,11 @@ export default function Game2048() {
       </div>
 
       {/* Controls hint */}
-      <p className="text-xs text-neutral-400 dark:text-neutral-500">
-        Arrow keys / WASD / swipe to play
+      <p className="text-xs text-neutral-400 dark:text-neutral-500 hidden md:block">
+        Arrow keys to play
+      </p>
+      <p className="text-xs text-neutral-400 dark:text-neutral-500 md:hidden">
+        Swipe to play
       </p>
     </div>
   );

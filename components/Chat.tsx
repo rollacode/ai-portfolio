@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
@@ -34,6 +34,7 @@ export default function Chat() {
   const [panelState, setPanelState] = useState<PanelState>(DEFAULT_PANEL_STATE);
   const [currentAction, setCurrentAction] = useState<PanelAction | null>(null);
   const isDesktop = useMediaQuery('(min-width: 768px)');
+  const [prefillText, setPrefillText] = useState('');
 
   // Action queue (stable singleton)
   const actionQueue = useMemo(
@@ -89,6 +90,7 @@ export default function Chat() {
         onAnimationComplete={handlePanelAnimationComplete}
         onClose={handlePanelClose}
         onNavigate={(newState) => setPanelState(prev => ({ ...prev, ...newState }))}
+        onPrefillChat={setPrefillText}
       />
 
       {/* WELCOME — centered landing */}
@@ -105,7 +107,7 @@ export default function Chat() {
               ask me about <span className="text-black dark:text-white">{firstName}</span>
             </h1>
             <div className="w-full max-w-3xl px-4">
-              <ChatInput onSend={sendMessage} disabled={isLoading} animatePlaceholder />
+              <ChatInput onSend={sendMessage} disabled={isLoading} animatePlaceholder prefillText={prefillText} onPrefillConsumed={() => setPrefillText('')} />
               <p className="text-[10px] text-center text-gray-400 dark:text-gray-600 mt-2">
                 {firstName}&apos;s portfolio agent
                 {config.social?.github && (
@@ -138,6 +140,8 @@ export default function Chat() {
           isLoading={isLoading}
           onSend={sendMessage}
           onRetry={retryLast}
+          prefillText={prefillText}
+          onPrefillConsumed={() => setPrefillText('')}
         />
       )}
 
@@ -176,7 +180,7 @@ export default function Chat() {
             style={layout === 'split' ? { paddingLeft: 'calc(100vw - 500px)' } : undefined}
           >
             <div className={`mx-auto px-4 pb-4 pt-2 pointer-events-auto ${layout === 'split' ? 'max-w-[500px]' : 'max-w-3xl'}`}>
-              <ChatInput onSend={sendMessage} disabled={isLoading} />
+              <ChatInput onSend={sendMessage} disabled={isLoading} prefillText={prefillText} onPrefillConsumed={() => setPrefillText('')} />
               <p className="text-[10px] text-center text-gray-400 dark:text-gray-600 mt-2">
                 {firstName}&apos;s portfolio agent
                 {config.social?.github && (
