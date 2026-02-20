@@ -7,6 +7,7 @@ import {
   type ProjectRef,
   type QuoteData,
 } from '@/hooks/useInsightStream';
+import config from '@/portfolio/config.json';
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                              */
@@ -233,12 +234,12 @@ function QuotesSection({ data, index }: { data: QuoteData[]; index: number }) {
       <p className="mt-4 text-[11px] text-neutral-400 dark:text-neutral-500">
         All recommendations are from{' '}
         <a
-          href="https://www.linkedin.com/in/wkwebview/details/recommendations/"
+          href={`${(config as { social?: { linkedin?: string } }).social?.linkedin || 'https://linkedin.com'}/details/recommendations/`}
           target="_blank"
           rel="noopener noreferrer"
           className="underline hover:text-lime-500 transition-colors"
         >
-          Andrey&apos;s LinkedIn profile
+          {(config as { firstName?: string }).firstName || 'the'}&apos;s LinkedIn profile
         </a>
       </p>
     </motion.div>

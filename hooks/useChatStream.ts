@@ -171,13 +171,18 @@ export function useChatStream({
             try {
               const body = await response.json();
               if (body.remaining === 0 && body.limit) {
-                // Daily quota exhausted — show friendly message with contact links
+                // Daily quota exhausted — show friendly message with contact links from API
+                const email = body.contact?.email;
+                const linkedin = body.contact?.linkedin;
+                const contactLines: string[] = [];
+                if (email) contactLines.push(`- Email: [${email}](mailto:${email})`);
+                if (linkedin) contactLines.push(`- LinkedIn: [${linkedin.replace('https://', '')}](${linkedin})`);
+                const contactBlock = contactLines.length > 0
+                  ? `\n\nIf you'd like to continue the conversation, reach out directly:\n\n${contactLines.join('\n')}\n`
+                  : '';
                 appendError(
                   setMessages,
-                  "Daily message limit reached! Thanks for the interest though — really appreciate it.\n\nIf you'd like to continue the conversation, reach out directly:\n\n" +
-                  "- Email: [g.andry90@gmail.com](mailto:g.andry90@gmail.com)\n" +
-                  "- LinkedIn: [linkedin.com/in/wkwebview](https://www.linkedin.com/in/wkwebview/)\n\n" +
-                  "The limit resets tomorrow, so feel free to come back!"
+                  `Daily message limit reached! Thanks for the interest though — really appreciate it.${contactBlock}\nThe limit resets tomorrow, so feel free to come back!`
                 );
               } else {
                 appendError(setMessages, "I'm getting a lot of questions! Please wait a moment and try again.");

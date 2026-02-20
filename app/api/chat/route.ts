@@ -3,6 +3,7 @@ import { buildSystemPrompt } from '@/lib/system-prompt';
 import { getToolsWithContext } from '@/lib/tools';
 import { trimMessages } from '@/lib/message-window';
 import { rateLimit, checkDailyQuota, getClientIp } from '@/lib/rate-limit';
+import config from '@/portfolio/config.json';
 import projects from '@/portfolio/projects.json';
 import experience from '@/portfolio/experience.json';
 import skills from '@/portfolio/skills.json';
@@ -111,8 +112,14 @@ export async function POST(request: NextRequest) {
   // Daily quota check (40 messages/day per IP)
   const quota = await checkDailyQuota(ip);
   if (!quota.allowed) {
+    const social = (config as { social?: { email?: string; linkedin?: string } }).social;
     return Response.json(
-      { error: 'Daily message limit reached. Come back tomorrow!', remaining: 0, limit: quota.limit },
+      {
+        error: 'Daily message limit reached. Come back tomorrow!',
+        remaining: 0,
+        limit: quota.limit,
+        contact: { email: social?.email, linkedin: social?.linkedin },
+      },
       { status: 429 },
     );
   }
