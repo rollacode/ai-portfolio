@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import {
   motion,
   AnimatePresence,
@@ -18,9 +18,9 @@ import type { Message } from '@/hooks/types';
 /*  Constants                                                          */
 /* ------------------------------------------------------------------ */
 
-const TAB_HEIGHT = 56;
-const SHEET_HEIGHT_VH = 88; // percent of viewport
-const DRAG_CLOSE_THRESHOLD = 100; // px to swipe down to collapse
+const SHEET_HEIGHT_VH = 50; // percent of viewport
+const DRAG_CLOSE_THRESHOLD = 80; // px to swipe down to collapse
+const AUTO_COLLAPSE_DELAY = 4000; // ms — how long to show before auto-collapsing
 const SPRING = { type: 'spring' as const, damping: 28, stiffness: 260 };
 
 /* ------------------------------------------------------------------ */
@@ -45,8 +45,11 @@ export default function MobileChatSheet({
   onRetry,
 }: MobileChatSheetProps) {
   const [expanded, setExpanded] = useState(false);
+  const [userExpanded, setUserExpanded] = useState(false); // true when user tapped to open
   const sheetRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useAutoScroll(messages);
+  const prevMsgCountRef = useRef(messages.length);
+  const collapseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Drag-to-dismiss
   const dragY = useMotionValue(0);
@@ -56,10 +59,65 @@ export default function MobileChatSheet({
     (_: unknown, info: PanInfo) => {
       if (info.offset.y > DRAG_CLOSE_THRESHOLD) {
         setExpanded(false);
+        setUserExpanded(false);
       }
     },
     [],
   );
+
+  // User taps the tab — expand and mark as user-initiated
+  const handleUserExpand = useCallback(() => {
+    setExpanded(true);
+    setUserExpanded(true);
+    // Clear any pending auto-collapse
+    if (collapseTimerRef.current) {
+      clearTimeout(collapseTimerRef.current);
+      collapseTimerRef.current = null;
+    }
+  }, []);
+
+  // Auto-expand when new assistant message arrives, then auto-collapse
+  useEffect(() => {
+    const newCount = messages.length;
+    const prevCount = prevMsgCountRef.current;
+    prevMsgCountRef.current = newCount;
+
+    // Only trigger on new messages, not initial render
+    if (newCount <= prevCount) return;
+
+    const lastMsg = messages[newCount - 1];
+    if (!lastMsg || lastMsg.role !== 'assistant' || !lastMsg.content) return;
+
+    // Don't auto-expand if user manually opened the sheet
+    if (userExpanded) return;
+
+    // Auto-expand to show new message
+    setExpanded(true);
+
+    // Clear previous timer
+    if (collapseTimerRef.current) {
+      clearTimeout(collapseTimerRef.current);
+    }
+
+    // Auto-collapse after delay
+    collapseTimerRef.current = setTimeout(() => {
+      setExpanded(false);
+      collapseTimerRef.current = null;
+    }, AUTO_COLLAPSE_DELAY);
+
+    return () => {
+      if (collapseTimerRef.current) {
+        clearTimeout(collapseTimerRef.current);
+        collapseTimerRef.current = null;
+      }
+    };
+  }, [messages, userExpanded]);
+
+  // When user collapses manually, reset userExpanded
+  const handleBackdropClose = useCallback(() => {
+    setExpanded(false);
+    setUserExpanded(false);
+  }, []);
 
   // Last assistant message for the collapsed tab preview
   const lastAssistantMsg = [...messages]
@@ -80,7 +138,7 @@ export default function MobileChatSheet({
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 20, opacity: 0 }}
             transition={SPRING}
-            onClick={() => setExpanded(true)}
+            onClick={handleUserExpand}
             className="fixed bottom-3 left-3 right-3 z-[60] flex items-center gap-3
                        h-14 px-4 rounded-2xl
                        bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md
@@ -121,7 +179,7 @@ export default function MobileChatSheet({
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               className="fixed inset-0 bg-black/30 z-[60]"
-              onClick={() => setExpanded(false)}
+              onClick={handleBackdropClose}
             />
 
             {/* Sheet */}
