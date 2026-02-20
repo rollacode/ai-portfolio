@@ -22,13 +22,18 @@ function getVisitorId(): string {
 
 export type PanelState = {
   open: boolean;
-  type: 'project' | 'projects' | 'skills' | 'contact' | 'timeline' | 'gallery' | 'comparison' | 'resume' | 'tech-radar' | 'recommendations' | 'quick-facts' | 'game' | null;
+  type: 'project' | 'projects' | 'skills' | 'contact' | 'timeline' | 'gallery' | 'comparison' | 'resume' | 'tech-radar' | 'recommendations' | 'quick-facts' | 'game' | 'insight' | null;
   slug?: string;
   slug2?: string;
   category?: string;
   filter?: string;
   skillId?: string;
   game?: string;
+  insightTitle?: string;
+  insightTopic?: string;
+  insightIntent?: string;
+  insightVisitorContext?: string;
+  insightLanguage?: string;
 };
 
 export type PanelAction =
@@ -136,6 +141,19 @@ export function handleToolCall(
     case 'play_game':
       return {
         panelState: { open: true, type: 'game', game: args.game as string },
+      };
+
+    case 'show_insight':
+      return {
+        panelState: {
+          open: true,
+          type: 'insight',
+          insightTitle: args.title as string,
+          insightTopic: args.topic as string,
+          insightIntent: args.intent as string,
+          insightVisitorContext: (args.visitor_context as string) || undefined,
+          insightLanguage: (args.language as string) || 'en',
+        },
       };
 
     case 'hide_panel':

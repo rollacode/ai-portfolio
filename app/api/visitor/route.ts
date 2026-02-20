@@ -1,7 +1,6 @@
 import { NextRequest } from 'next/server';
-import fs from 'fs';
-import path from 'path';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
+import { loadVisitors, saveVisitors, type VisitorEntry } from '@/lib/visitor-store';
 
 // ---------------------------------------------------------------------------
 // POST /api/visitor  — save visitor info (called by agent tool, no auth)
@@ -12,44 +11,14 @@ import { rateLimit, getClientIp } from '@/lib/rate-limit';
 // If no visitorId is provided, falls back to timestamp-based merge (30 min).
 // ---------------------------------------------------------------------------
 
-const VISITORS_PATH = path.join(process.cwd(), 'data', 'visitors.json');
 const MERGE_WINDOW_MS = 30 * 60 * 1000; // 30 minutes fallback
 
-// Simple async mutex for file write serialization
+// Simple async mutex for write serialization
 let writeLock: Promise<void> = Promise.resolve();
 function withLock<T>(fn: () => Promise<T>): Promise<T> {
   const result = writeLock.then(fn);
   writeLock = result.then(() => {}, () => {});
   return result;
-}
-
-interface VisitorEntry {
-  visitorId?: string;
-  timestamp: string;
-  name?: string;
-  company?: string;
-  role?: string;
-  interest?: string;
-  email?: string;
-  telegram?: string;
-  phone?: string;
-  linkedin?: string;
-  notes?: string;
-}
-
-function loadVisitors(): VisitorEntry[] {
-  try {
-    if (fs.existsSync(VISITORS_PATH)) {
-      return JSON.parse(fs.readFileSync(VISITORS_PATH, 'utf-8')) as VisitorEntry[];
-    }
-  } catch {
-    // corrupted file — start fresh
-  }
-  return [];
-}
-
-function saveVisitors(visitors: VisitorEntry[]): void {
-  fs.writeFileSync(VISITORS_PATH, JSON.stringify(visitors, null, 2) + '\n', 'utf-8');
 }
 
 // ---------------------------------------------------------------------------
@@ -75,7 +44,7 @@ export async function GET(request: NextRequest) {
     return Response.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const visitors = loadVisitors();
+  const visitors = await loadVisitors();
   return Response.json({ count: visitors.length, visitors });
 }
 
@@ -106,7 +75,7 @@ export async function POST(request: NextRequest) {
     }
 
     return await withLock(async () => {
-      const visitors = loadVisitors();
+      const visitors = await loadVisitors();
       const now = new Date();
 
       // Try to find existing entry by visitorId
@@ -130,7 +99,6 @@ export async function POST(request: NextRequest) {
           if (value) {
             const rec = existing as unknown as Record<string, unknown>;
             if (appendKeys.has(key) && rec[key] && typeof rec[key] === 'string') {
-              // Avoid duplicates: only append if the new value isn't already in the existing
               const existing_val = rec[key] as string;
               if (!existing_val.includes(value as string)) {
                 rec[key] = `${existing_val}; ${value}`;
@@ -144,7 +112,7 @@ export async function POST(request: NextRequest) {
           existing.visitorId = visitorId;
         }
         existing.timestamp = now.toISOString();
-        saveVisitors(visitors);
+        await saveVisitors(visitors);
         return Response.json({ ok: true, merged: true });
       }
 
@@ -154,7 +122,7 @@ export async function POST(request: NextRequest) {
         timestamp: now.toISOString(),
         ...data,
       });
-      saveVisitors(visitors);
+      await saveVisitors(visitors);
       return Response.json({ ok: true, merged: false });
     });
   } catch (error) {

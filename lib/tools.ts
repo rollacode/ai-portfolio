@@ -29,7 +29,8 @@ export type ToolName =
   | 'highlight_recommendation'
   | 'remember_visitor'
   | 'set_theme'
-  | 'play_game';
+  | 'play_game'
+  | 'show_insight';
 
 export interface ToolCall {
   name: ToolName;
@@ -227,6 +228,39 @@ export const tools: ToolDefinition[] = [
       parameters: {
         type: 'object',
         properties: {},
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'show_insight',
+      description: 'Generate and display a cross-reference insight card about a specific topic. The card analyzes portfolio data and shows related projects, recommendations, and surprising connections — all tailored to what the visitor is looking for. Use this when a visitor asks deep questions about a skill, domain, or career aspect and you want to give them a rich, analytical overview.',
+      parameters: {
+        type: 'object',
+        properties: {
+          title: {
+            type: 'string',
+            description: 'Display title for the insight card panel (e.g. "System Architecture Deep Dive", "iOS Experience Overview")',
+          },
+          topic: {
+            type: 'string',
+            description: 'The skill, technology, domain, or career aspect to analyze (e.g. "system-architecture", "iOS development", "team leadership")',
+          },
+          intent: {
+            type: 'string',
+            description: 'WHY the visitor is asking — what they want to understand. Be specific about their motivation and what kind of answer would serve them best (e.g. "Recruiter evaluating architecture experience for a senior role, wants concrete examples of system design decisions")',
+          },
+          visitor_context: {
+            type: 'string',
+            description: 'Who the visitor is and relevant context (e.g. "Igor from QuantumSoft, interested in hiring for architect role")',
+          },
+          language: {
+            type: 'string',
+            description: 'Language to generate the insight in. Use the same language as the current conversation (e.g. "ru" for Russian, "en" for English)',
+          },
+        },
+        required: ['title', 'topic', 'intent', 'language'],
       },
     },
   },

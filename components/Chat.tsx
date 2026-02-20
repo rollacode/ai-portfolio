@@ -14,6 +14,7 @@ import { useAutoScroll } from '@/hooks/useAutoScroll';
 import { useChatStream } from '@/hooks/useChatStream';
 import { useLayoutMode } from '@/hooks/useLayoutMode';
 import type { Message } from '@/hooks/types';
+import Link from 'next/link';
 import config from '@/portfolio/config.json';
 
 // -----------------------------------------------------------------------------
@@ -86,6 +87,7 @@ export default function Chat() {
         onActionConsumed={handleActionConsumed}
         onAnimationComplete={handlePanelAnimationComplete}
         onClose={handlePanelClose}
+        onNavigate={(newState) => setPanelState(prev => ({ ...prev, ...newState }))}
       />
 
       {/* WELCOME — centered landing */}
@@ -118,6 +120,10 @@ export default function Chat() {
                     </a>
                   </>
                 )}
+                {' · '}
+                <Link href="/privacy" className="hover:text-gray-300 transition-colors">Privacy</Link>
+                {' · '}
+                <Link href="/terms" className="hover:text-gray-300 transition-colors">Terms</Link>
               </p>
             </div>
           </motion.div>
@@ -175,6 +181,10 @@ export default function Chat() {
                     </a>
                   </>
                 )}
+                {' · '}
+                <Link href="/privacy" className="hover:text-gray-300 transition-colors">Privacy</Link>
+                {' · '}
+                <Link href="/terms" className="hover:text-gray-300 transition-colors">Terms</Link>
               </p>
             </div>
           </div>

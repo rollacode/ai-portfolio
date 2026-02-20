@@ -20,6 +20,19 @@ interface StoredPanelState {
 }
 
 // ---------------------------------------------------------------------------
+// Consent check
+// ---------------------------------------------------------------------------
+
+function hasStorageConsent(): boolean {
+  try {
+    return localStorage.getItem('storage-consent') !== 'declined';
+  } catch {
+    // localStorage unavailable (SSR, tests, etc.) — allow writes
+    return true;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
@@ -41,6 +54,7 @@ function openDB(): Promise<IDBDatabase> {
 
 async function putValue(key: string, value: unknown): Promise<void> {
   if (typeof indexedDB === 'undefined') return;
+  if (!hasStorageConsent()) return;
   try {
     const db = await openDB();
     const tx = db.transaction('chat', 'readwrite');
@@ -98,6 +112,7 @@ export async function clearAll(): Promise<void> {
     const store = tx.objectStore('chat');
     store.delete('messages');
     store.delete('panelState');
+    store.delete('insights');
     await new Promise<void>((resolve, reject) => {
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
@@ -105,6 +120,41 @@ export async function clearAll(): Promise<void> {
   } catch (err) {
     console.error('[chat-store] clearAll failed:', err);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Insight cache
+// ---------------------------------------------------------------------------
+
+export interface CachedInsight {
+  fullText?: string;
+  timestamp: number;
+  // Legacy parsed fields (optional, kept for backward compat)
+  headline?: string | null;
+  metrics?: { years: number; projects: number; level: string } | null;
+  narrative?: string;
+  projects?: { slug: string; name: string; relevance: string }[] | null;
+  quotes?: { author: string; text: string }[] | null;
+  connections?: string[] | null;
+}
+
+export async function saveInsight(key: string, data: CachedInsight): Promise<void> {
+  const all = await getValue<Record<string, CachedInsight>>('insights', {});
+  all[key] = data;
+  return putValue('insights', all);
+}
+
+export async function loadInsight(key: string): Promise<CachedInsight | null> {
+  const all = await getValue<Record<string, CachedInsight>>('insights', {});
+  const cached = all[key];
+  if (!cached) return null;
+  // Expire after 1 hour
+  if (Date.now() - cached.timestamp > 3600_000) {
+    delete all[key];
+    await putValue('insights', all);
+    return null;
+  }
+  return cached;
 }
 
 // Keep old name working

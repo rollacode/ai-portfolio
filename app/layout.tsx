@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import config from "@/portfolio/config.json";
+import CookieConsent from "@/components/CookieConsent";
 
 const title = `${config.name} — ${config.title}`;
 const description = `${config.bio}. Interactive AI-powered portfolio.`;
@@ -55,6 +56,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         {children}
+        <CookieConsent />
       </body>
     </html>
   );

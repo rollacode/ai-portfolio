@@ -17,6 +17,7 @@ import QuickFacts from './QuickFacts';
 import Recommendations from './Recommendations';
 import SnakeGame from './SnakeGame';
 import Game2048 from './Game2048';
+import InsightPanel from './InsightPanel';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -28,6 +29,7 @@ interface ContentPanelProps {
   onActionConsumed: () => void;
   onAnimationComplete: () => void;
   onClose: () => void;
+  onNavigate?: (panelState: Partial<PanelState>) => void;
 }
 
 /* ------------------------------------------------------------------ */
@@ -64,6 +66,8 @@ function panelTitle(type: PanelState['type'], state?: PanelState): string {
       if (game === '2048') return '2048';
       return 'Game';
     }
+    case 'insight':
+      return state?.insightTitle || 'Insight';
     default:
       return '';
   }
@@ -89,6 +93,7 @@ export default function ContentPanel({
   onActionConsumed,
   onAnimationComplete,
   onClose,
+  onNavigate,
 }: ContentPanelProps) {
   const { open, type, slug, slug2, category } = panelState;
 
@@ -305,6 +310,17 @@ export default function ContentPanel({
           <Recommendations
             highlightedName={highlightedRecommendation}
             onActionConsumed={onActionConsumed}
+          />
+        );
+
+      case 'insight':
+        return (
+          <InsightPanel
+            topic={panelState.insightTopic || ''}
+            intent={panelState.insightIntent || ''}
+            visitorContext={panelState.insightVisitorContext}
+            language={panelState.insightLanguage || 'en'}
+            onNavigate={onNavigate}
           />
         );
 
