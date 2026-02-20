@@ -116,7 +116,7 @@ export default function Gallery({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
-      className="fixed inset-0 z-50 flex flex-col bg-black/90"
+      className="fixed inset-0 z-[90] flex flex-col bg-black/90"
       onClick={onClose}
     >
       {/* Close button */}
