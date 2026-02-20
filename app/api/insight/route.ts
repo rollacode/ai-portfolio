@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { loadPortfolioContent } from '@/lib/system-prompt';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
+import config from '@/portfolio/config.json';
 
 // ---------------------------------------------------------------------------
 // Env helpers (same as chat route — AI_* with XAI_* fallbacks)
@@ -28,7 +29,9 @@ function buildInsightPrompt(
   const languageInstruction =
     language === 'ru' ? 'Russian' : language === 'en' ? 'English' : language;
 
-  return `You are a portfolio insight analyst for Andrey. Analyze the portfolio data and generate a structured insight card.
+  const firstName = (config as { firstName?: string }).firstName || 'the developer';
+
+  return `You are a portfolio insight analyst for ${firstName}. Analyze the portfolio data and generate a structured insight card.
 
 OUTPUT FORMAT:
 Write your response using these exact section headers (## followed by the section name in caps). Write naturally within each section.

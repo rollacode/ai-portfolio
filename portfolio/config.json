@@ -46,7 +46,15 @@
     "Tell me about his iOS experience",
     "What's his AI/LLM background?",
     "Show me the Computer Vision work",
-    "Walk me through his career"
+    "Walk me through his career",
+    "What makes him different from other devs?",
+    "Can you summarize his full portfolio?",
+    "What do his colleagues say about him?",
+    "Show me something cool",
+    "What's his tech stack look like?",
+    "Has he led teams before?",
+    "What kind of person is Andrey?",
+    "Any fun facts about him?"
   ],
   "social": {
     "github": "https://github.com/rollacode",

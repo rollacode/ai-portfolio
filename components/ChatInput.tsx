@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, KeyboardEvent } from 'react';
+import { useState, useRef, useEffect, useMemo, KeyboardEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import config from '@/portfolio/config.json';
 
@@ -12,13 +12,26 @@ interface ChatInputProps {
 
 const STATIC_PLACEHOLDER = 'Ask me anything...';
 const ROTATE_INTERVAL = 3000;
+const MAX_SUGGESTIONS = 6;
+
+/** Fisher-Yates shuffle (returns new array) */
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 export default function ChatInput({ onSend, disabled, animatePlaceholder }: ChatInputProps) {
   const [input, setInput] = useState('');
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const suggestions = config.suggestedQuestions ?? [];
+  // Shuffle and pick a subset on mount — different every visit
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const suggestions = useMemo(() => shuffle(config.suggestedQuestions ?? []).slice(0, MAX_SUGGESTIONS), []);
 
   // Rotate placeholder in welcome mode
   useEffect(() => {

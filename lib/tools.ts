@@ -109,7 +109,7 @@ export const tools: ToolDefinition[] = [
     function: {
       name: 'show_skills',
       description:
-        'Open the skills grid panel. Use when the user asks about technical skills, tech stack, or what technologies Andrey knows. Optionally filter by category.',
+        'Open the skills grid panel. Use when the user asks about technical skills, tech stack, or what technologies the developer knows. Optionally filter by category.',
       parameters: {
         type: 'object',
         properties: {
@@ -127,7 +127,7 @@ export const tools: ToolDefinition[] = [
     function: {
       name: 'show_contact',
       description:
-        'Open the contact info panel with email, GitHub, LinkedIn. Use when the user wants to get in touch, hire, or reach out to Andrey.',
+        'Open the contact info panel with email, GitHub, LinkedIn. Use when the user wants to get in touch, hire, or reach out to the developer.',
       parameters: {
         type: 'object',
         properties: {},
