@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useMemo, KeyboardEvent } from 'react';
+import { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import config from '@/portfolio/config.json';
 
@@ -27,11 +27,13 @@ function shuffle<T>(arr: T[]): T[] {
 export default function ChatInput({ onSend, disabled, animatePlaceholder }: ChatInputProps) {
   const [input, setInput] = useState('');
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Shuffle and pick a subset on mount — different every visit
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const suggestions = useMemo(() => shuffle(config.suggestedQuestions ?? []).slice(0, MAX_SUGGESTIONS), []);
+  // Shuffle on client only to avoid hydration mismatch
+  useEffect(() => {
+    setSuggestions(shuffle(config.suggestedQuestions ?? []).slice(0, MAX_SUGGESTIONS));
+  }, []);
 
   // Rotate placeholder in welcome mode
   useEffect(() => {
