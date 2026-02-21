@@ -339,14 +339,14 @@ export const tools: ToolDefinition[] = [
     function: {
       name: 'set_theme',
       description:
-        'Switch the UI theme to dark or light mode. Use when the visitor asks to change theme, or proactively offer it. Fun to use when the visitor asks about preferences.',
+        'Switch the UI theme. Includes a secret Fallout/Pip-Boy easter egg theme (green CRT terminal with scanlines). Use "fallout" when the visitor mentions Fallout, retro, hacker mode, matrix, or when you want to surprise them.',
       parameters: {
         type: 'object',
         properties: {
           theme: {
             type: 'string',
-            description: 'Theme to set',
-            enum: ['dark', 'light', 'toggle'],
+            description: 'Theme to set. "fallout" activates the secret Pip-Boy CRT theme.',
+            enum: ['dark', 'light', 'toggle', 'fallout'],
           },
         },
         required: ['theme'],

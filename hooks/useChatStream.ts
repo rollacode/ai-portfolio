@@ -122,14 +122,20 @@ export function useChatStream({
       if (result.action?.type === 'set_theme') {
         const html = document.documentElement;
         const theme = result.action.theme;
-        if (theme === 'toggle') {
-          html.classList.toggle('dark');
-        } else if (theme === 'dark') {
-          html.classList.add('dark');
+        if (theme === 'fallout') {
+          html.classList.add('dark', 'fallout');
+          localStorage.setItem('theme', 'fallout');
         } else {
-          html.classList.remove('dark');
+          html.classList.remove('fallout');
+          if (theme === 'toggle') {
+            html.classList.toggle('dark');
+          } else if (theme === 'dark') {
+            html.classList.add('dark');
+          } else {
+            html.classList.remove('dark');
+          }
+          localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
         }
-        localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
         return;
       }
 
