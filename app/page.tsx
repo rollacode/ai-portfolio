@@ -4,7 +4,7 @@ import Toolbar from '@/components/Toolbar';
 export default function Home() {
   return (
     <div className="relative min-h-screen">
-      <div className="fixed top-4 right-4 z-[80] print:hidden">
+      <div className="fixed top-4 right-4 z-[80] print:hidden showtime-hide">
         <Toolbar />
       </div>
 

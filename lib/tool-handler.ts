@@ -51,6 +51,7 @@ export type PanelAction =
 export type ToolResult = {
   panelState?: Partial<PanelState>;
   action?: PanelAction;
+  showtime?: { topic: string; intent: string };
 };
 
 // -----------------------------------------------------------------------------
@@ -254,6 +255,14 @@ export function handleToolCall(
     // -------------------------------------------------------------------------
     case 'set_theme':
       return { action: { type: 'set_theme', theme: args.theme as string } };
+
+    case 'start_showtime':
+      return {
+        showtime: {
+          topic: args.topic as string,
+          intent: args.intent as string,
+        },
+      };
 
     // -------------------------------------------------------------------------
     // Layer 3 — Data tools (side-effects, no UI change)

@@ -120,6 +120,25 @@ body {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Showtime — hide all UI during dramatic mode                        */
+/* ------------------------------------------------------------------ */
+
+[data-showtime] .showtime-hide {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 0.8s ease-out !important;
+}
+
+/* Scrollbar for showtime stage */
+.showtime-scroll::-webkit-scrollbar {
+  display: none;
+}
+.showtime-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ------------------------------------------------------------------ */
 /*  Fallout / Pip-Boy easter egg theme                                 */
 /* ------------------------------------------------------------------ */
 

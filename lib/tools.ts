@@ -30,7 +30,8 @@ export type ToolName =
   | 'remember_visitor'
   | 'set_theme'
   | 'play_game'
-  | 'show_insight';
+  | 'show_insight'
+  | 'start_showtime';
 
 export interface ToolCall {
   name: ToolName;
@@ -354,8 +355,32 @@ export const tools: ToolDefinition[] = [
   },
 
   // ---------------------------------------------------------------------------
-  // Easter eggs
+  // Easter eggs / showtime
   // ---------------------------------------------------------------------------
+  {
+    type: 'function',
+    function: {
+      name: 'start_showtime',
+      description:
+        'Launch a dramatic, cinematic storytelling mode. The lights go out, the screen transforms into a dark stage, and a theatrical narrative plays out. Use when the user asks for a dramatic/cinematic version of a story, or when they agree to your offer. If the user explicitly requests drama ("расскажи драматичнее", "with drama", "как в кино", etc.) — call this tool IMMEDIATELY without additional confirmation.',
+      parameters: {
+        type: 'object',
+        properties: {
+          topic: {
+            type: 'string',
+            description:
+              'The story topic — a catchy dramatic title (e.g. "The Great Deployment Disaster of 2024" or "How a Side Project Became a Product")',
+          },
+          intent: {
+            type: 'string',
+            description:
+              'What the audience wants to learn — context about why the user asked (e.g. "User wants to know about the hardest technical challenge")',
+          },
+        },
+        required: ['topic', 'intent'],
+      },
+    },
+  },
   {
     type: 'function',
     function: {

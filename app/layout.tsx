@@ -1,8 +1,15 @@
 import type { Metadata, Viewport } from "next";
+import { Playfair_Display } from "next/font/google";
 import "./globals.css";
 import config from "@/portfolio/config.json";
 import CookieConsent from "@/components/CookieConsent";
 import { Analytics } from "@vercel/analytics/next";
+
+const playfair = Playfair_Display({
+  subsets: ["latin", "cyrillic"],
+  variable: "--font-playfair",
+  display: "swap",
+});
 
 const title = `${config.name} — ${config.title}`;
 const description = `${config.bio}. Interactive AI-powered portfolio.`;
@@ -37,7 +44,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={playfair.variable} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{

@@ -15,6 +15,8 @@ import { useChatStream } from '@/hooks/useChatStream';
 import { useLayoutMode } from '@/hooks/useLayoutMode';
 import type { Message } from '@/hooks/types';
 import MobileChatSheet from './MobileChatSheet';
+import ShowtimeStage from './ShowtimeStage';
+import { useShowtime } from '@/hooks/useShowtime';
 import Link from 'next/link';
 import config from '@/portfolio/config.json';
 
@@ -42,6 +44,9 @@ export default function Chat() {
     [],
   );
 
+  // Showtime (dramatic storytelling mode)
+  const showtime = useShowtime();
+
   // Derived layout
   const layout = useLayoutMode(messages, panelState, isDesktop);
 
@@ -57,6 +62,7 @@ export default function Chat() {
     setMessages,
     setPanelState,
     actionQueue,
+    onShowtime: (topic, intent) => showtime.start(topic, intent),
   });
 
   // Panel callbacks
@@ -204,6 +210,15 @@ export default function Chat() {
             </div>
           </div>
         </>
+      )}
+      {/* Showtime — dramatic storytelling overlay */}
+      {showtime.active && (
+        <ShowtimeStage
+          segments={showtime.segments}
+          loading={showtime.loading}
+          topic={showtime.topic}
+          onClose={showtime.stop}
+        />
       )}
     </>
   );

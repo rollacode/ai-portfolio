@@ -15,6 +15,7 @@ interface UseChatStreamArgs {
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
   setPanelState: React.Dispatch<React.SetStateAction<PanelState>>;
   actionQueue: ActionQueue;
+  onShowtime?: (topic: string, intent: string) => void;
 }
 
 // -----------------------------------------------------------------------------
@@ -97,6 +98,7 @@ export function useChatStream({
   setMessages,
   setPanelState,
   actionQueue,
+  onShowtime,
 }: UseChatStreamArgs): UseChatStreamReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [lastUserMessage, setLastUserMessage] = useState<string | null>(null);
@@ -109,6 +111,12 @@ export function useChatStream({
     (name: string, args: Record<string, any>) => {
       appendToolCall(setMessages, name, args);
       const result = handleToolCall(name, args);
+
+      // Handle showtime — launch dramatic storytelling mode
+      if (result.showtime) {
+        onShowtime?.(result.showtime.topic, result.showtime.intent);
+        return;
+      }
 
       // Handle set_theme immediately — it's a side effect, not a panel action
       if (result.action?.type === 'set_theme') {
@@ -140,7 +148,7 @@ export function useChatStream({
       }
       if (result.action) actionQueue.enqueue(result.action);
     },
-    [setMessages, setPanelState, actionQueue],
+    [setMessages, setPanelState, actionQueue, onShowtime],
   );
 
   // ---------------------------------------------------------------------------
