@@ -2,10 +2,10 @@
 
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import ChatMessage from './ChatMessage';
-import ChatInput from './ChatInput';
-import TypingIndicator from './TypingIndicator';
-import ContentPanel from './ContentPanel';
+import ChatMessage from '@/components/chat/ChatMessage';
+import ChatInput from '@/components/chat/ChatInput';
+import TypingIndicator from '@/components/chat/TypingIndicator';
+import ContentPanel from '@/components/panels/ContentPanel';
 import { type PanelState, type PanelAction } from '@/lib/tool-handler';
 import { ActionQueue } from '@/lib/action-queue';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
@@ -14,8 +14,8 @@ import { useAutoScroll } from '@/hooks/useAutoScroll';
 import { useChatStream } from '@/hooks/useChatStream';
 import { useLayoutMode } from '@/hooks/useLayoutMode';
 import type { Message } from '@/hooks/types';
-import MobileChatSheet from './MobileChatSheet';
-import ShowtimeStage from './ShowtimeStage';
+import MobileChatSheet from '@/components/chat/MobileChatSheet';
+import ShowtimeStage from '@/components/panels/ShowtimeStage';
 import { useShowtime } from '@/hooks/useShowtime';
 import Link from 'next/link';
 import config from '@/portfolio/config.json';

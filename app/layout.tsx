@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Playfair_Display } from "next/font/google";
 import "./globals.css";
 import config from "@/portfolio/config.json";
-import CookieConsent from "@/components/CookieConsent";
+import CookieConsent from "@/components/ui/CookieConsent";
 import { Analytics } from "@vercel/analytics/next";
 
 const playfair = Playfair_Display({

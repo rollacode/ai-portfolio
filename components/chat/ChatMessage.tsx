@@ -2,8 +2,8 @@
 
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
-import ToolCallBadge from './ToolCallBadge';
-import MemoryLine from './MemoryLine';
+import ToolCallBadge from '@/components/chat/ToolCallBadge';
+import MemoryLine from '@/components/panels/MemoryLine';
 
 interface ChatMessageProps {
   role: 'user' | 'assistant';

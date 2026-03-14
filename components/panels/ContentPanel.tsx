@@ -4,21 +4,21 @@ import { useMemo, useCallback, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { PanelState, PanelAction } from '@/lib/tool-handler';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
-import ProjectCard from './ProjectCard';
-import type { HighlightField } from './ProjectCard';
-import SkillsGrid from './SkillsGrid';
-import ContactCard from './ContactCard';
-import Timeline from './Timeline';
-import ProjectsTimeline from './ProjectsTimeline';
-import Gallery from './Gallery';
-import ResumePanel from './ResumePanel';
-import TechRadar from './TechRadar';
-import QuickFacts from './QuickFacts';
-import Recommendations from './Recommendations';
-import SnakeGame from './SnakeGame';
-import Game2048 from './Game2048';
-import InsightPanel from './InsightPanel';
-import JobMatchPanel from './JobMatchPanel';
+import ProjectCard from '@/components/panels/ProjectCard';
+import type { HighlightField } from '@/components/panels/ProjectCard';
+import SkillsGrid from '@/components/panels/SkillsGrid';
+import ContactCard from '@/components/panels/ContactCard';
+import Timeline from '@/components/panels/Timeline';
+import ProjectsTimeline from '@/components/panels/ProjectsTimeline';
+import Gallery from '@/components/panels/Gallery';
+import ResumePanel from '@/components/panels/ResumePanel';
+import TechRadar from '@/components/panels/TechRadar';
+import QuickFacts from '@/components/panels/QuickFacts';
+import Recommendations from '@/components/panels/Recommendations';
+import SnakeGame from '@/components/games/SnakeGame';
+import Game2048 from '@/components/games/Game2048';
+import InsightPanel from '@/components/panels/InsightPanel';
+import JobMatchPanel from '@/components/panels/JobMatchPanel';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -429,20 +429,20 @@ export default function ContentPanel({
             }
           >
             {/* Separate scroll container so transform from Framer Motion doesn't kill scroll */}
-            <div className="h-full overflow-y-auto">
-            <div className="p-4 md:p-6">
+            <div className={`h-full ${type === 'tech-radar' ? 'flex flex-col' : 'overflow-y-auto'}`}>
+            <div className={`${type === 'tech-radar' ? 'flex flex-col flex-1 min-h-0' : ''} p-4 md:p-6`}>
               {/* Header (hidden when printing) */}
-              <div className="flex justify-between items-center mb-4 md:mb-6 print:hidden">
+              <div className="flex justify-between items-center mb-4 md:mb-6 print:hidden shrink-0">
                 <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
                   {panelTitle(type, panelState)}
                 </h2>
               </div>
 
               {/* Content */}
-              <div>{renderContent()}</div>
+              <div className={type === 'tech-radar' ? 'flex-1 min-h-0' : ''}>{renderContent()}</div>
 
               {/* Extra space so last content can scroll to center of viewport */}
-              <div className="h-[50vh]" />
+              {type !== 'tech-radar' && <div className="h-[50vh]" />}
             </div>
             </div>
           </motion.div>

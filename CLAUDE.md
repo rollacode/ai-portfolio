@@ -78,15 +78,17 @@ Custom agents in `.claude/agents/`:
 
 ## Testing
 
-42 tests across 3 files:
-
-| File | Count | What it tests |
-|---|---|---|
-| `tests/portfolio-data.test.ts` | 28 | Data integrity, cross-references between projects/skills/experience, schema validation |
-| `tests/api-chat.test.ts` | 5 | Chat endpoint: missing key, request format, tool injection |
-| `tests/api-visitor.test.ts` | 9 | Visitor CRUD: save, merge by ID, merge by timestamp, auth |
-
 Run: `npm test` or `npm run test:watch`
+
+| File | What it tests |
+|---|---|
+| `tests/portfolio-data.test.ts` | Data integrity, cross-references between projects/skills/experience, schema validation |
+| `tests/api-chat.test.ts` | Chat endpoint: missing key, request format, tool injection |
+| `tests/api-visitor.test.ts` | Visitor CRUD: save, merge by ID, merge by timestamp, auth |
+| `tests/stream-parser.test.ts` | SSE chunk parsing, text + tool call extraction |
+| `tests/tool-handler.test.ts` | Tool call → PanelState/PanelAction mapping |
+| `tests/action-queue.test.ts` | Action buffering, stagger timing, queue flush |
+| `tests/chat-store.test.ts` | IndexedDB persistence, message save/load |
 
 ## Known Limitations
 

@@ -255,4 +255,150 @@ describe('POST /api/chat', () => {
     // Should not be 429 — request goes through to AI API
     expect(res.status).toBe(200);
   });
+
+  // -----------------------------------------------------------------------
+  // 8. Validation — empty messages array
+  // -----------------------------------------------------------------------
+
+  it('returns 400 when messages array is empty', async () => {
+    vi.stubEnv('AI_API_KEY', 'test-key');
+    mockFetchSuccess();
+
+    const { POST } = await import('../app/api/chat/route');
+
+    const res = await POST(makeRequest({ messages: [] }));
+    expect(res.status).toBe(400);
+
+    const json = await res.json();
+    expect(json.error).toMatch(/non-empty/i);
+  });
+
+  // -----------------------------------------------------------------------
+  // 9. Validation — messages is not an array
+  // -----------------------------------------------------------------------
+
+  it('returns 400 when messages is not an array', async () => {
+    vi.stubEnv('AI_API_KEY', 'test-key');
+    mockFetchSuccess();
+
+    const { POST } = await import('../app/api/chat/route');
+
+    const res = await POST(makeRequest({ messages: 'not an array' }));
+    expect(res.status).toBe(400);
+
+    const json = await res.json();
+    expect(json.error).toMatch(/array/i);
+  });
+
+  // -----------------------------------------------------------------------
+  // 10. Validation — invalid role
+  // -----------------------------------------------------------------------
+
+  it('returns 400 when a message has an invalid role', async () => {
+    vi.stubEnv('AI_API_KEY', 'test-key');
+    mockFetchSuccess();
+
+    const { POST } = await import('../app/api/chat/route');
+
+    const res = await POST(
+      makeRequest({ messages: [{ role: 'invalid_role', content: 'hi' }] }),
+    );
+    expect(res.status).toBe(400);
+
+    const json = await res.json();
+    expect(json.error).toMatch(/role/i);
+  });
+
+  // -----------------------------------------------------------------------
+  // 11. Validation — content too long
+  // -----------------------------------------------------------------------
+
+  it('returns 400 when content exceeds max length', async () => {
+    vi.stubEnv('AI_API_KEY', 'test-key');
+    mockFetchSuccess();
+
+    const { POST } = await import('../app/api/chat/route');
+
+    const longContent = 'x'.repeat(50_001);
+    const res = await POST(
+      makeRequest({ messages: [{ role: 'user', content: longContent }] }),
+    );
+    expect(res.status).toBe(400);
+
+    const json = await res.json();
+    expect(json.error).toMatch(/length/i);
+  });
+
+  // -----------------------------------------------------------------------
+  // 12. Validation — too many messages
+  // -----------------------------------------------------------------------
+
+  it('returns 400 when messages array exceeds max count', async () => {
+    vi.stubEnv('AI_API_KEY', 'test-key');
+    mockFetchSuccess();
+
+    const { POST } = await import('../app/api/chat/route');
+
+    const messages = Array.from({ length: 201 }, (_, i) => ({
+      role: 'user',
+      content: `msg ${i}`,
+    }));
+    const res = await POST(makeRequest({ messages }));
+    expect(res.status).toBe(400);
+
+    const json = await res.json();
+    expect(json.error).toMatch(/maximum/i);
+  });
+
+  // -----------------------------------------------------------------------
+  // 13. Validation — message is not an object
+  // -----------------------------------------------------------------------
+
+  it('returns 400 when a message is not an object', async () => {
+    vi.stubEnv('AI_API_KEY', 'test-key');
+    mockFetchSuccess();
+
+    const { POST } = await import('../app/api/chat/route');
+
+    const res = await POST(makeRequest({ messages: ['not an object'] }));
+    expect(res.status).toBe(400);
+
+    const json = await res.json();
+    expect(json.error).toMatch(/object/i);
+  });
+
+  // -----------------------------------------------------------------------
+  // 14. No easter egg reminder injection (removed — features surface naturally)
+  // -----------------------------------------------------------------------
+
+  it('does not inject easter egg reminders into the message array', async () => {
+    vi.stubEnv('AI_API_KEY', 'test-key');
+    vi.stubEnv('AI_BASE_URL', 'https://api.test.ai/v1');
+    mockFetchSuccess();
+
+    const { POST } = await import('../app/api/chat/route');
+
+    // Simulate a conversation with 4 user messages
+    const messages = [
+      { role: 'user', content: 'hi' },
+      { role: 'assistant', content: 'hello' },
+      { role: 'user', content: 'tell me about projects' },
+      { role: 'assistant', content: 'sure!' },
+      { role: 'user', content: 'cool' },
+      { role: 'assistant', content: 'thanks' },
+      { role: 'user', content: 'what else?' },
+    ];
+
+    await POST(makeRequest({ messages }));
+
+    const fetchMock = globalThis.fetch as ReturnType<typeof vi.fn>;
+    const [, options] = fetchMock.mock.calls[0];
+    const body = JSON.parse(options.body);
+
+    // Should have exactly 1 system message (the main prompt only)
+    const systemMessages = body.messages.filter(
+      (m: { role: string }) => m.role === 'system',
+    );
+    expect(systemMessages.length).toBe(1);
+  });
 });

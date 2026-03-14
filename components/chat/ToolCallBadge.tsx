@@ -13,7 +13,7 @@ interface ToolCallBadgeProps {
 /*  Friendly label mapping                                             */
 /* ------------------------------------------------------------------ */
 
-function friendlyLabel(name: string, args: Record<string, unknown>): string {
+function friendlyLabel(name: string, args: Record<string, unknown>): string | null {
   switch (name) {
     case 'show_project':
       return `opened ${args.slug || 'project'}`;

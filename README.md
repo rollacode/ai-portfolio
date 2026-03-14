@@ -8,13 +8,19 @@ Built with Next.js 15, Tailwind CSS, and any OpenAI-compatible LLM provider.
 
 ## How it works
 
-The agent has **12 tools** organized in two layers:
+The agent has **22 tools** organized in four layers:
 
 **Layer 1 — Panel tools** open/close UI panels:
-`show_project`, `show_skills`, `show_contact`, `show_timeline`, `show_gallery`, `hide_panel`
+`show_project`, `show_skills`, `show_contact`, `show_timeline`, `show_gallery`, `show_resume`, `show_tech_radar`, `show_quick_facts`, `show_recommendations`, `hide_panel`
 
 **Layer 2 — Action tools** act inside open panels:
-`scroll_timeline_to`, `highlight_period`, `focus_screenshot`, `highlight_skill`, `highlight_project_detail`, `compare_projects`
+`scroll_timeline_to`, `highlight_period`, `focus_screenshot`, `highlight_skill`, `highlight_project_detail`, `compare_projects`, `highlight_recommendation`, `focus_radar_section`
+
+**Layer 3 — Data tools** perform side effects:
+`remember_visitor`, `generate_insight`
+
+**Layer 4 — Side-effect tools** change the experience:
+`set_theme`, `start_showtime`, `play_game`
 
 The agent interleaves tool calls with text naturally — it opens a timeline, scrolls to a company, highlights the period, then narrates the story. All streamed in real-time via SSE.
 
@@ -45,26 +51,15 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Fork & make it yours
 
-All personal content lives in two places — **edit these and deploy**:
-
-### `data/` — structured data (JSON)
+All personal content lives in `portfolio/` — edit these JSON files and deploy:
 
 | File | What it contains |
 |------|-----------------|
 | `config.json` | Name, bio, social links, theme colors, agent personality, suggested questions |
-| `projects.json` | Projects with slugs, descriptions, tech stacks, links, screenshots |
-| `skills.json` | Skills grouped by category (primary, strong, AI, working knowledge) |
+| `projects.json` | Projects with slugs, descriptions, tech stacks, links, screenshots, writeups |
+| `skills.json` | Skills grouped by category (primary, strong, AI, working knowledge, hobby) |
 | `experience.json` | Career timeline entries with company, role, years, description |
-
-### `portfolio/` — rich content (Markdown)
-
-| File | Purpose |
-|------|---------|
-| `about.md` | Bio and background (injected into agent's system prompt) |
-| `experience.md` | Detailed career narrative |
-| `skills.md` | In-depth skills description |
-| `meta.md` | SEO metadata and page descriptions |
-| `projects/*.md` | One markdown file per project (detailed writeups) |
+| `recommendations.json` | LinkedIn recommendations with author info and project references |
 
 The agent's system prompt is built dynamically from these files at runtime — no hardcoded personal info in components.
 

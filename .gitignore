@@ -15,6 +15,9 @@ out/
 # runtime data
 data/visitors.json
 
+# coverage
+coverage/
+
 # misc
 .DS_Store
 *.pem

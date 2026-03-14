@@ -9,10 +9,10 @@ import {
   useDragControls,
   type PanInfo,
 } from 'framer-motion';
-import ChatMessage from './ChatMessage';
-import ChatInput from './ChatInput';
-import TypingIndicator from './TypingIndicator';
-import ToolCallBadge from './ToolCallBadge';
+import ChatMessage from '@/components/chat/ChatMessage';
+import ChatInput from '@/components/chat/ChatInput';
+import TypingIndicator from '@/components/chat/TypingIndicator';
+import ToolCallBadge from '@/components/chat/ToolCallBadge';
 import { useAutoScroll } from '@/hooks/useAutoScroll';
 import type { Message } from '@/hooks/types';
 

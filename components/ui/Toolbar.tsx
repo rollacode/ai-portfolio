@@ -1,6 +1,6 @@
 'use client';
 
-import ThemeToggle from './ThemeToggle';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 
 export default function Toolbar() {
   const handleNewChat = () => {

@@ -1,5 +1,5 @@
-import Chat from '@/components/Chat';
-import Toolbar from '@/components/Toolbar';
+import Chat from '@/components/chat/Chat';
+import Toolbar from '@/components/ui/Toolbar';
 
 export default function Home() {
   return (
