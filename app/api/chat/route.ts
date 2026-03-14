@@ -3,6 +3,7 @@ import { buildSystemPrompt } from '@/lib/system-prompt';
 import { getToolsWithContext } from '@/lib/tools';
 import { trimMessages } from '@/lib/message-window';
 import { rateLimit, checkDailyQuota, getClientIp } from '@/lib/rate-limit';
+import { enrichMessageWithUrls } from '@/lib/url-fetcher';
 import config from '@/portfolio/config.json';
 import projects from '@/portfolio/projects.json';
 import experience from '@/portfolio/experience.json';
@@ -158,12 +159,28 @@ export async function POST(request: NextRequest) {
     // conversations don't exceed the provider's context window.
     const trimmed = trimMessages(validMessages);
 
+    // Enrich the last user message with fetched URL content (if any)
+    const lastUserIdx = trimmed.findLastIndex((m: ChatMessage) => m.role === 'user');
+    let urlContext: Array<{ role: string; content: string }> = [];
+    if (lastUserIdx !== -1 && trimmed[lastUserIdx].content) {
+      const enrichment = await enrichMessageWithUrls(trimmed[lastUserIdx].content!);
+      if (enrichment) {
+        urlContext = [
+          {
+            role: 'system',
+            content: `The visitor shared a link. Here is the page content for your reference:\n\n${enrichment}`,
+          },
+        ];
+      }
+    }
+
     const systemPrompt = buildSystemPrompt();
     const tools = getToolsWithContext(projectSlugs, companyNames, skillNames, recommendationAuthors);
 
     const finalMessages: Array<{ role: string; content: string | null }> = [
       { role: 'system', content: systemPrompt },
       ...trimmed,
+      ...urlContext,
     ];
 
     const response = await fetch(`${BASE_URL()}/chat/completions`, {
