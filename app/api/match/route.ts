@@ -52,6 +52,7 @@ boosted: <percentage 90-99 — the realistic match WITH AI-assisted development.
 - <skill/technology from the JD> | <match status: ✅ direct match, ⚡ adjacent skill, 🔄 can learn fast>
 
 List every technical skill, framework, language, and tool mentioned in the job description. For each, mark whether ${firstName} has it directly (✅), has closely related experience (⚡), or can pick it up quickly via AI-assisted development (🔄). This shows the visitor you actually READ their job posting.
+IMPORTANT: Match skills FUZZY — "Docker" matches "Docker / DevOps", "React" matches "React / TypeScript", "Python" matches "Python / Django / FastAPI", etc. If the portfolio has the skill under a broader name, it's a ✅ direct match. Check the FULL portfolio data before marking anything as 🔄.
 
 ## SKILLS
 - <skill name> | <years of experience> | <brief note on match quality>
