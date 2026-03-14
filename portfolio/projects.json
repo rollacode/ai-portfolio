@@ -2,6 +2,7 @@
   {
     "slug": "trax-retail",
     "name": "Trax Retail - Shelf Recognition",
+    "role": "Lead Developer",
     "stack": [
       "Swift",
       "Objective-C",
@@ -46,6 +47,7 @@
   {
     "slug": "scan-mania",
     "name": "Scan Mania - AR Shopping",
+    "role": "Lead Developer",
     "stack": [
       "Swift",
       "SwiftUI",
@@ -130,7 +132,7 @@
   {
     "slug": "bugsee",
     "name": "Bugsee - Developer Insights SDK",
-    "role": "Lead iOS Developer",
+    "role": "Senior iOS Developer",
     "stack": [
       "C",
       "C++",
@@ -203,6 +205,7 @@
   {
     "slug": "thinkup",
     "name": "ThinkUp - Self-Improvement App",
+    "role": "Lead Developer",
     "stack": [
       "Swift",
       "Interface Builder",
@@ -229,7 +232,7 @@
   {
     "slug": "dishero",
     "name": "Dishero - Restaurant Discovery",
-    "role": "Lead iOS Developer",
+    "role": "Middle iOS Developer",
     "stack": [
       "Objective-C",
       "CoreData",
@@ -305,7 +308,7 @@
   {
     "slug": "rekap",
     "name": "REKAP - AI Chief of Staff",
-    "role": "Senior Full Stack Engineer",
+    "role": "Lead Full Stack Engineer",
     "stack": [
       "React",
       "TypeScript",
@@ -439,6 +442,7 @@
   {
     "slug": "ecoiq",
     "name": "EcoIQ - ESG Supply Chain Platform",
+    "role": "Architect",
     "stack": [
       "Next.js",
       "FastAPI",
@@ -471,6 +475,7 @@
   {
     "slug": "ai-portfolio",
     "name": "AI Portfolio Agent",
+    "role": "Rollacode",
     "stack": [
       "Next.js",
       "React 19",

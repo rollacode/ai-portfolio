@@ -1,19 +1,8 @@
 import { NextRequest } from 'next/server';
 import { loadPortfolioContent } from '@/lib/system-prompt';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
+import { API_KEY, BASE_URL, MODEL, SSE_HEADERS, sseErrorResponse } from '@/lib/ai-config';
 import config from '@/portfolio/config.json';
-
-// ---------------------------------------------------------------------------
-// Env helpers (same as chat route — AI_* with XAI_* fallbacks)
-// ---------------------------------------------------------------------------
-
-function env(key: string, fallbackKey: string, defaultValue?: string): string {
-  return process.env[key] || process.env[fallbackKey] || defaultValue || '';
-}
-
-const API_KEY = () => env('AI_API_KEY', 'XAI_API_KEY');
-const BASE_URL = () => env('AI_BASE_URL', 'XAI_BASE_URL', 'https://api.x.ai/v1');
-const MODEL = () => env('AI_MODEL', 'XAI_MODEL', 'grok-3-mini-fast');
 
 // ---------------------------------------------------------------------------
 // Insight system prompt builder
@@ -72,23 +61,6 @@ Visitor: ${visitorContext || 'Unknown visitor'}
 
 PORTFOLIO DATA:
 ${portfolioData}`;
-}
-
-// ---------------------------------------------------------------------------
-// SSE helpers
-// ---------------------------------------------------------------------------
-
-const SSE_HEADERS = {
-  'Content-Type': 'text/event-stream',
-  'Cache-Control': 'no-cache',
-  Connection: 'keep-alive',
-} as const;
-
-function sseErrorResponse(message: string, status: number = 500): Response {
-  const encoder = new TextEncoder();
-  const errorPayload = JSON.stringify({ error: message });
-  const body = encoder.encode(`data: ${errorPayload}\n\ndata: [DONE]\n\n`);
-  return new Response(body, { status, headers: SSE_HEADERS });
 }
 
 // ---------------------------------------------------------------------------

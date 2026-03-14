@@ -5,15 +5,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { buildShowtimePrompt } from '@/lib/showtime-prompt';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
-
-const API_KEY = process.env.AI_API_KEY || process.env.XAI_API_KEY;
-const BASE_URL =
-  process.env.AI_BASE_URL || process.env.XAI_BASE_URL || 'https://api.x.ai/v1';
-const MODEL =
-  process.env.AI_MODEL || process.env.XAI_MODEL || 'grok-3-mini-fast';
+import { API_KEY, BASE_URL, MODEL } from '@/lib/ai-config';
 
 export async function POST(req: NextRequest) {
-  if (!API_KEY) {
+  if (!API_KEY()) {
     return NextResponse.json(
       { error: 'API key not configured' },
       { status: 500 },
@@ -47,14 +42,14 @@ export async function POST(req: NextRequest) {
 
   const systemPrompt = buildShowtimePrompt(topic, intent, language);
 
-  const aiResponse = await fetch(`${BASE_URL}/chat/completions`, {
+  const aiResponse = await fetch(`${BASE_URL()}/chat/completions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${API_KEY}`,
+      Authorization: `Bearer ${API_KEY()}`,
     },
     body: JSON.stringify({
-      model: MODEL,
+      model: MODEL(),
       stream: true,
       temperature: 0.8,
       max_tokens: 1200,
