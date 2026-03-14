@@ -65,7 +65,7 @@ export default function Chat() {
   }, []);
 
   // Streaming, send, retry
-  const { sendMessage, retryLast, isLoading } = useChatStream({
+  const { sendMessage, retryLast, isLoading, thinkingStatus } = useChatStream({
     messages,
     setMessages,
     setPanelState,
@@ -207,7 +207,7 @@ export default function Chat() {
                 {messages.map((msg, i) => {
                   const isEmptyStreaming = isLoading && msg.role === 'assistant' && msg.content === '' && i === messages.length - 1;
                   if (isEmptyStreaming) {
-                    return <TypingIndicator key={i} currentTools={msg.toolCalls} />;
+                    return <TypingIndicator key={i} currentTools={msg.toolCalls} thinkingStatus={thinkingStatus} />;
                   }
                   return (
                     <ChatMessage

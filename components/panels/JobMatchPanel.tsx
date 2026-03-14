@@ -222,6 +222,43 @@ export default function JobMatchPanel({
           </motion.p>
         )}
 
+        {/* Requirements from JD */}
+        {data.requirements.length > 0 && (
+          <motion.div
+            key="requirements"
+            variants={sectionVariants(0.08)}
+            initial="hidden"
+            animate="show"
+          >
+            <h3 className="text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2">
+              Job Requirements
+            </h3>
+            <div className="flex flex-wrap gap-1.5">
+              {data.requirements.map((r) => (
+                <span
+                  key={r.skill}
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border ${
+                    r.status.includes('✅')
+                      ? 'bg-lime-500/10 text-lime-700 dark:text-lime-400 border-lime-500/20'
+                      : r.status.includes('⚡')
+                        ? 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/20'
+                        : 'bg-gray-100 dark:bg-white/5 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-white/10'
+                  }`}
+                >
+                  <span className="text-[10px]">{r.status.includes('✅') ? '✅' : r.status.includes('⚡') ? '⚡' : '🔄'}</span>
+                  {r.skill}
+                </span>
+              ))}
+              {data.streamingSection === 'requirements' && <StreamCursor />}
+            </div>
+            <div className="flex gap-3 mt-2 text-[10px] text-gray-400 dark:text-gray-500">
+              <span>✅ direct match</span>
+              <span>⚡ adjacent</span>
+              <span>🔄 can learn</span>
+            </div>
+          </motion.div>
+        )}
+
         {/* Matched skills */}
         {data.matchedSkills.length > 0 && (
           <motion.div

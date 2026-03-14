@@ -27,6 +27,7 @@ interface UseChatStreamReturn {
   sendMessage: (content: string) => Promise<void>;
   retryLast: () => void;
   isLoading: boolean;
+  thinkingStatus: string | null;
 }
 
 // -----------------------------------------------------------------------------
@@ -91,6 +92,35 @@ function markLastAsError(
 }
 
 // -----------------------------------------------------------------------------
+// Reasoning status extraction
+// -----------------------------------------------------------------------------
+
+const REASONING_PATTERNS: Array<[RegExp, string]> = [
+  [/\b(?:url|link|fetch|page|website|site|http)\b/i, 'reading the link...'],
+  [/\b(?:job|vacanc|role|position|hiring|recruit)\b/i, 'reviewing the job...'],
+  [/\b(?:skill|match|requirement|stack|tech)\b/i, 'analyzing skills...'],
+  [/\b(?:project|portfolio|built|developed)\b/i, 'checking projects...'],
+  [/\b(?:experience|worked|company|employer)\b/i, 'checking experience...'],
+  [/\b(?:recommend|suggest)\b/i, 'finding recommendations...'],
+  [/\b(?:compar|versus|differ)\b/i, 'comparing options...'],
+  [/\b(?:resume|cv|summary)\b/i, 'preparing resume...'],
+  [/\b(?:contact|email|phone|reach)\b/i, 'finding contact info...'],
+];
+
+function extractThinkingStatus(reasoning: string): string {
+  // Check the last ~500 chars for recency
+  const recent = reasoning.slice(-500);
+  for (const [pattern, label] of REASONING_PATTERNS) {
+    if (pattern.test(recent)) return label;
+  }
+  // Check full text as fallback
+  for (const [pattern, label] of REASONING_PATTERNS) {
+    if (pattern.test(reasoning)) return label;
+  }
+  return 'thinking...';
+}
+
+// -----------------------------------------------------------------------------
 // Hook
 // -----------------------------------------------------------------------------
 
@@ -103,6 +133,7 @@ export function useChatStream({
 }: UseChatStreamArgs): UseChatStreamReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [lastUserMessage, setLastUserMessage] = useState<string | null>(null);
+  const [thinkingStatus, setThinkingStatus] = useState<string | null>(null);
 
   // ---------------------------------------------------------------------------
   // Process a single tool call result
@@ -222,23 +253,32 @@ export function useChatStream({
 
         setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
         let hadContent = false;
+        let accumulatedReasoning = '';
 
         for await (const event of parseStream(response)) {
           switch (event.type) {
+            case 'reasoning':
+              accumulatedReasoning += event.content;
+              setThinkingStatus(extractThinkingStatus(accumulatedReasoning));
+              break;
             case 'text':
+              if (!hadContent) setThinkingStatus(null);
               hadContent = true;
               appendAssistantText(setMessages, event.content);
               break;
             case 'tool_call':
+              if (!hadContent) setThinkingStatus(null);
               hadContent = true;
               processToolCall(event.name, event.arguments);
               break;
             case 'error':
+              setThinkingStatus(null);
               hadContent
                 ? markLastAsError(setMessages, 'Sorry, the response was interrupted. Please try again.')
                 : appendError(setMessages, event.message);
               break;
             case 'done':
+              setThinkingStatus(null);
               break;
           }
         }
@@ -291,5 +331,5 @@ export function useChatStream({
     setTimeout(() => sendMessage(lastUserMessage), 50);
   }, [lastUserMessage, isLoading, sendMessage, setMessages]);
 
-  return { sendMessage, retryLast, isLoading };
+  return { sendMessage, retryLast, isLoading, thinkingStatus };
 }

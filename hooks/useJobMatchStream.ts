@@ -30,12 +30,18 @@ export interface SocialProof {
   quote: string;
 }
 
+export interface Requirement {
+  skill: string;
+  status: '✅' | '⚡' | '🔄' | string;
+}
+
 export interface JobMatchStreamData {
   role: string | null;
   company: string | null;
   matchPercent: number | null;
   boostedPercent: number | null;
   summary: string;
+  requirements: Requirement[];
   matchedSkills: MatchedSkill[];
   relevantExperience: RelevantExperience[];
   relevantProjects: RelevantProject[];
@@ -58,7 +64,7 @@ interface ParsedSection {
 
 function parseSections(text: string): ParsedSection[] {
   const sections: ParsedSection[] = [];
-  const headerRegex = /^## (HEADER|SUMMARY|SKILLS|EXPERIENCE|PROJECTS|SOCIAL_PROOF|GAPS)\s*$/gm;
+  const headerRegex = /^## (HEADER|SUMMARY|REQUIREMENTS|SKILLS|EXPERIENCE|PROJECTS|SOCIAL_PROOF|GAPS)\s*$/gm;
   const matches = [...text.matchAll(headerRegex)];
 
   for (let i = 0; i < matches.length; i++) {
@@ -138,6 +144,16 @@ function parseSocialProof(raw: string): SocialProof[] {
   }).filter(s => s.author && s.quote);
 }
 
+function parseRequirements(raw: string): Requirement[] {
+  return parseListLines(raw).map(line => {
+    const parts = line.split('|').map(s => s.trim());
+    return {
+      skill: parts[0] || '',
+      status: parts[1] || '🔄',
+    };
+  }).filter(r => r.skill);
+}
+
 function parseGaps(raw: string): string[] {
   return parseListLines(raw);
 }
@@ -178,6 +194,10 @@ export function useJobMatchStream({
     [sectionMap.header],
   );
   const summary = sectionMap.summary ?? '';
+  const requirements = useMemo(
+    () => (sectionMap.requirements ? parseRequirements(sectionMap.requirements) : []),
+    [sectionMap.requirements],
+  );
   const matchedSkills = useMemo(
     () => (sectionMap.skills ? parseSkills(sectionMap.skills) : []),
     [sectionMap.skills],
@@ -265,6 +285,7 @@ export function useJobMatchStream({
     matchPercent: header?.match ?? null,
     boostedPercent: header?.boosted ?? null,
     summary,
+    requirements,
     matchedSkills,
     relevantExperience,
     relevantProjects,

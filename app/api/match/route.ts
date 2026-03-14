@@ -48,6 +48,11 @@ boosted: <percentage 90-99 — the realistic match WITH AI-assisted development.
 ## SUMMARY
 <2-3 sentences about the match. Be enthusiastic but honest. If there are gaps, frame them positively — e.g. "while ${firstName} hasn't used X specifically, his deep experience with Y means picking up X would be seamless.">
 
+## REQUIREMENTS
+- <skill/technology from the JD> | <match status: ✅ direct match, ⚡ adjacent skill, 🔄 can learn fast>
+
+List every technical skill, framework, language, and tool mentioned in the job description. For each, mark whether ${firstName} has it directly (✅), has closely related experience (⚡), or can pick it up quickly via AI-assisted development (🔄). This shows the visitor you actually READ their job posting.
+
 ## SKILLS
 - <skill name> | <years of experience> | <brief note on match quality>
 

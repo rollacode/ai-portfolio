@@ -7,6 +7,7 @@
 
 export type StreamEvent =
   | { type: 'text'; content: string }
+  | { type: 'reasoning'; content: string }
   | { type: 'tool_call'; id: string; name: string; arguments: Record<string, any> }
   | { type: 'done' }
   | { type: 'error'; message: string };
@@ -110,6 +111,11 @@ export async function* parseStream(response: Response): AsyncGenerator<StreamEve
 
         const delta = data?.choices?.[0]?.delta;
         if (!delta) continue;
+
+        // --- Reasoning content (model thinking) ---
+        if (delta.reasoning_content) {
+          yield { type: 'reasoning', content: delta.reasoning_content };
+        }
 
         // --- Text content ---
         if (delta.content) {

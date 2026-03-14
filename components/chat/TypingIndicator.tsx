@@ -66,15 +66,18 @@ function friendlyLabel(name: string, args: Record<string, unknown>): string {
 
 interface TypingIndicatorProps {
   currentTools?: Array<{ name: string; arguments: Record<string, unknown> }>;
+  thinkingStatus?: string | null;
 }
 
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
-export default function TypingIndicator({ currentTools = [] }: TypingIndicatorProps) {
+export default function TypingIndicator({ currentTools = [], thinkingStatus }: TypingIndicatorProps) {
   const labels = currentTools.map((tc) => friendlyLabel(tc.name, tc.arguments));
-  const text = labels.length > 0 ? labels.join(', ') : 'Thinking';
+  const text = labels.length > 0
+    ? labels.join(', ')
+    : thinkingStatus || 'Thinking';
 
   return (
     <div className="px-1 py-0">
