@@ -69,12 +69,27 @@ function generateMarkdown(): string {
   if (config.social?.linkedin) contacts.push(config.social.linkedin);
   if (contacts.length) lines.push(contacts.join(' | '));
 
+  if (config.workModes?.length) {
+    lines.push(`\n**Work modes:** ${config.workModes.join(' · ')}`);
+  }
+  if (config.languages?.length) {
+    lines.push(`**Languages:** ${config.languages.map(l => `${l.language} (${l.level})`).join(' · ')}`);
+  }
+
   lines.push('\n---\n');
   lines.push('## Skills\n');
   for (const [cat, catSkills] of Object.entries(allSkills)) {
     const label = categoryLabels[cat] || cat;
     const items = (catSkills as Skill[]).map(s => s.years ? `${s.name} (${s.years}y)` : s.name).join(', ');
     lines.push(`**${label}:** ${items}\n`);
+  }
+
+  if (config.strengths?.length) {
+    lines.push('\n---\n');
+    lines.push('## Strengths\n');
+    for (const s of config.strengths) {
+      lines.push(`**${s.title}:** ${s.description}\n`);
+    }
   }
 
   lines.push('\n---\n');
@@ -193,6 +208,20 @@ export default function ResumePanel() {
               </a>
             )}
           </div>
+
+          {/* Work modes */}
+          {config.workModes && config.workModes.length > 0 && (
+            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 print:text-gray-600">
+              {config.workModes.join(' · ')}
+            </p>
+          )}
+
+          {/* Languages */}
+          {config.languages && config.languages.length > 0 && (
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 print:text-gray-600">
+              {config.languages.map(l => `${l.language} (${l.level})`).join(' · ')}
+            </p>
+          )}
         </header>
 
         <hr className="border-gray-200 dark:border-neutral-800 print:border-gray-300" />
@@ -217,6 +246,26 @@ export default function ResumePanel() {
             ))}
           </div>
         </section>
+
+        {/* Strengths */}
+        {config.strengths && config.strengths.length > 0 && (
+          <>
+            <hr className="border-gray-200 dark:border-neutral-800 print:border-gray-300" />
+            <section>
+              <h2 className="text-sm font-bold text-black dark:text-white uppercase tracking-wider mb-3">
+                Strengths
+              </h2>
+              <div className="space-y-1.5">
+                {config.strengths.map((s) => (
+                  <div key={s.title} className="text-xs">
+                    <span className="font-semibold text-gray-900 dark:text-gray-50 print:text-gray-900">{s.title}:</span>{' '}
+                    <span className="text-gray-700 dark:text-gray-300 print:text-gray-800">{s.description}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </>
+        )}
 
         <hr className="border-gray-200 dark:border-neutral-800 print:border-gray-300" />
 

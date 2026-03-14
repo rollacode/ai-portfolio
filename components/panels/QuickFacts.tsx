@@ -42,11 +42,15 @@ const skillsByCategory: Record<string, string[]> = {
 };
 
 const industries = [
-  { name: 'Healthcare', project: 'SOS Portal' },
-  { name: 'Retail', project: 'Trax Retail' },
-  { name: 'Gaming', project: 'Cops Inc.' },
   { name: 'AI/ML', project: 'REKAP' },
+  { name: 'Retail & AR', project: 'Trax, Scan Mania' },
+  { name: 'Healthcare', project: 'SOS Portal' },
+  { name: 'People Analytics', project: 'Performica' },
   { name: 'Dev Tools', project: 'Bugsee' },
+  { name: 'Wellness', project: 'Binaura' },
+  { name: 'ESG', project: 'EcoIQ' },
+  { name: 'Entertainment', project: 'Minnow, Cops Inc.' },
+  { name: 'Food Tech', project: 'Dishero' },
 ];
 
 const companyRoles = experience.map((e) => ({
@@ -469,7 +473,7 @@ function SkillsExpandedContent() {
 function IndustriesContent() {
   return (
     <div className="flex flex-col items-center text-center">
-      <SlotCounter value={5} />
+      <SlotCounter value={industries.length} />
       <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
         Industries Shipped In
       </p>

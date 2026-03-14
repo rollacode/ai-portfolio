@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import recommendations from '@/portfolio/recommendations.json';
+import projects from '@/portfolio/projects.json';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -14,7 +15,16 @@ interface Recommendation {
   date: string;
   relation: string;
   text: string;
+  projectSlugs?: string[];
 }
+
+/* ------------------------------------------------------------------ */
+/*  Data                                                               */
+/* ------------------------------------------------------------------ */
+
+const projectNameMap: Record<string, string> = Object.fromEntries(
+  (projects as { slug: string; name: string }[]).map(p => [p.slug, p.name.split(' - ')[0]])
+);
 
 interface RecommendationsProps {
   highlightedName?: string | null;
@@ -132,6 +142,11 @@ function RecommendationCard({
         <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
           {rec.relation} &middot; {rec.date}
         </p>
+        {rec.projectSlugs && rec.projectSlugs.length > 0 && (
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+            Related: {rec.projectSlugs.map(s => projectNameMap[s] || s).join(', ')}
+          </p>
+        )}
       </div>
     </motion.div>
   );

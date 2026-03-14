@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import allProjects from '@/portfolio/projects.json';
@@ -18,6 +18,7 @@ export interface ProjectData {
   description: string;
   highlights: string[];
   links: Record<string, string>;
+  writeup?: string;
 }
 
 type HighlightField = 'stack' | 'highlights' | 'description' | 'links' | null;
@@ -125,6 +126,59 @@ function ScreenshotStrip({
 }
 
 /* ------------------------------------------------------------------ */
+/*  Simple writeup renderer                                            */
+/* ------------------------------------------------------------------ */
+
+function WriteupBlock({ text }: { text: string }) {
+  const blocks = useMemo(() => {
+    return text.split(/\n\n+/).map((block, i) => {
+      const trimmed = block.trim();
+      if (!trimmed) return null;
+
+      // Header lines (# or ## or ###)
+      if (/^#{1,3}\s/.test(trimmed)) {
+        const content = trimmed.replace(/^#{1,3}\s+/, '');
+        return (
+          <p key={i} className="font-semibold text-sm text-gray-900 dark:text-white mt-3 first:mt-0">
+            {content}
+          </p>
+        );
+      }
+
+      // Bullet list (lines starting with -)
+      const lines = trimmed.split('\n');
+      if (lines.every((l) => l.trim().startsWith('- '))) {
+        return (
+          <ul key={i} className="space-y-0.5">
+            {lines.map((line, j) => (
+              <li key={j} className="flex items-start text-sm text-gray-700 dark:text-gray-300">
+                <span className="mr-2 mt-1.5 h-1 w-1 flex-shrink-0 rounded-full bg-gray-400" />
+                {line.replace(/^-\s+/, '')}
+              </li>
+            ))}
+          </ul>
+        );
+      }
+
+      // Bold lines (**text**)
+      const parts = trimmed.split(/(\*\*[^*]+\*\*)/g);
+      return (
+        <p key={i} className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+          {parts.map((part, j) => {
+            if (part.startsWith('**') && part.endsWith('**')) {
+              return <strong key={j} className="font-semibold text-gray-900 dark:text-white">{part.slice(2, -2)}</strong>;
+            }
+            return part;
+          })}
+        </p>
+      );
+    });
+  }, [text]);
+
+  return <div className="space-y-2">{blocks}</div>;
+}
+
+/* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
@@ -160,8 +214,11 @@ export default function ProjectCard({
     );
   }
 
+  const [writeupExpanded, setWriteupExpanded] = useState(false);
+
   const hasHighlights = project.highlights.length > 0;
   const hasLinks = Object.keys(project.links).length > 0;
+  const hasWriteup = !!(project as ProjectData & { writeup?: string }).writeup;
 
   return (
     <motion.div
@@ -233,6 +290,23 @@ export default function ProjectCard({
             </ul>
           </div>
         </HighlightSection>
+      )}
+
+      {/* Writeup --------------------------------------------------- */}
+      {hasWriteup && (
+        <div>
+          <button
+            onClick={() => setWriteupExpanded(!writeupExpanded)}
+            className="text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-lime-500 dark:hover:text-lime-400 transition-colors"
+          >
+            {writeupExpanded ? 'Hide writeup \u25B4' : 'Read full writeup \u25BE'}
+          </button>
+          {writeupExpanded && (
+            <div className="mt-3 pt-3 border-t border-gray-200/60 dark:border-white/[0.06]">
+              <WriteupBlock text={(project as ProjectData & { writeup?: string }).writeup!} />
+            </div>
+          )}
+        </div>
       )}
 
       {/* Links ----------------------------------------------------- */}
