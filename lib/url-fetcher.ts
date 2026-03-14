@@ -9,6 +9,7 @@ const URL_REGEX = /https?:\/\/[^\s<>"')\]]+/gi;
 
 const FETCH_TIMEOUT = 8000;
 const MAX_CONTENT_LENGTH = 12000; // chars — enough for a job posting or resume
+const MIN_USEFUL_LENGTH = 200; // chars — below this, content is likely a shell/SPA stub
 
 /**
  * Extract URLs from a text message.
@@ -87,7 +88,8 @@ async function fetchUrlContent(url: string): Promise<string | null> {
     }
 
     const text = htmlToText(raw);
-    return text.slice(0, MAX_CONTENT_LENGTH) || null;
+    if (!text || text.length < MIN_USEFUL_LENGTH) return null;
+    return text.slice(0, MAX_CONTENT_LENGTH);
   } catch {
     return null;
   }
@@ -102,21 +104,27 @@ export async function enrichMessageWithUrls(message: string): Promise<string | n
   if (urls.length === 0) return null;
 
   // Fetch up to 2 URLs in parallel (avoid abuse)
-  const fetches = urls.slice(0, 2).map(async (url) => {
+  const toFetch = urls.slice(0, 2);
+  const fetches = toFetch.map(async (url) => {
     const content = await fetchUrlContent(url);
-    return content ? { url, content } : null;
+    return { url, content };
   });
 
-  const results = (await Promise.all(fetches)).filter(Boolean) as {
-    url: string;
-    content: string;
-  }[];
+  const results = await Promise.all(fetches);
+  const succeeded = results.filter((r) => r.content !== null);
+  const failed = results.filter((r) => r.content === null);
 
-  if (results.length === 0) return null;
+  const parts: string[] = [];
 
-  const parts = results.map(
-    (r) => `--- Content from ${r.url} ---\n${r.content}\n--- End of content ---`,
-  );
+  for (const r of succeeded) {
+    parts.push(`--- Content from ${r.url} ---\n${r.content}\n--- End of content ---`);
+  }
 
-  return parts.join('\n\n');
+  for (const r of failed) {
+    parts.push(
+      `--- Could not read ${r.url} ---\nThe page could not be fetched or is a JavaScript-rendered app (SPA) whose content is not available via server-side fetch. Tell the visitor you couldn't access this link and ask them to paste the relevant text directly.\n--- End ---`,
+    );
+  }
+
+  return parts.length > 0 ? parts.join('\n\n') : null;
 }

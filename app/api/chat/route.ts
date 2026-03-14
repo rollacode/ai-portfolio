@@ -168,7 +168,7 @@ export async function POST(request: NextRequest) {
         urlContext = [
           {
             role: 'system',
-            content: `The visitor shared a link. Here is the page content for your reference:\n\n${enrichment}`,
+            content: `The visitor shared a link. Here is the page content for your reference:\n\n${enrichment}\n\nIMPORTANT: If the fetched content looks like a generic landing page, homepage, or job board listing rather than a SPECIFIC job posting or document the visitor intended — tell them honestly: "I could only see the general page, not the specific listing. Could you paste the job description text directly?" Do NOT pretend you read content that isn't there.`,
           },
         ];
       }
