@@ -43,11 +43,9 @@ export default function ChatMessage({ role, content, toolCalls, isError, onRetry
           )}
 
           <div className="prose prose-sm dark:prose-invert max-w-none
-                          prose-p:my-2 prose-p:leading-relaxed
-                          prose-headings:font-semibold prose-headings:mt-5 prose-headings:mb-2
+                          prose-headings:font-semibold prose-headings:mt-6 prose-headings:mb-3
                           prose-h3:text-sm prose-h3:uppercase prose-h3:tracking-wide prose-h3:text-gray-500 dark:prose-h3:text-gray-400
                           prose-strong:text-gray-900 dark:prose-strong:text-white prose-strong:font-semibold
-                          prose-ul:my-2 prose-ul:space-y-1
                           prose-li:my-0 prose-li:leading-relaxed
                           prose-li:marker:text-lime-500
                           prose-pre:bg-neutral-100 dark:prose-pre:bg-neutral-900 prose-pre:text-black dark:prose-pre:text-white
@@ -55,8 +53,13 @@ export default function ChatMessage({ role, content, toolCalls, isError, onRetry
                           prose-code:bg-neutral-100 dark:prose-code:bg-neutral-900
                           prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-sm
                           prose-a:text-lime-500 hover:prose-a:text-lime-400 prose-a:no-underline
-                          prose-hr:my-3 prose-hr:border-gray-200 dark:prose-hr:border-neutral-800
-                          text-gray-900 dark:text-gray-100">
+                          text-gray-900 dark:text-gray-100
+                          [&>p]:my-4 [&>p]:leading-relaxed
+                          [&>hr]:!my-5 [&>hr]:border-neutral-700/50
+                          [&>ul]:!my-6 [&>ul]:space-y-3
+                          [&>ul>li]:border-l-2 [&>ul>li]:border-lime-500/40 [&>ul>li]:pl-3
+                          [&>ul>li]:py-2 [&>ul>li]:rounded-r
+                          [&>ul>li]:bg-white/[0.04] dark:[&>ul>li]:bg-white/[0.04]">
             <ReactMarkdown>
               {content}
             </ReactMarkdown>
