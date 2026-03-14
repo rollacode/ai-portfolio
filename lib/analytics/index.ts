@@ -5,12 +5,12 @@ let provider: AnalyticsProvider | null = null;
 function getProvider(): AnalyticsProvider {
   if (provider) return provider;
 
-  const isDev =
+  const isLocal =
     typeof window !== 'undefined' &&
     (window.location.hostname === 'localhost' ||
       window.location.hostname === '127.0.0.1');
 
-  if (isDev) {
+  if (isLocal) {
     const { ConsoleProvider } = require('./console-provider');
     provider = new ConsoleProvider();
   } else {

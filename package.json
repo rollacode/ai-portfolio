@@ -11,6 +11,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@amplitude/analytics-browser": "^2.36.5",
     "@upstash/redis": "^1.36.2",
     "@vercel/analytics": "^1.6.1",
     "framer-motion": "^12.34.0",
