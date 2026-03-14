@@ -43,14 +43,19 @@ export default function ChatMessage({ role, content, toolCalls, isError, onRetry
           )}
 
           <div className="prose prose-sm dark:prose-invert max-w-none
-                          prose-p:my-1.5 prose-p:leading-relaxed
-                          prose-headings:font-medium prose-headings:mt-4 prose-headings:mb-2
+                          prose-p:my-2 prose-p:leading-relaxed
+                          prose-headings:font-semibold prose-headings:mt-5 prose-headings:mb-2
+                          prose-h3:text-sm prose-h3:uppercase prose-h3:tracking-wide prose-h3:text-gray-500 dark:prose-h3:text-gray-400
+                          prose-strong:text-gray-900 dark:prose-strong:text-white prose-strong:font-semibold
+                          prose-ul:my-2 prose-ul:space-y-1
+                          prose-li:my-0 prose-li:leading-relaxed
+                          prose-li:marker:text-lime-500
                           prose-pre:bg-neutral-100 dark:prose-pre:bg-neutral-900 prose-pre:text-black dark:prose-pre:text-white
                           prose-code:text-black dark:prose-code:text-white
                           prose-code:bg-neutral-100 dark:prose-code:bg-neutral-900
                           prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-sm
                           prose-a:text-lime-500 hover:prose-a:text-lime-400 prose-a:no-underline
-                          prose-li:my-0.5
+                          prose-hr:my-3 prose-hr:border-gray-200 dark:prose-hr:border-neutral-800
                           text-gray-900 dark:text-gray-100">
             <ReactMarkdown>
               {content}

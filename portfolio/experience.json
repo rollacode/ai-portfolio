@@ -14,10 +14,10 @@
   },
   {
     "company": "Performica",
-    "role": "Product Manager",
-    "period": "Sep 2023 - Jun 2025",
+    "role": "Product Developer",
+    "period": "Sep 2023 - Feb 2025",
     "location": "Remote",
-    "description": "People analytics platform (similar to Lattice). Led product development of OrgGraph — organizational network analysis visualization. Also hands-on: Django backend, product design in Figma, marketing website redesign.",
+    "description": "People analytics platform (similar to Lattice). Hybrid role: led product vision for OrgGraph — organizational network analysis visualization. Stayed hands-on with code: Django backend, product design in Figma, marketing website redesign.",
     "highlights": [
       "Built OrgGraph — interactive network graph of organizational relationships (Scala + WebSocket + optimized rendering)",
       "Rewrote entire product vision and user story flow from scratch",
@@ -45,12 +45,11 @@
     "role": "Co-Founder",
     "period": "Jun 2021 - Jun 2024",
     "location": "Game Development",
-    "description": "Co-founded indie game studio. Built Cops Inc. — a GTA-style open-world mobile action game with traffic simulation, drivable vehicles, and mission-based routing powered by Dijkstra and Octree algorithms.",
+    "description": "Side project with a friend (ex-Rovio designer). Built Cops Inc. — a GTA-style open-world mobile action game with traffic simulation, drivable vehicles, and mission-based routing powered by Dijkstra and Octree algorithms.",
     "highlights": [
-      "Co-founded game development studio from scratch",
       "GTA-style open-world game with traffic AI simulation",
       "Dijkstra pathfinding + Octree spatial partitioning for mobile optimization",
-      "Collaborated with ex-Rovio (Angry Birds) designers"
+      "Co-founder is an ex-Rovio (Angry Birds) designer"
     ],
     "stack": ["Unity3D", "C#", "Dijkstra", "Octree"]
   },
@@ -71,3 +70,5 @@
     "stack": ["Swift", "Objective-C", "React", "ASP.NET", "C#", "Python", "Django", "Firebase"]
   }
 ]
+
+
