@@ -49,10 +49,73 @@ function htmlToText(html: string): string {
 }
 
 /**
+ * Try to fetch a job posting from Ashby's public GraphQL API.
+ * Works for URLs containing ashby_jid query param (e.g. lavendo.io, etc.)
+ */
+async function tryAshbyJobPosting(url: string): Promise<string | null> {
+  try {
+    const parsed = new URL(url);
+    const jid = parsed.searchParams.get('ashby_jid');
+    if (!jid) return null;
+
+    // Extract org name from hostname (e.g. lavendo.io -> lavendo)
+    const hostname = parsed.hostname.replace('www.', '');
+    const org = hostname.split('.')[0];
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+
+    const res = await fetch('https://jobs.ashbyhq.com/api/non-user-graphql', {
+      method: 'POST',
+      signal: controller.signal,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        operationName: 'ApiJobPosting',
+        variables: {
+          organizationHostedJobsPageName: org,
+          jobPostingId: jid,
+        },
+        query: `query ApiJobPosting($organizationHostedJobsPageName: String!, $jobPostingId: String!) {
+          jobPosting(organizationHostedJobsPageName: $organizationHostedJobsPageName, jobPostingId: $jobPostingId) {
+            title descriptionHtml locationName employmentType departmentName
+          }
+        }`,
+      }),
+    });
+
+    clearTimeout(timeout);
+
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    const job = data?.data?.jobPosting;
+    if (!job?.title) return null;
+
+    const description = htmlToText(job.descriptionHtml || '');
+    const lines = [
+      `Job Title: ${job.title}`,
+      job.departmentName ? `Department: ${job.departmentName}` : '',
+      job.locationName ? `Location: ${job.locationName}` : '',
+      job.employmentType ? `Type: ${job.employmentType}` : '',
+      '',
+      description,
+    ].filter(Boolean);
+
+    return lines.join('\n').slice(0, MAX_CONTENT_LENGTH);
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Fetch a URL and extract readable text content.
  * Returns null if fetch fails or content is not HTML/text.
  */
 async function fetchUrlContent(url: string): Promise<string | null> {
+  // Try known job board APIs first (handles SPA sites like Ashby-powered boards)
+  const ashbyResult = await tryAshbyJobPosting(url);
+  if (ashbyResult) return ashbyResult;
+
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
