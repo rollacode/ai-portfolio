@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useMemo } from 'react';
+import { loadJobMatch, saveJobMatch } from '@/lib/chat-store';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -227,6 +228,15 @@ export function useJobMatchStream({
     setError(null);
 
     async function fetchMatch() {
+      // Check cache first — avoid re-streaming on page refresh
+      const cached = await loadJobMatch(role, company, description);
+      if (cached) {
+        fullTextRef.current = cached;
+        setFullText(cached);
+        setIsLoading(false);
+        return;
+      }
+
       const res = await fetch('/api/match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -253,6 +263,8 @@ export function useJobMatchStream({
           const payload = line.slice(6);
 
           if (payload === '[DONE]') {
+            // Cache the completed result
+            await saveJobMatch(role, company, description, fullTextRef.current);
             setIsLoading(false);
             return;
           }
@@ -267,6 +279,10 @@ export function useJobMatchStream({
         }
       }
 
+      // Stream ended without [DONE] — still cache what we got
+      if (fullTextRef.current) {
+        await saveJobMatch(role, company, description, fullTextRef.current);
+      }
       setIsLoading(false);
     }
 

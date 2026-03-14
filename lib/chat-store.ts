@@ -113,6 +113,7 @@ export async function clearAll(): Promise<void> {
     store.delete('messages');
     store.delete('panelState');
     store.delete('insights');
+    store.delete('jobMatches');
     await new Promise<void>((resolve, reject) => {
       tx.oncomplete = () => resolve();
       tx.onerror = () => reject(tx.error);
@@ -155,6 +156,50 @@ export async function loadInsight(key: string): Promise<CachedInsight | null> {
     return null;
   }
   return cached;
+}
+
+// ---------------------------------------------------------------------------
+// Job match cache
+// ---------------------------------------------------------------------------
+
+export interface CachedJobMatch {
+  fullText: string;
+  timestamp: number;
+}
+
+function jobMatchKey(role: string, company: string, description: string): string {
+  // Simple hash from the inputs to use as cache key
+  const input = `${role}|${company}|${description}`;
+  let hash = 0;
+  for (let i = 0; i < input.length; i++) {
+    hash = ((hash << 5) - hash + input.charCodeAt(i)) | 0;
+  }
+  return `match_${hash}`;
+}
+
+export async function saveJobMatch(
+  role: string, company: string, description: string, fullText: string,
+): Promise<void> {
+  const key = jobMatchKey(role, company, description);
+  const all = await getValue<Record<string, CachedJobMatch>>('jobMatches', {});
+  all[key] = { fullText, timestamp: Date.now() };
+  return putValue('jobMatches', all);
+}
+
+export async function loadJobMatch(
+  role: string, company: string, description: string,
+): Promise<string | null> {
+  const key = jobMatchKey(role, company, description);
+  const all = await getValue<Record<string, CachedJobMatch>>('jobMatches', {});
+  const cached = all[key];
+  if (!cached) return null;
+  // Expire after 1 hour
+  if (Date.now() - cached.timestamp > 3600_000) {
+    delete all[key];
+    await putValue('jobMatches', all);
+    return null;
+  }
+  return cached.fullText;
 }
 
 // Keep old name working

@@ -412,6 +412,29 @@ export default function JobMatchPanel({
             </ul>
           </motion.div>
         )}
+
+        {/* Resume CTA — shown when streaming is done */}
+        {!data.isLoading && data.hasParsedContent && (
+          <motion.div
+            key="cta"
+            variants={sectionVariants(0.35)}
+            initial="hidden"
+            animate="show"
+            className="pt-2"
+          >
+            <button
+              onClick={() => onNavigate?.({ open: true, type: 'resume' })}
+              className="w-full rounded-lg bg-gray-100/80 dark:bg-white/[0.06] hover:bg-gray-200/70 dark:hover:bg-white/[0.1] border border-gray-200/60 dark:border-white/10 p-3 text-left transition-colors"
+            >
+              <p className="text-xs font-medium text-gray-900 dark:text-gray-100">
+                Want the full picture?
+              </p>
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
+                View full resume with download options
+              </p>
+            </button>
+          </motion.div>
+        )}
       </div>
     </AnimatePresence>
   );
