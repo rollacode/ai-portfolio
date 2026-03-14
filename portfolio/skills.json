@@ -3,14 +3,14 @@
     { "id": "swift-ios", "name": "Swift / iOS", "years": 11, "level": "expert" },
     { "id": "react-typescript", "name": "React / TypeScript", "years": 5, "level": "expert" },
     { "id": "python-django-fastapi", "name": "Python / Django / FastAPI", "years": 4, "level": "expert" },
-    { "id": "system-architecture", "name": "System Architecture", "years": 8, "level": "expert" }
+    { "id": "system-architecture", "name": "System Architecture", "years": 8, "level": "expert" },
+    { "id": "llm-agents", "name": "LLM Agents", "years": 1, "level": "expert" }
   ],
   "strong": [
     { "id": "swiftui", "name": "SwiftUI", "years": 3, "level": "professional" },
     { "id": "computer-vision-opencv", "name": "Computer Vision / OpenCV", "years": 3, "level": "professional" },
     { "id": "arkit-scenekit", "name": "ARKit / SceneKit", "years": 2, "level": "professional" },
     { "id": "objective-c", "name": "Objective-C", "years": 5, "level": "professional" },
-    { "id": "llm-agents", "name": "LLM Agents", "years": 1, "level": "professional" },
     { "id": "product-management", "name": "Product Management", "years": 2, "level": "professional" },
     { "id": "postgresql", "name": "PostgreSQL", "years": 4, "level": "professional" },
     { "id": "redis-celery", "name": "Redis / Celery", "years": 2, "level": "professional" },
