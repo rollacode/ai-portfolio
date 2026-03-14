@@ -71,7 +71,7 @@ function RecommendationCard({
       transition={{ delay: index * 0.08, duration: 0.4, ease: 'easeOut' }}
       className={`
         relative rounded-xl p-5 md:p-6
-        bg-gray-50/70 dark:bg-white/[0.05]
+        bg-gray-100/80 dark:bg-white/[0.06]
         transition-all duration-300
         ${isHighlighted
           ? 'border-2 border-lime-500 shadow-[0_0_20px_rgba(132,204,22,0.15)]'

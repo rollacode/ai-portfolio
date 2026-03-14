@@ -121,7 +121,7 @@ function TimelineCard({
       }}
       className={`
         relative rounded-xl p-5 transition-all duration-500
-        bg-gray-50/70 dark:bg-white/[0.05]
+        bg-gray-100/80 dark:bg-white/[0.06]
         border
         ${isHighlighted
           ? 'border-lime-500/40 shadow-[0_0_24px_rgba(132,204,22,0.15)]'

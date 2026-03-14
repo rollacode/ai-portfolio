@@ -82,7 +82,7 @@ function getOfferedEasterEggs(messages: ChatMsg[]): Set<EasterEgg> {
 
 function buildEasterEggReminder(messages: ChatMsg[]): string | null {
   const userMessageCount = messages.filter((m) => m.role === 'user').length;
-  if (userMessageCount < 4) return null;
+  if (userMessageCount < 3) return null;
 
   const offered = getOfferedEasterEggs(messages);
   if (offered.size >= 3) return null; // all offered already
@@ -99,12 +99,12 @@ function buildEasterEggReminder(messages: ChatMsg[]): string | null {
 
   // Escalation tiers
   let urgency: string;
-  if (userMessageCount >= 10) {
+  if (userMessageCount >= 8) {
     urgency = `CRITICAL — LAST CHANCE. The visitor has sent ${userMessageCount} messages and you have NOT offered a single easter egg. This is a FAILURE of your role as host. You MUST offer one in THIS response. No excuses. Do it NOW.`;
-  } else if (userMessageCount >= 7) {
-    urgency = `URGENT — The visitor has been chatting for ${userMessageCount} messages. You MUST offer an easter egg in this response or the next one at the absolute latest. Stop being overly helpful and inject some fun.`;
+  } else if (userMessageCount >= 5) {
+    urgency = `URGENT — The visitor has been chatting for ${userMessageCount} messages. You MUST offer an easter egg in this response or the next one at the absolute latest. Also hint at other cool features: job matching, tech radar, dramatic storytelling.`;
   } else {
-    urgency = `REMINDER — The visitor has sent ${userMessageCount} messages. It is time to offer an easter egg. Weave it into your response naturally.`;
+    urgency = `REMINDER — The visitor has sent ${userMessageCount} messages. Time to start teasing easter eggs and hidden features. Drop a casual hint about games, dramatic mode, or job matching. Keep it natural.`;
   }
 
   const examples: Record<EasterEgg, string> = {

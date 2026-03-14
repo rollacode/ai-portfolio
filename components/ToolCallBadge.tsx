@@ -49,19 +49,8 @@ function friendlyLabel(name: string, args: Record<string, unknown>): string {
       return `compared ${args.slug1} & ${args.slug2}`;
     case 'play_game':
       return `opened ${args.game} game`;
-    case 'remember_visitor': {
-      const parts: string[] = [];
-      if (args.name) parts.push(`your name is ${args.name}`);
-      if (args.company) parts.push(`you're from ${args.company}`);
-      if (args.role) parts.push(`you're ${args.role}`);
-      if (args.interest) parts.push(`interested in ${args.interest}`);
-      if (args.email) parts.push(`email: ${args.email}`);
-      if (args.telegram) parts.push(`telegram: ${args.telegram}`);
-      if (args.phone) parts.push(`phone: ${args.phone}`);
-      if (args.linkedin) parts.push(`linkedin: ${args.linkedin}`);
-      if (args.notes) parts.push(String(args.notes));
-      return parts.length ? `noted that ${parts.join(', ')}` : 'noted';
-    }
+    case 'remember_visitor':
+      return null;
     default:
       return name.replace(/_/g, ' ');
   }
@@ -74,7 +63,10 @@ function friendlyLabel(name: string, args: Record<string, unknown>): string {
 export default function ToolCallBadge({ toolCalls }: ToolCallBadgeProps) {
   if (!toolCalls.length) return null;
 
-  const labels = toolCalls.map((tc) => friendlyLabel(tc.name, tc.arguments));
+  const labels = toolCalls
+    .map((tc) => friendlyLabel(tc.name, tc.arguments))
+    .filter(Boolean);
+  if (labels.length === 0) return null;
   const text = labels.join(', ');
 
   return (

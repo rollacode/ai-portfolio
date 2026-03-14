@@ -31,6 +31,7 @@ export type ToolName =
   | 'set_theme'
   | 'play_game'
   | 'show_insight'
+  | 'match_job'
   | 'start_showtime';
 
 export interface ToolCall {
@@ -38,13 +39,17 @@ export interface ToolCall {
   arguments: Record<string, unknown>;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ToolPropertySchema = {
+  type: string;
+  description: string;
+  enum?: string[];
+  items?: any;
+};
+
 interface ToolFunctionParameters {
   type: 'object';
-  properties: Record<string, {
-    type: string;
-    description: string;
-    enum?: string[];
-  }>;
+  properties: Record<string, ToolPropertySchema>;
   required?: string[];
 }
 
@@ -579,6 +584,32 @@ export const tools: ToolDefinition[] = [
           },
         },
         required: ['name'],
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'match_job',
+      description:
+        'Open a streaming job match analysis panel. Use IMMEDIATELY when a visitor pastes or describes a job vacancy. Call this BEFORE writing any text — the panel opens instantly and fills progressively. Extract role, company, and the full JD text.',
+      parameters: {
+        type: 'object',
+        properties: {
+          role: {
+            type: 'string',
+            description: 'Job title extracted from the description',
+          },
+          company: {
+            type: 'string',
+            description: 'Company name or short description if name unknown',
+          },
+          description: {
+            type: 'string',
+            description: 'The full job description text as provided by the visitor',
+          },
+        },
+        required: ['role', 'company', 'description'],
       },
     },
   },

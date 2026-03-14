@@ -95,7 +95,7 @@ function StatCard({ icon, value, label, index }: StatCardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.08, ease: 'easeOut' }}
-      className="bg-gray-50/70 dark:bg-white/[0.05] rounded-xl p-5 flex flex-col items-center text-center"
+      className="bg-gray-100/80 dark:bg-white/[0.06] rounded-xl p-5 flex flex-col items-center text-center"
     >
       <span className="text-xs font-mono text-neutral-400 dark:text-neutral-500 mb-2 select-none">
         {icon}

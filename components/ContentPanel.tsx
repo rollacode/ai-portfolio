@@ -18,6 +18,7 @@ import Recommendations from './Recommendations';
 import SnakeGame from './SnakeGame';
 import Game2048 from './Game2048';
 import InsightPanel from './InsightPanel';
+import JobMatchPanel from './JobMatchPanel';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -69,6 +70,8 @@ function panelTitle(type: PanelState['type'], state?: PanelState): string {
     }
     case 'insight':
       return state?.insightTitle || 'Insight';
+    case 'job-match':
+      return 'Job Match';
     default:
       return '';
   }
@@ -267,7 +270,7 @@ export default function ContentPanel({
             slug={slug}
             focusIndex={galleryFocusIndex}
             onFocusConsumed={handleGalleryFocusConsumed}
-            onClose={onClose}
+            onClose={handleGalleryClose}
           />
         ) : null;
 
@@ -336,6 +339,16 @@ export default function ContentPanel({
           />
         );
 
+      case 'job-match':
+        return (
+          <JobMatchPanel
+            role={panelState.jobRole || ''}
+            company={panelState.jobCompany || ''}
+            description={panelState.jobDescription || ''}
+            onNavigate={onNavigate}
+          />
+        );
+
       case 'game': {
         const game = panelState?.game;
         if (game === 'snake') return <SnakeGame />;
@@ -349,6 +362,14 @@ export default function ContentPanel({
   }
 
   /* Gallery renders as a fullscreen modal, not inside the panel ----- */
+  const handleGalleryClose = useCallback(() => {
+    if (slug) {
+      onNavigate?.({ open: true, type: 'project', slug });
+    } else {
+      onClose();
+    }
+  }, [slug, onNavigate, onClose]);
+
   if (type === 'gallery' && open) {
     return (
       <AnimatePresence>
@@ -357,7 +378,7 @@ export default function ContentPanel({
             slug={slug}
             focusIndex={galleryFocusIndex}
             onFocusConsumed={handleGalleryFocusConsumed}
-            onClose={onClose}
+            onClose={handleGalleryClose}
           />
         )}
       </AnimatePresence>

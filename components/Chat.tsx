@@ -94,6 +94,29 @@ export default function Chat() {
 
   const firstName = (config as Record<string, unknown>).firstName as string || config.name.split(' ')[0];
 
+  // Build per-message memory snapshots for MemoryBubble
+  const memorySnapshots = useMemo(() => {
+    const accumulated: Record<string, string> = {};
+    return messages.map((msg) => {
+      if (msg.role !== 'assistant' || !msg.toolCalls) return null;
+      const memoryCalls = msg.toolCalls.filter((tc) => tc.name === 'remember_visitor');
+      if (memoryCalls.length === 0) return null;
+
+      const newKeys = new Set<string>();
+      for (const tc of memoryCalls) {
+        for (const [key, value] of Object.entries(tc.arguments)) {
+          if (value && typeof value === 'string' && value.trim() && key !== 'visitorId') {
+            if (accumulated[key] !== value.trim()) {
+              newKeys.add(key);
+            }
+            accumulated[key] = value.trim();
+          }
+        }
+      }
+      return { snapshot: { ...accumulated }, newKeys };
+    });
+  }, [messages]);
+
   return (
     <>
       {/* Panel */}
@@ -194,6 +217,8 @@ export default function Chat() {
                       toolCalls={msg.toolCalls}
                       isError={msg.isError}
                       onRetry={msg.isError ? retryLast : undefined}
+                      memorySnapshot={memorySnapshots[i]?.snapshot}
+                      memoryNewKeys={memorySnapshots[i]?.newKeys}
                     />
                   );
                 })}

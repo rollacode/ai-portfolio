@@ -22,7 +22,7 @@ function getVisitorId(): string {
 
 export type PanelState = {
   open: boolean;
-  type: 'project' | 'projects' | 'skills' | 'contact' | 'timeline' | 'gallery' | 'comparison' | 'resume' | 'tech-radar' | 'recommendations' | 'quick-facts' | 'game' | 'insight' | null;
+  type: 'project' | 'projects' | 'skills' | 'contact' | 'timeline' | 'gallery' | 'comparison' | 'resume' | 'tech-radar' | 'recommendations' | 'quick-facts' | 'game' | 'insight' | 'job-match' | null;
   slug?: string;
   slug2?: string;
   category?: string;
@@ -34,6 +34,9 @@ export type PanelState = {
   insightIntent?: string;
   insightVisitorContext?: string;
   insightLanguage?: string;
+  jobRole?: string;
+  jobCompany?: string;
+  jobDescription?: string;
 };
 
 export type PanelAction =
@@ -154,6 +157,17 @@ export function handleToolCall(
           insightIntent: args.intent as string,
           insightVisitorContext: (args.visitor_context as string) || undefined,
           insightLanguage: (args.language as string) || 'en',
+        },
+      };
+
+    case 'match_job':
+      return {
+        panelState: {
+          open: true,
+          type: 'job-match',
+          jobRole: args.role as string,
+          jobCompany: args.company as string,
+          jobDescription: args.description as string,
         },
       };
 

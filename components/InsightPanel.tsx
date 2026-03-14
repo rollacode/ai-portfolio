@@ -149,7 +149,7 @@ function MetricsSection({ data, index }: { data: MetricsData; index: number }) {
       {badges.map((badge) => (
         <div
           key={badge.label}
-          className="flex-1 bg-gray-50/70 dark:bg-white/[0.05] rounded-xl px-4 py-3 text-center"
+          className="flex-1 bg-gray-100/80 dark:bg-white/[0.06] rounded-xl px-4 py-3 text-center"
         >
           <span className="block text-[10px] font-mono text-neutral-400 dark:text-neutral-500 mb-1 select-none">
             {badge.icon}
@@ -195,7 +195,7 @@ function ProjectsSection({ data, index }: { data: ProjectRef[]; index: number })
         {data.map((project) => (
           <div
             key={project.slug}
-            className="bg-gray-50/70 dark:bg-white/[0.05] rounded-xl px-4 py-3
+            className="bg-gray-100/80 dark:bg-white/[0.06] rounded-xl px-4 py-3
                        border border-transparent hover:border-gray-200 dark:hover:border-neutral-700
                        transition-colors cursor-default"
           >
@@ -256,7 +256,7 @@ function ConnectionsSection({ data, index }: { data: string[]; index: number }) 
         {data.map((item, i) => (
           <div
             key={i}
-            className="flex items-start gap-2.5 bg-gray-50/70 dark:bg-white/[0.05] rounded-xl px-4 py-3"
+            className="flex items-start gap-2.5 bg-gray-100/80 dark:bg-white/[0.06] rounded-xl px-4 py-3"
           >
             <svg
               className="h-4 w-4 flex-shrink-0 mt-0.5 text-lime-500"

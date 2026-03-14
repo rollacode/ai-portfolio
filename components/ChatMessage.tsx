@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import ToolCallBadge from './ToolCallBadge';
+import MemoryLine from './MemoryLine';
 
 interface ChatMessageProps {
   role: 'user' | 'assistant';
@@ -10,11 +11,16 @@ interface ChatMessageProps {
   toolCalls?: Array<{ name: string; arguments: Record<string, any> }>;
   isError?: boolean;
   onRetry?: () => void;
+  /** Accumulated visitor memory up to AND including this message */
+  memorySnapshot?: Record<string, string>;
+  /** Keys added by this specific message's remember_visitor calls */
+  memoryNewKeys?: Set<string>;
 }
 
-export default function ChatMessage({ role, content, toolCalls, isError, onRetry }: ChatMessageProps) {
+export default function ChatMessage({ role, content, toolCalls, isError, onRetry, memorySnapshot, memoryNewKeys }: ChatMessageProps) {
   const isUser = role === 'user';
   const hasToolCalls = toolCalls && toolCalls.length > 0;
+  const hasMemoryCall = toolCalls?.some((tc) => tc.name === 'remember_visitor') ?? false;
 
   return (
     <motion.div
@@ -68,6 +74,10 @@ export default function ChatMessage({ role, content, toolCalls, isError, onRetry
 
           {hasToolCalls && (
             <ToolCallBadge toolCalls={toolCalls} />
+          )}
+
+          {hasMemoryCall && memorySnapshot && memoryNewKeys && memoryNewKeys.size > 0 && (
+            <MemoryLine visitorMemory={memorySnapshot} newKeys={memoryNewKeys} />
           )}
         </div>
       )}

@@ -63,7 +63,7 @@ User message → POST /api/chat (SSE stream) → AI responds with text + tool ca
 - Ultra-minimalist, black & white. Accent: **lime-500 (#84cc16)**. **NO BLUE.**
 - Page bg: `#fafafa` / `#0a0a0a` (NOT pure white/black)
 - Panel bg: `bg-white dark:bg-black`
-- Cards: `bg-gray-50/70 dark:bg-white/[0.05]`
+- Cards: `bg-gray-100/80 dark:bg-white/[0.06]`
 - iOS-style scrollbars, spring animations (`damping: 25, stiffness: 200`)
 
 ## Agent Delegation
@@ -72,6 +72,7 @@ Custom agents in `.claude/agents/`:
 
 - **ui-architect** — Components, panels, animations, Tailwind, Framer Motion, responsive layout
 - **prompt-engineer** — System prompt, tool definitions, agent behavior tuning, personality
+- **code-simplifier** — Post-change cleanup: dead code, consistency, simplification
 - **tester** — Writing and fixing Vitest tests, data integrity checks
 - **data-curator** — Portfolio JSON data, content accuracy, cross-references between files
 

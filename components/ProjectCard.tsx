@@ -74,7 +74,7 @@ function HighlightSection({
 
 const MAX_VISIBLE = 4;
 
-function ScreenshotsMasonry({
+function ScreenshotStrip({
   slug,
   screenshots,
   onScreenshotClick,
@@ -89,7 +89,7 @@ function ScreenshotsMasonry({
   const overflow = screenshots.length - MAX_VISIBLE;
 
   return (
-    <div className="columns-2 gap-2 [column-fill:_balance]">
+    <div className="flex gap-2 overflow-x-auto scrollbar-none -mx-1 px-1">
       {visible.map((src, idx) => {
         const imgSrc = `/screenshots/${src}`;
         const isLast = idx === visible.length - 1 && overflow > 0;
@@ -98,7 +98,7 @@ function ScreenshotsMasonry({
           <button
             key={src}
             onClick={() => onScreenshotClick?.(slug, idx)}
-            className="relative mb-2 block w-full break-inside-avoid overflow-hidden rounded-lg
+            className="relative shrink-0 w-20 h-20 overflow-hidden rounded-lg
                        bg-gray-100 dark:bg-white/[0.04]
                        ring-1 ring-gray-200/60 dark:ring-white/[0.06]
                        hover:ring-lime-500/50 transition-all cursor-pointer group"
@@ -106,14 +106,14 @@ function ScreenshotsMasonry({
             <Image
               src={imgSrc}
               alt=""
-              width={400}
-              height={0}
-              sizes="(max-width: 768px) 45vw, 200px"
-              className="w-full h-auto object-cover group-hover:scale-[1.02] transition-transform duration-300"
+              width={160}
+              height={160}
+              sizes="80px"
+              className="w-full h-full object-cover group-hover:scale-[1.08] transition-transform duration-300"
               loading="lazy"
             />
             {isLast && (
-              <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-sm font-semibold">
+              <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-white text-xs font-semibold">
                 +{overflow}
               </span>
             )}
@@ -180,7 +180,7 @@ export default function ProjectCard({
 
       {/* Screenshots ----------------------------------------------- */}
       {project.screenshots.length > 0 && (
-        <ScreenshotsMasonry
+        <ScreenshotStrip
           slug={project.slug}
           screenshots={project.screenshots}
           onScreenshotClick={onScreenshotClick}
