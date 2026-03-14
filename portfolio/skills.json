@@ -15,8 +15,19 @@
     { "id": "postgresql", "name": "PostgreSQL", "years": 4, "level": "professional" },
     { "id": "redis-celery", "name": "Redis / Celery", "years": 2, "level": "professional" },
     { "id": "livekit", "name": "LiveKit", "years": 1, "level": "professional" },
-
-    { "id": "firebase", "name": "Firebase", "years": 4, "level": "professional" }
+    { "id": "firebase", "name": "Firebase", "years": 4, "level": "professional" },
+    { "id": "next-js", "name": "Next.js", "years": 1, "level": "professional" },
+    { "id": "tailwind-css", "name": "Tailwind CSS", "years": 1, "level": "professional" },
+    { "id": "node-js", "name": "Node.js", "level": "professional" },
+    { "id": "git", "name": "Git", "years": 11, "level": "professional" },
+    { "id": "ci-cd", "name": "CI/CD (GitHub Actions / Jenkins)", "level": "professional" },
+    { "id": "figma", "name": "Figma", "level": "professional" },
+    { "id": "html-css", "name": "HTML / CSS", "years": 11, "level": "professional" },
+    { "id": "uikit-combine", "name": "UIKit / Combine", "years": 11, "level": "professional" },
+    { "id": "coreml", "name": "CoreML", "level": "professional" },
+    { "id": "redux-toolkit", "name": "Redux Toolkit", "level": "professional" },
+    { "id": "rest-websocket", "name": "REST / WebSocket", "level": "professional" },
+    { "id": "github-copilot", "name": "GitHub Copilot", "level": "professional" }
   ],
   "ai": [
     { "id": "claude-code", "name": "Claude Code", "level": "expert" },
@@ -31,7 +42,6 @@
     { "id": "whisper-openai", "name": "Whisper (OpenAI)", "level": "professional" },
     { "id": "elevenlabs", "name": "ElevenLabs", "level": "professional" },
     { "id": "mcp-protocol", "name": "MCP Protocol", "level": "familiar" },
-
     { "id": "vibe-coding", "name": "Vibe Coding", "level": "expert" }
   ],
   "working": [
@@ -40,11 +50,29 @@
     { "id": "spring-boot-java", "name": "Spring Boot / Java", "level": "familiar" },
     { "id": "webrtc", "name": "WebRTC", "level": "familiar" },
     { "id": "docker-devops", "name": "Docker / DevOps", "level": "familiar" },
-
     { "id": "aspnet-csharp", "name": "ASP.NET / C#", "level": "familiar" },
     { "id": "react-native", "name": "React Native", "level": "familiar" },
     { "id": "vue-js", "name": "Vue.js", "level": "familiar" },
-    { "id": "knowledge-graphs", "name": "Knowledge Graphs", "level": "familiar" }
+    { "id": "knowledge-graphs", "name": "Knowledge Graphs", "level": "familiar" },
+    { "id": "postman", "name": "Postman", "level": "familiar" },
+    { "id": "grafana", "name": "Grafana", "level": "familiar" },
+    { "id": "nginx", "name": "Nginx", "level": "familiar" },
+    { "id": "linux-cli", "name": "Linux / CLI", "level": "familiar" },
+    { "id": "mongodb-realm", "name": "MongoDB / Realm", "level": "familiar" },
+    { "id": "rabbitmq", "name": "RabbitMQ", "level": "familiar" },
+    { "id": "kubernetes", "name": "Kubernetes", "level": "familiar" },
+    { "id": "cocoapods-spm", "name": "CocoaPods / SPM / Carthage", "level": "familiar" },
+    { "id": "agile-scrum", "name": "Agile / Scrum", "level": "familiar" },
+    { "id": "jira-youtrack", "name": "Jira / YouTrack", "level": "familiar" },
+    { "id": "kotlin", "name": "Kotlin", "level": "familiar" },
+    { "id": "mysql", "name": "MySQL", "level": "familiar" },
+    { "id": "blender", "name": "Blender", "level": "familiar" },
+    { "id": "scrapy", "name": "Scrapy", "level": "familiar" },
+    { "id": "mqtt", "name": "MQTT", "level": "familiar" },
+    { "id": "gitlab-bitbucket", "name": "GitLab / BitBucket", "level": "familiar" },
+    { "id": "miro", "name": "Miro", "level": "familiar" },
+    { "id": "hubspot-api", "name": "HubSpot API", "level": "familiar" },
+    { "id": "oauth-jwt", "name": "OAuth2 / JWT", "level": "familiar" }
   ],
   "hobby": [
     { "id": "home-assistant", "name": "Home Assistant", "level": "familiar" },

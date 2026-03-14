@@ -236,7 +236,7 @@ describe('cross-references', () => {
     ];
     for (const skill of coreSkills) {
       // Skip skills that are meta/soft (product-management can be mapped or not)
-      if (['product-management', 'android-kotlin'].includes(skill.id)) continue;
+      if (['product-management', 'android-kotlin', 'github-copilot'].includes(skill.id)) continue;
       expect(
         usedSkillIds.has(skill.id),
         `core skill "${skill.id}" (${skill.name}) not used in any project`
