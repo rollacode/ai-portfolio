@@ -12,6 +12,7 @@ import allProjects from '@/portfolio/projects.json';
 export interface ProjectData {
   slug: string;
   name: string;
+  role?: string;
   stack: string[];
   period: string;
   screenshots: string[];
@@ -230,9 +231,16 @@ export default function ProjectCard({
       {/* Header ---------------------------------------------------- */}
       <div>
         <h2 className="text-xl font-bold text-gray-900 dark:text-white">{project.name}</h2>
-        <p className="mt-0.5 text-xs font-medium text-gray-400 dark:text-gray-500">
-          {project.period}
-        </p>
+        <div className="mt-0.5 flex items-center gap-2">
+          <p className="text-xs font-medium text-gray-400 dark:text-gray-500">
+            {project.period}
+          </p>
+          {project.role && (
+            <span className="text-xs font-medium text-lime-600 dark:text-lime-400">
+              · {project.role}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Screenshots ----------------------------------------------- */}

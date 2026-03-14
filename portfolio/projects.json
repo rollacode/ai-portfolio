@@ -42,6 +42,7 @@
   {
     "slug": "sos-portal",
     "name": "SOS Portal - COVID-19 Teleconsultation",
+    "role": "Team Lead (17 people)",
     "stack": ["ASP.NET", "React Native", "Binah", "REST APIs"],
     "period": "Mar 2020 - Oct 2020",
     "screenshots": ["sos-portal/doctor-dashboard-mobile.webp", "sos-portal/chats-and-calls.webp", "sos-portal/doctor-schedule-mobile.webp", "sos-portal/patient-questionnaire.webp", "sos-portal/sessions-timeline.webp", "sos-portal/personnel-management.webp"],
@@ -61,6 +62,7 @@
   {
     "slug": "bugsee",
     "name": "Bugsee - Developer Insights SDK",
+    "role": "Lead iOS Developer",
     "stack": ["C", "C++", "Objective-C", "JavaScript", "CocoaPods", "SwiftPackages"],
     "period": "Jan 2016 - Jan 2020",
     "screenshots": ["bugsee/bug-report-timeline.webp", "bugsee/analytics.webp", "bugsee/network-interception.webp"],
@@ -80,6 +82,7 @@
   {
     "slug": "minnow",
     "name": "Minnow - Streaming Aggregator",
+    "role": "Lead iOS + Backend",
     "stack": ["Swift", "iOS", "tvOS", "C#", "ASP.NET", "Firebase", "CocoaPods"],
     "period": "Dec 2019 - Feb 2020",
     "screenshots": ["minnow/ios-discover-home.webp", "minnow/ios-search-results.webp", "minnow/ios-playlist-detail.webp", "minnow/ios-movie-detail.webp"],
@@ -118,6 +121,7 @@
   {
     "slug": "dishero",
     "name": "Dishero - Restaurant Discovery",
+    "role": "Lead iOS Developer",
     "stack": ["Objective-C", "CoreData", "REST APIs"],
     "period": "May 2015 - May 2017",
     "screenshots": ["dishero/dish-search-results.webp", "dishero/dish-detail.webp", "dishero/dish-photo-zoom.webp", "dishero/restaurant-menu.webp", "dishero/restaurant-about.webp"],
@@ -137,6 +141,7 @@
   {
     "slug": "performica",
     "name": "Performica - OrgGraph Network Analysis",
+    "role": "Product Manager (7 engineers)",
     "stack": ["Python", "Django", "Vue.js", "Scala", "WebSocket", "Figma"],
     "period": "Sep 2023 - Jun 2025",
     "screenshots": ["performica/employee-performance-dashboard.webp", "performica/orggraph-platform-overview.webp", "performica/orggraph-network-visualization.webp", "performica/collaboration-survey-form.webp"],
@@ -157,6 +162,7 @@
   {
     "slug": "rekap",
     "name": "REKAP - AI Chief of Staff",
+    "role": "Senior Full Stack Engineer",
     "stack": ["React", "TypeScript", "Python", "Django", "LangChain", "LangGraph", "LiteLLM", "LiveKit", "PostgreSQL", "Redis", "Celery", "PostHog", "WebSocket"],
     "period": "Feb 2025 - Present",
     "screenshots": ["rekap/mission-control-dashboard.webp", "rekap/churn-risk-details.webp", "rekap/account-relationship-overview.webp", "rekap/account-ai-chat-panel.webp"],
@@ -178,6 +184,7 @@
   {
     "slug": "binaura",
     "name": "Binaura / SoundCalm - Sleep & Sound App",
+    "role": "Founder (team of 4)",
     "stack": ["Swift", "SwiftUI", "StoreKit 2", "CloudKit", "Combine", "Firebase", "Next.js", "Python"],
     "period": "Sep 2025 - Present",
     "screenshots": ["binaura/sound-category-catalogue.webp", "binaura/sleep-plan-journey-timeline.webp", "binaura/binaural-beats-player-settings.webp", "binaura/home-dashboard-premium-upsell.webp"],
@@ -199,6 +206,7 @@
   {
     "slug": "cops-inc",
     "name": "Cops Inc. - GTA-Style Mobile Action Game",
+    "role": "Co-Founder & Lead Developer",
     "stack": ["Unity3D", "C#", "Dijkstra", "Octree"],
     "period": "Jun 2021 - Jun 2024",
     "screenshots": ["cops-inc/title-art-characters.webp", "cops-inc/police-car-mission-gameplay.webp", "cops-inc/character-concept-3d-model.webp", "cops-inc/female-officer-concept-sketch.webp", "cops-inc/police-station-upgrade-ui.webp"],

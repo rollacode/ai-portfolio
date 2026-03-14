@@ -11,6 +11,7 @@ import projectsData from '@/portfolio/projects.json';
 interface Project {
   slug: string;
   name: string;
+  role?: string;
   stack: string[];
   period: string;
   screenshots: string[];
@@ -177,6 +178,11 @@ function ProjectTimelineCard({
             <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
               {project.name}
             </h3>
+            {project.role && (
+              <p className="text-xs font-medium text-lime-600 dark:text-lime-400 mt-0.5">
+                {project.role}
+              </p>
+            )}
           </div>
           <div className="text-right flex-shrink-0">
             <p className="text-xs font-medium text-gray-500 dark:text-gray-400 tabular-nums">
