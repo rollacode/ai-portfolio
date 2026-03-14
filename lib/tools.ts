@@ -99,8 +99,8 @@ export const tools: ToolDefinition[] = [
         properties: {
           filter: {
             type: 'string',
-            description: 'Filter projects by theme/category. Options: "ai" (AI/LLM projects), "mobile" (iOS/mobile), "web" (web apps), "ar" (AR/computer vision). Omit to show all.',
-            enum: ['all', 'ai', 'mobile', 'web', 'ar'],
+            description: 'Filter projects by theme/category. Options: "ai" (AI/LLM projects), "mobile" (iOS/mobile), "web" (web apps), "ar" (AR/computer vision), "leadership" (projects where he led teams or was founder). Omit to show all.',
+            enum: ['all', 'ai', 'mobile', 'web', 'ar', 'leadership'],
           },
           skillId: {
             type: 'string',

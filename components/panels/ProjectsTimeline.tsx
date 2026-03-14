@@ -45,11 +45,24 @@ const THEME_SKILL_IDS: Record<string, string[]> = {
   ar: ['arkit-scenekit', 'computer-vision-opencv', 'unity3d-csharp'],
 };
 
+// Projects where Andrey held leadership roles (Team Lead, Tech Lead, PM, Co-Founder)
+const LEADERSHIP_SLUGS = new Set([
+  'sos-portal',      // Team Lead, 17 people
+  'performica',      // Product Manager, 7 engineers
+  'rekap',           // Senior Engineer, AI architecture lead
+  'cops-inc',        // Co-Founder
+  'bugsee',          // Lead iOS Developer
+  'minnow',          // Lead iOS + backend
+  'dishero',         // Lead iOS Developer
+  'binaura',         // Solo founder
+]);
+
 const FILTER_LABELS: Record<string, string> = {
   ai: 'AI projects',
   mobile: 'Mobile projects',
   web: 'Web projects',
   ar: 'AR projects',
+  leadership: 'Leadership roles',
 };
 
 // Sort projects by period (newest first) — parse start year from period string
@@ -229,12 +242,16 @@ export default function ProjectsTimeline({
   const filteredProjects = useMemo(() => {
     let result = allProjects;
 
-    // Filter by theme
+    // Filter by theme or leadership
     if (filter && filter !== 'all') {
-      const relevantSkills = new Set(THEME_SKILL_IDS[filter] || []);
-      result = result.filter((p) =>
-        p.skillIds?.some((sid) => relevantSkills.has(sid)),
-      );
+      if (filter === 'leadership') {
+        result = result.filter((p) => LEADERSHIP_SLUGS.has(p.slug));
+      } else {
+        const relevantSkills = new Set(THEME_SKILL_IDS[filter] || []);
+        result = result.filter((p) =>
+          p.skillIds?.some((sid) => relevantSkills.has(sid)),
+        );
+      }
     }
 
     // Filter by specific skillId

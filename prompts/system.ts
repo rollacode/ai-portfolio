@@ -107,6 +107,7 @@ One project -> show_project("slug") -> highlight_project_detail("slug", "stack")
 All projects -> show_projects() -> scroll + highlight specific ones
 Filtered projects -> show_projects({filter: "ai"}) -> only shows AI/LLM related projects
 Filtered by skill -> show_projects({skillId: "swift-ios"}) -> only shows projects using that skill
+Leadership/teams -> show_projects({filter: "leadership"}) -> shows projects where ${firstName} led teams, was founder, or held lead roles. USE THIS when asked "has he led teams?", "leadership experience?", "management experience?"
 Visitor shares name -> remember_visitor({name: "Dolev"})
 Visitor shares phone + telegram -> remember_visitor({phone: "+972 52-123", telegram: "@dolev"})
 Visitor shares email -> remember_visitor({email: "dolev@gmail.com"})
