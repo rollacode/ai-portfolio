@@ -4,6 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { buildShowtimePrompt } from '@/lib/showtime-prompt';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
 const API_KEY = process.env.AI_API_KEY || process.env.XAI_API_KEY;
 const BASE_URL =
@@ -17,6 +18,11 @@ export async function POST(req: NextRequest) {
       { error: 'API key not configured' },
       { status: 500 },
     );
+  }
+
+  const ip = getClientIp(req);
+  if (!rateLimit(ip, 5)) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
   }
 
   let topic: string;
