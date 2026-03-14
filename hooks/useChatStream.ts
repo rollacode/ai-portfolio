@@ -5,6 +5,7 @@ import { parseStream } from '@/lib/stream-parser';
 import { handleToolCall, type PanelState, type PanelAction } from '@/lib/tool-handler';
 import type { ActionQueue } from '@/lib/action-queue';
 import type { Message } from './types';
+import { track } from '@/lib/analytics';
 
 // -----------------------------------------------------------------------------
 // Args
@@ -168,6 +169,12 @@ export function useChatStream({
       setMessages((prev) => [...prev, userMessage]);
       setIsLoading(true);
       setLastUserMessage(content);
+
+      track('message_sent', {
+        message: content,
+        message_length: content.length,
+        message_index: updatedHistory.length,
+      });
 
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 30_000); // 30s timeout

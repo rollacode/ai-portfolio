@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
@@ -19,6 +19,7 @@ import ShowtimeStage from './ShowtimeStage';
 import { useShowtime } from '@/hooks/useShowtime';
 import Link from 'next/link';
 import config from '@/portfolio/config.json';
+import { track, identify } from '@/lib/analytics';
 
 // -----------------------------------------------------------------------------
 // Constants
@@ -55,6 +56,13 @@ export default function Chat() {
 
   // Auto-scroll sentinel ref
   const messagesEndRef = useAutoScroll(messages);
+
+  // Analytics — page view + identify visitor
+  useEffect(() => {
+    track('page_view', { referrer: document.referrer || undefined });
+    const vid = sessionStorage.getItem('visitorId');
+    if (vid) identify(vid);
+  }, []);
 
   // Streaming, send, retry
   const { sendMessage, retryLast, isLoading } = useChatStream({
@@ -129,6 +137,19 @@ export default function Chat() {
                     </a>
                   </>
                 )}
+                {config.social?.linkedin && (
+                  <>
+                    {' · '}
+                    <a
+                      href={config.social.linkedin}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-gray-300 transition-colors"
+                    >
+                      LinkedIn
+                    </a>
+                  </>
+                )}
                 {' · '}
                 <Link href="/privacy" className="hover:text-gray-300 transition-colors">Privacy</Link>
                 {' · '}
@@ -199,6 +220,19 @@ export default function Chat() {
                       className="hover:text-gray-300 transition-colors"
                     >
                       GitHub
+                    </a>
+                  </>
+                )}
+                {config.social?.linkedin && (
+                  <>
+                    {' · '}
+                    <a
+                      href={config.social.linkedin}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-gray-300 transition-colors"
+                    >
+                      LinkedIn
                     </a>
                   </>
                 )}

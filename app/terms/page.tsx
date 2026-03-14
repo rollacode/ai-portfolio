@@ -19,7 +19,7 @@ export default function TermsPage() {
         <h1 className="text-2xl font-semibold mb-8">Terms and Conditions</h1>
 
         <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-6">
-          Last updated: February 2026
+          Last updated: March 2026
         </p>
 
         {/* 1. Acceptance of Terms */}
@@ -180,8 +180,31 @@ export default function TermsPage() {
           courts of the Republic of Latvia.
         </p>
 
-        {/* 12. Changes to Terms */}
-        <h2 className="text-lg font-medium mt-8 mb-3">12. Changes to Terms</h2>
+        {/* 12. Analytics */}
+        <h2 className="text-lg font-medium mt-8 mb-3">12. Analytics</h2>
+        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed mb-3">
+          This website uses analytics tools to collect anonymized usage data, including
+          but not limited to page views, session duration, referral sources, and general
+          interaction patterns. This data is used solely to improve the website&apos;s
+          content, performance, and user experience.
+        </p>
+        <ul className="list-disc list-inside text-sm text-gray-600 dark:text-gray-400 leading-relaxed space-y-2 ml-2">
+          <li>
+            Analytics data is collected in aggregate and does not personally identify
+            individual visitors.
+          </li>
+          <li>
+            The website may use third-party analytics providers (such as Vercel Analytics
+            or similar services) that operate under their own privacy policies.
+          </li>
+          <li>
+            No analytics data is sold to or shared with third parties for advertising
+            purposes.
+          </li>
+        </ul>
+
+        {/* 13. Changes to Terms */}
+        <h2 className="text-lg font-medium mt-8 mb-3">13. Changes to Terms</h2>
         <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
           These terms may be updated or modified at any time without prior notice.
           Any changes will be effective immediately upon being posted on this page.
@@ -191,8 +214,8 @@ export default function TermsPage() {
           revised terms.
         </p>
 
-        {/* 13. Contact */}
-        <h2 className="text-lg font-medium mt-8 mb-3">13. Contact</h2>
+        {/* 14. Contact */}
+        <h2 className="text-lg font-medium mt-8 mb-3">14. Contact</h2>
         <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
           If you have any questions or concerns about these Terms and Conditions,
           please contact:
