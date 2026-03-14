@@ -52,18 +52,18 @@
     }
   ],
   "suggestedQuestions": [
-    "What projects has Andrey built?",
-    "Tell me about his iOS experience",
-    "What's his AI/LLM background?",
-    "Show me the Computer Vision work",
     "Walk me through his career",
-    "Summarize his full portfolio?",
-    "What do his colleagues say about him?",
-    "Show me something cool",
-    "What's his tech stack look like?",
+    "What's his Python / backend experience?",
     "Has he led teams before?",
-    "What kind of person is Andrey?",
-    "Any fun facts about him?"
+    "Can he build a product from scratch?",
+    "What's his AI/LLM background?",
+    "Show me his tech stack",
+    "What do his colleagues say?",
+    "Tell me about his iOS experience",
+    "Is he open to remote work?",
+    "I have a job opening — can I paste it?",
+    "What projects has he shipped?",
+    "Can I download his resume?"
   ],
   "social": {
     "github": "https://github.com/rollacode/ai-portfolio",
