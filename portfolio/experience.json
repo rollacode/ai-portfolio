@@ -1,14 +1,15 @@
 [
   {
     "company": "REKAP",
-    "role": "Senior Full Stack Engineer",
+    "role": "Product Developer",
     "period": "Feb 2025 - Present",
     "location": "Remote (US-based)",
-    "description": "Building an AI-powered \"Chief of Staff\" platform that helps teams work smarter through automated meeting intelligence, relationship mapping, and action item tracking.",
+    "description": "AI-powered \"Chief of Staff\" platform for automated meeting intelligence, relationship mapping, and action tracking. Shaping the product end-to-end: from defining features and user flows to building AI agent pipelines and full-stack implementation.",
     "highlights": [
-      "Full-stack development with focus on AI agent pipelines",
-      "React + TypeScript frontend, Python backend with LLM agents",
-      "Joined after REKAP acquired Performica, bringing the engineering team aboard"
+      "Own product direction for AI features — from concept to shipping",
+      "Build and iterate on LLM agent pipelines (LangGraph, LiveKit)",
+      "React + TypeScript frontend, Python/Django backend",
+      "Joined after REKAP acquired Performica, selected as 1 of 2 engineers to transition"
     ],
     "stack": ["React", "TypeScript", "Python", "Django", "LangChain", "LangGraph", "LiteLLM", "LiveKit", "PostgreSQL", "Redis", "Celery", "WebSocket", "PostHog"]
   },
@@ -55,17 +56,16 @@
   },
   {
     "company": "QuantumSoft LLC",
-    "role": "Senior Fullstack Developer",
+    "role": "Product Developer",
     "period": "Dec 2014 - Present",
     "location": "Riga, Latvia",
-    "description": "11+ year tenure at a software outsource company, working across multiple client projects spanning healthcare, entertainment, developer tools, and food tech. Grew from developer to tech lead to architect.",
+    "description": "11+ year tenure at a software company, evolving from iOS developer to product-minded engineer across healthcare, entertainment, developer tools, and sustainability. Own features end-to-end: architecture, implementation, and product decisions.",
     "highlights": [
       "SOS Portal — COVID-19 teleconsultation platform (Team Lead, 17 people)",
       "Bugsee — developer insights SDK (Lead iOS Developer)",
       "Minnow — streaming aggregator (Lead iOS + backend)",
-      "ThinkUp — self-improvement app (iOS Developer)",
-      "Dishero — restaurant discovery (Lead iOS Developer)",
-      "EcoIQ — ESG/sustainability supply chain platform (Architecture Consultant + LLM integration)"
+      "EcoIQ — ESG/sustainability platform (Architecture Consultant + LLM integration)",
+      "Dishero — restaurant discovery (Lead iOS Developer)"
     ],
     "stack": ["Swift", "Objective-C", "React", "ASP.NET", "C#", "Python", "Django", "Firebase"]
   }
