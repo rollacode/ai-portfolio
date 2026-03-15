@@ -308,7 +308,7 @@
   {
     "slug": "rekap",
     "name": "REKAP - AI Chief of Staff",
-    "role": "Lead Full Stack Engineer",
+    "role": "Product Developer",
     "stack": [
       "React",
       "TypeScript",
@@ -331,7 +331,7 @@
       "rekap/account-relationship-overview.webp",
       "rekap/account-ai-chat-panel.webp"
     ],
-    "description": "AI intelligence layer for organizations. Built real-time chat with WebSocket-driven agentic pipelines, voice agents, meeting scribe, and AI CRM. Startup role: product + full-stack + design.",
+    "description": "AI-powered Chief of Staff platform. Shaping the product end-to-end: defining features, building AI agent pipelines, and leading full-stack implementation. Joined post-acquisition from Performica.",
     "highlights": [
       "WebSocket chat orchestrating LangGraph agentic pipelines with streaming",
       "LiveKit voice agents for real-time meeting transcription",

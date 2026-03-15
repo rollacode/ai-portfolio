@@ -2,7 +2,7 @@
   "name": "Andrey Kovalev",
   "firstName": "Andrey",
   "title": "Portfolio Agent",
-  "bio": "Senior Full-Stack Engineer & AI Architect",
+  "bio": "Technical Partner · Product Builder · AI Architect",
   "location": "Riga, Latvia",
   "workModes": [
     "onsite",
@@ -28,7 +28,7 @@
   "strengths": [
     {
       "title": "Depth + Breadth",
-      "description": "11-year iOS expert who also builds web frontends, Python backends, and computer vision pipelines. Not just a specialist or generalist — both."
+      "description": "11-year iOS expert who also builds web frontends, Python backends, and computer vision pipelines. Can go deep on a single platform or own the full stack — whatever the product needs."
     },
     {
       "title": "Product Sense",
@@ -40,29 +40,29 @@
     },
     {
       "title": "Shipping Record",
-      "description": "From COVID teleconsultation platforms (SOS Portal, team of 17) to AR shopping apps (Scan Mania) to App Store apps (ThinkUp, Minnow, Binaura). Proven track record of delivering real products with real users."
+      "description": "From COVID teleconsultation platforms (SOS Portal, team of 17) to AR shopping apps (Scan Mania) to App Store releases (Minnow, Binaura). Builds and leads teams that deliver — then moves on to the next challenge."
     },
     {
       "title": "Architecture Chops",
-      "description": "Designed systems across healthcare, retail, entertainment, and developer tools. Built internal SDK architecture at Trax. Created custom memory zone for crash report invisibility at Bugsee. Architected teleconsultation platform during pandemic."
+      "description": "Comes into companies, assesses existing systems, redesigns architecture, and mentors teams to maintain it. Healthcare, retail, entertainment, developer tools — across domains. Built SDK architecture at Trax, architected teleconsultation platform during pandemic, created stealth memory systems at Bugsee."
     },
     {
-      "title": "Self-Starter",
-      "description": "Multiple side projects, all shipping real products: SoundCalm/Binaura (revenue-generating iOS app), serve_ai (waitlist management), Rollo (personal AI agent with smart home, trading, proactive monitoring)."
+      "title": "Builder",
+      "description": "Founded and shipped revenue-generating products: SoundCalm/Binaura (iOS app), serve_ai (waitlist management), Rollo (personal AI agent with smart home, trading, proactive monitoring). Thinks like a founder — market, users, revenue — not just code."
     }
   ],
   "suggestedQuestions": [
     "Walk me through his career",
-    "What's his Python / backend experience?",
+    "How does he work with companies?",
     "Has he led teams before?",
-    "Can he build a product from scratch?",
+    "Can he build and lead a team for us?",
     "What's his AI/LLM background?",
     "Show me his tech stack",
     "What do his colleagues say?",
-    "Tell me about his iOS experience",
+    "What projects has he shipped?",
+    "Can he build a product from scratch?",
     "Is he open to remote work?",
     "I have a job opening — can I paste it?",
-    "What projects has he shipped?",
     "Can I download his resume?"
   ],
   "social": {
