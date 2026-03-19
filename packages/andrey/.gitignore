@@ -18,11 +18,7 @@ data/visitors.json
 # coverage
 coverage/
 
-# turbo
-.turbo/
-
 # misc
 .DS_Store
 *.pem
 .vercel
-tsconfig.tsbuildinfo

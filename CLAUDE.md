@@ -1,99 +1,59 @@
-# AI Portfolio Agent
+# AI Portfolio — Monorepo
 
-> Interactive portfolio website with a reactive AI agent that controls the UI via function calling
+> Turborepo monorepo for AI-powered portfolio websites with reactive agent UI
 
-## Tech Stack
+## Structure
 
-**Frontend:** Next.js 15, React 19, TypeScript, Tailwind CSS 3, Framer Motion 12
-**AI:** Any OpenAI-compatible provider (xAI/Grok default), streaming SSE, function calling (22 tools)
-**State:** IndexedDB (chat persistence), sessionStorage (visitor ID)
-**Testing:** Vitest 4
-**Dev:** Turbopack
+```
+packages/
+├── core/          @ai-portfolio/core — shared engine (components, hooks, lib, types)
+├── andrey/        @ai-portfolio/andrey — rollacode.org (Andrey Kovalev)
+└── anya/          @ai-portfolio/anya — ainyiva.org (Anna Ivanova)
+```
 
 ## Quick Start
 
 ```bash
-npm install
-npm run dev          # starts on localhost:3000 with Turbopack
-npm test             # vitest run (42 tests)
-npm run test:watch   # vitest in watch mode
-npm run build        # production build
-npm run lint         # next lint
+pnpm install
+pnpm dev              # starts both sites (andrey :3000, anya :3001)
+pnpm build            # builds all packages
+pnpm test             # runs all tests
+pnpm --filter @ai-portfolio/andrey dev   # just andrey
+pnpm --filter @ai-portfolio/anya dev     # just anya
 ```
 
-## Environment Variables
+## Architecture
 
-Required in `.env` (see `.env.example`):
+### Core Package (`packages/core/`)
+Shared TypeScript library — NOT a Next.js app. Contains:
+- **components/** — all React components (chat, panels, games, ui)
+- **hooks/** — custom hooks (chat stream, persistence, layout, etc.)
+- **lib/** — utilities (tools, stream-parser, action-queue, rate-limit, etc.)
+- **prompts/** — system prompt templates
+- **context/** — `PortfolioDataProvider` + `usePortfolioData()` hook
+- **types/** — `PortfolioData`, `Project`, `Skill`, `Experience`, etc.
 
-| Variable | Description | Default |
-|---|---|---|
-| `AI_API_KEY` | API key for AI provider (fallback: `XAI_API_KEY`) | — |
-| `AI_BASE_URL` | Provider base URL (fallback: `XAI_BASE_URL`) | `https://api.x.ai/v1` |
-| `AI_MODEL` | Model name (fallback: `XAI_MODEL`) | `grok-3-mini-fast` |
-| `ADMIN_TOKEN` | Token for GET /api/visitor (visitor data access) | — |
-
-Supported providers: xAI/Grok, OpenAI, Groq, Together AI, local Ollama. All use the same OpenAI-compatible `/chat/completions` endpoint.
-
-## Architecture Overview
+### Site Packages (`packages/andrey/`, `packages/anya/`)
+Each is a Next.js 15 app with:
+- **portfolio/*.json** — site-specific data (config, projects, skills, experience, recommendations)
+- **public/screenshots/** — project screenshots
+- **app/** — pages + thin API route wrappers
+- **app/providers.tsx** — wraps app in `PortfolioDataProvider` with site's JSON data
+- **.env.local** — site-specific env vars
 
 ### Data Flow
-
-```
-User message → POST /api/chat (SSE stream) → AI responds with text + tool calls
-→ stream-parser.ts parses SSE chunks → tool-handler.ts maps to PanelState/PanelAction
-→ action-queue.ts buffers until panel animation completes → ContentPanel dispatches to child components
-```
-
-### Key Concepts
-
-- **Portfolio data** lives in `portfolio/*.json` — single source of truth, zero hardcoded content in components
-- **Tool system** has 4 layers: Panel tools (open UI), Action tools (interact within panels), Data tools (side effects), Side-effect tools (theme)
-- **Action queue** buffers Layer 2 actions until panel animation completes (150ms stagger)
-- **System prompt** in `lib/system-prompt.ts` loads ALL portfolio JSON at request time
-- **Tool enrichment**: `getToolsWithContext()` injects valid slugs/names as enum values into tool schemas
-
-### Layout Modes
-
-- **welcome** — no messages, centered landing
-- **chat** — messages exist, centered chat column
-- **split** — panel left + chat right (bottom sheet on mobile)
+Components use `usePortfolioData()` context hook — no direct JSON imports in core.
+API routes still use `@/portfolio/` imports (server-side, per-site).
+System prompt loaded via `process.cwd()/portfolio/` at request time.
 
 ## Design System
-
-- Ultra-minimalist, black & white. Accent: **lime-500 (#84cc16)**. **NO BLUE.**
-- Page bg: `#fafafa` / `#0a0a0a` (NOT pure white/black)
-- Panel bg: `bg-white dark:bg-black`
-- Cards: `bg-gray-100/80 dark:bg-white/[0.06]`
-- iOS-style scrollbars, spring animations (`damping: 25, stiffness: 200`)
-
-## Agent Delegation
-
-Custom agents in `.claude/agents/`:
-
-- **ui-architect** — Components, panels, animations, Tailwind, Framer Motion, responsive layout
-- **prompt-engineer** — System prompt, tool definitions, agent behavior tuning, personality
-- **code-simplifier** — Post-change cleanup: dead code, consistency, simplification
-- **tester** — Writing and fixing Vitest tests, data integrity checks
-- **data-curator** — Portfolio JSON data, content accuracy, cross-references between files
+- Andrey: accent **lime-500 (#84cc16)**
+- Anya: accent **fuchsia-400 (#e879f9)**
+- Shared: ultra-minimalist black & white, iOS scrollbars, spring animations
 
 ## Testing
-
-Run: `npm test` or `npm run test:watch`
-
-| File | What it tests |
-|---|---|
-| `tests/portfolio-data.test.ts` | Data integrity, cross-references between projects/skills/experience, schema validation |
-| `tests/api-chat.test.ts` | Chat endpoint: missing key, request format, tool injection |
-| `tests/api-visitor.test.ts` | Visitor CRUD: save, merge by ID, merge by timestamp, auth |
-| `tests/stream-parser.test.ts` | SSE chunk parsing, text + tool call extraction |
-| `tests/tool-handler.test.ts` | Tool call → PanelState/PanelAction mapping |
-| `tests/action-queue.test.ts` | Action buffering, stagger timing, queue flush |
-| `tests/chat-store.test.ts` | IndexedDB persistence, message save/load |
-
-## Known Limitations
-
-- Visitor storage uses filesystem (`data/visitors.json`) — won't persist on serverless (Vercel). The `data/` directory is not auto-created on fresh deploy.
-- No rate limiting on any API endpoint.
-- Chat sends full message history every request (no sliding window / token budget).
-- `getToolsWithContext()` runs `structuredClone` on all 22 tools per request — negligible but noted.
-- Gallery component renders as fullscreen modal outside the panel container (special case in ContentPanel).
+```bash
+pnpm test                                    # all
+pnpm --filter @ai-portfolio/andrey test      # andrey only (210 tests)
+pnpm --filter @ai-portfolio/anya test        # anya only
+```

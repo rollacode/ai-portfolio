@@ -1,0 +1,41 @@
+[
+  {
+    "company": "Binaura",
+    "role": "Lead Designer",
+    "period": "2024 - Present",
+    "location": "Riga, Latvia",
+    "description": "Designing the complete visual identity and product experience for a sleep and relaxation app.",
+    "highlights": [
+      "Created brand identity from concept to final assets",
+      "Designed iOS app interface with custom audio visualizations",
+      "Marketing materials and App Store optimization"
+    ],
+    "stack": ["Figma", "Illustrator", "After Effects"]
+  },
+  {
+    "company": "Performica",
+    "role": "Product Designer",
+    "period": "2023 - 2024",
+    "location": "Remote",
+    "description": "Designed HR performance management dashboards and employee feedback interfaces.",
+    "highlights": [
+      "Built design system from scratch",
+      "User research and usability testing",
+      "Complex data-heavy dashboard interfaces"
+    ],
+    "stack": ["Figma", "Notion"]
+  },
+  {
+    "company": "Freelance",
+    "role": "Designer",
+    "period": "2020 - 2023",
+    "location": "Riga, Latvia",
+    "description": "Various design projects including brand identity, web design, and marketing materials.",
+    "highlights": [
+      "Brand identities for startups",
+      "Web and mobile UI design",
+      "Marketing and social media assets"
+    ],
+    "stack": ["Figma", "Illustrator", "Photoshop"]
+  }
+]

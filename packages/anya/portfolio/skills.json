@@ -1,0 +1,22 @@
+{
+  "primary": [
+    { "id": "figma", "name": "Figma", "years": 5, "level": "expert" },
+    { "id": "brand-identity", "name": "Brand Identity", "years": 4, "level": "expert" },
+    { "id": "mobile-design", "name": "Mobile App Design", "years": 3, "level": "expert" }
+  ],
+  "strong": [
+    { "id": "ux-research", "name": "UX Research", "years": 3, "level": "professional" },
+    { "id": "web-design", "name": "Web Design", "years": 4, "level": "professional" },
+    { "id": "dashboard-design", "name": "Dashboard Design", "years": 2, "level": "professional" },
+    { "id": "data-visualization", "name": "Data Visualization", "years": 2, "level": "professional" },
+    { "id": "illustrator", "name": "Adobe Illustrator", "years": 5, "level": "professional" },
+    { "id": "after-effects", "name": "After Effects", "years": 3, "level": "professional" }
+  ],
+  "ai": [],
+  "working": [
+    { "id": "html-css", "name": "HTML / CSS", "level": "familiar" },
+    { "id": "notion", "name": "Notion", "level": "familiar" },
+    { "id": "prototyping", "name": "Prototyping", "level": "familiar" }
+  ],
+  "hobby": []
+}

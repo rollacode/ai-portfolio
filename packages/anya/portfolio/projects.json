@@ -1,0 +1,53 @@
+[
+  {
+    "slug": "binaura",
+    "name": "Binaura / SoundCalm",
+    "role": "Lead Designer",
+    "stack": ["Figma", "Illustrator", "After Effects"],
+    "period": "2024 - Present",
+    "screenshots": [],
+    "description": "Sleep and relaxation app with custom soundscapes. Designed the full visual identity, app UI, and marketing materials.",
+    "highlights": [
+      "Brand identity from scratch",
+      "iOS app design with custom audio visualizations",
+      "Marketing assets and App Store presence"
+    ],
+    "links": {},
+    "skillIds": ["figma", "brand-identity", "mobile-design"],
+    "writeup": ""
+  },
+  {
+    "slug": "performica",
+    "name": "Performica",
+    "role": "Product Designer",
+    "stack": ["Figma", "Notion"],
+    "period": "2023 - 2024",
+    "screenshots": [],
+    "description": "Employee performance and feedback platform. Designed dashboard interfaces and user flows for HR teams.",
+    "highlights": [
+      "Complex data dashboard design",
+      "User research and persona development",
+      "Design system components"
+    ],
+    "links": {},
+    "skillIds": ["figma", "ux-research", "dashboard-design"],
+    "writeup": ""
+  },
+  {
+    "slug": "eco-iq",
+    "name": "EcoIQ",
+    "role": "UI/UX Designer",
+    "stack": ["Figma"],
+    "period": "2024",
+    "screenshots": [],
+    "description": "Sustainability and environmental intelligence platform. Contributed to the interface design for data visualization components.",
+    "highlights": [
+      "Data visualization UI",
+      "Responsive web design",
+      "Collaboration with development team"
+    ],
+    "links": {},
+    "skillIds": ["figma", "data-visualization", "web-design"],
+    "writeup": ""
+  }
+]

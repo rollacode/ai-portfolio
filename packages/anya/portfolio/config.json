@@ -1,0 +1,64 @@
+{
+  "name": "Anna Ivanova",
+  "firstName": "Anya",
+  "title": "Design Portfolio",
+  "bio": "Product Designer · Visual Storyteller · Brand Architect",
+  "location": "Riga, Latvia",
+  "workModes": [
+    "remote",
+    "hybrid"
+  ],
+  "avatar": null,
+  "languages": [
+    {
+      "language": "Russian",
+      "level": "Native"
+    },
+    {
+      "language": "English",
+      "level": "Professional working proficiency"
+    }
+  ],
+  "education": {
+    "university": "",
+    "degree": "Product Design",
+    "period": ""
+  },
+  "strengths": [
+    {
+      "title": "Visual Identity",
+      "description": "Creates cohesive brand systems from logo to full product UI. Thinks in design systems, not just screens."
+    },
+    {
+      "title": "Product Design",
+      "description": "End-to-end product thinking — from user research and wireframes to polished hi-fi prototypes. Designs for real users, not awards."
+    },
+    {
+      "title": "Cross-functional",
+      "description": "Works closely with developers and product managers. Understands technical constraints and designs within them."
+    }
+  ],
+  "suggestedQuestions": [
+    "Walk me through her portfolio",
+    "What's her design process?",
+    "Show me her projects",
+    "What tools does she use?",
+    "Has she worked with developers?",
+    "Can she do brand identity?",
+    "Is she available for freelance?"
+  ],
+  "social": {
+    "github": "",
+    "linkedin": "",
+    "email": ""
+  },
+  "theme": {
+    "accent": "#e879f9",
+    "darkBg": "#0a0a0a",
+    "lightBg": "#fafafa"
+  },
+  "agent": {
+    "greeting": "Hi! I'm Anya's portfolio assistant. Looking for a designer? Tell me about your project!",
+    "personality": "Warm, creative, approachable. Like chatting with a designer friend over coffee. Use first name only (\"Anya\"). Be curious about the visitor's project and needs. Keep it friendly and visual-oriented."
+  }
+}

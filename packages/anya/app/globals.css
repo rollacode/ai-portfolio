@@ -1,0 +1,329 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #fafafa;
+  --foreground: #1e293b;
+  --surface: #ffffff;
+  --accent: #84cc16;
+}
+
+.dark {
+  --background: #0a0a0a;
+  --foreground: #e2e8f0;
+  --surface: #0a0a0a;
+  --accent: #84cc16;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Smooth theme transitions                                           */
+/* ------------------------------------------------------------------ */
+
+*,
+*::before,
+*::after {
+  transition-property: background-color, color, border-color, fill, stroke;
+  transition-duration: 200ms;
+  transition-timing-function: ease;
+}
+
+/* Opt out elements where the transition causes issues (e.g. animations) */
+[data-no-theme-transition],
+[data-no-theme-transition] *,
+.motion-reduce * {
+  transition-property: none !important;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Animated gradient shimmer for welcome name                         */
+/* ------------------------------------------------------------------ */
+
+@keyframes gradient-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient-text {
+  background-size: 200% auto;
+  animation: gradient-shift 3s ease infinite;
+}
+
+/* ------------------------------------------------------------------ */
+/*  iOS-style scrollbars: no track, thin translucent thumb             */
+/* ------------------------------------------------------------------ */
+
+/* Webkit (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.3);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 128, 128, 0.5);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(128, 128, 128, 0.3) transparent;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Prevent iOS Safari auto-zoom on input focus (requires >= 16px)     */
+/* ------------------------------------------------------------------ */
+
+@media screen and (hover: none) and (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Shimmer animation for typing indicator action labels */
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.animate-shimmer {
+  animation: shimmer 2.5s ease-in-out infinite;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Showtime — hide all UI during dramatic mode                        */
+/* ------------------------------------------------------------------ */
+
+[data-showtime] .showtime-hide {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 0.8s ease-out !important;
+}
+
+/* Scrollbar for showtime stage */
+.showtime-scroll::-webkit-scrollbar {
+  display: none;
+}
+.showtime-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Fallout / Pip-Boy easter egg theme                                 */
+/* ------------------------------------------------------------------ */
+
+.fallout {
+  --background: #0b0c0a;
+  --foreground: #33ff33;
+  --surface: #0b0c0a;
+  --accent: #33ff33;
+}
+
+.fallout body {
+  font-family: 'Courier New', Courier, monospace;
+  background: #0b0c0a;
+  color: #33ff33;
+}
+
+/* Green tint on everything */
+.fallout * {
+  color: #33ff33 !important;
+  border-color: #33ff3322 !important;
+}
+
+.fallout a,
+.fallout button {
+  color: #33ff33 !important;
+}
+
+.fallout h1, .fallout h2, .fallout h3, .fallout h4 {
+  color: #44ff44 !important;
+}
+
+/* Dimmed text */
+.fallout .text-gray-400,
+.fallout .text-gray-500,
+.fallout .text-gray-600,
+.fallout .text-neutral-400,
+.fallout .text-neutral-500 {
+  color: #22aa22 !important;
+}
+
+/* Backgrounds */
+.fallout .bg-white,
+.fallout .dark\:bg-black,
+.fallout .dark\:bg-neutral-900,
+.fallout .dark\:bg-neutral-900\/80,
+.fallout .dark\:bg-neutral-950\/80,
+.fallout .bg-neutral-50\/80 {
+  background-color: #0b0c0a !important;
+}
+
+.fallout .bg-gray-50,
+.fallout .dark\:bg-white\/\[0\.05\],
+.fallout .dark\:bg-neutral-800,
+.fallout .dark\:bg-neutral-800\/50 {
+  background-color: #111210 !important;
+}
+
+/* Accent override — lime becomes Pip-Boy green */
+.fallout .text-lime-500,
+.fallout .bg-lime-500 {
+  color: #33ff33 !important;
+}
+.fallout .bg-lime-500 {
+  background-color: #33ff33 !important;
+  color: #0b0c0a !important;
+}
+
+/* Borders */
+.fallout .border-gray-200,
+.fallout .border-gray-300,
+.fallout .dark\:border-neutral-700,
+.fallout .dark\:border-neutral-800,
+.fallout .dark\:border-gray-800 {
+  border-color: #33ff3320 !important;
+}
+
+/* Scrollbar */
+.fallout ::-webkit-scrollbar-thumb {
+  background: rgba(51, 255, 51, 0.25) !important;
+}
+.fallout ::-webkit-scrollbar-thumb:hover {
+  background: rgba(51, 255, 51, 0.4) !important;
+}
+.fallout * {
+  scrollbar-color: rgba(51, 255, 51, 0.25) transparent !important;
+}
+
+/* CRT scanlines overlay */
+.fallout body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15) 0px,
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+/* CRT flicker */
+.fallout body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0, 0, 0, 0.4) 100%);
+  animation: fallout-flicker 4s ease-in-out infinite;
+}
+
+@keyframes fallout-flicker {
+  0%, 100% { opacity: 0.97; }
+  50% { opacity: 1; }
+  92% { opacity: 0.98; }
+  94% { opacity: 0.95; }
+  96% { opacity: 0.99; }
+}
+
+/* Glow on text */
+.fallout body {
+  text-shadow: 0 0 4px rgba(51, 255, 51, 0.3);
+}
+
+/* Input styling */
+.fallout input,
+.fallout textarea,
+.fallout select {
+  background-color: #111210 !important;
+  color: #33ff33 !important;
+  border-color: #33ff3330 !important;
+  caret-color: #33ff33;
+}
+
+.fallout input::placeholder,
+.fallout textarea::placeholder {
+  color: #22aa22 !important;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Print styles — clean resume export                                 */
+/* ------------------------------------------------------------------ */
+
+@media print {
+  @page {
+    margin: 0.6in 0.5in;
+    size: A4;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  html, body {
+    background: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* The panel container — make it static full-width for print */
+  [data-print-content] {
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    max-width: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    overflow: visible !important;
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Dark class is removed programmatically before print, but as a
+     safety net force light CSS variables anyway. */
+  .dark {
+    --background: #fafafa !important;
+    --foreground: #1e293b !important;
+    --surface: #ffffff !important;
+    color-scheme: light !important;
+  }
+}
