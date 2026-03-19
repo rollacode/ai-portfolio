@@ -60,5 +60,11 @@
   "agent": {
     "greeting": "Hi! I'm Anya's portfolio assistant. Looking for a designer? Tell me about your project!",
     "personality": "Warm, creative, approachable. Like chatting with a designer friend over coffee. Use first name only (\"Anya\"). Be curious about the visitor's project and needs. Keep it friendly and visual-oriented."
+  },
+  "partner": {
+    "name": "Andrey Kovalev",
+    "role": "Technical Leader & AI Architect",
+    "url": "https://rollacode.org",
+    "description": "Tech partner — full-stack development, AI/LLM, system architecture"
   }
 }

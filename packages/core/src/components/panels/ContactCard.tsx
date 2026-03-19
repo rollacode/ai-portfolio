@@ -118,6 +118,42 @@ export default function ContactCard() {
       {/* Divider */}
       <div className="h-px bg-gray-100 dark:bg-neutral-800" />
 
+      {/* Partner / Works with */}
+      {config.partner && (
+        <>
+          <div className="h-px bg-gray-100 dark:bg-neutral-800" />
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-3">
+              Works with
+            </p>
+            <a
+              href={config.partner.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center gap-3 rounded-xl border border-gray-100 dark:border-neutral-800 p-3 hover:border-gray-300 dark:hover:border-neutral-600 transition-colors"
+            >
+              <div className="w-9 h-9 rounded-full bg-gray-100 dark:bg-neutral-800 flex items-center justify-center text-sm font-bold text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200 transition-colors">
+                {config.partner.name.split(' ').map(w => w[0]).join('')}
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                  {config.partner.name}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                  {config.partner.description}
+                </p>
+              </div>
+              <span className="ml-auto flex-shrink-0 text-gray-300 dark:text-gray-600 group-hover:text-gray-500 dark:group-hover:text-gray-400 transition-colors">
+                <LinkIcon />
+              </span>
+            </a>
+          </div>
+        </>
+      )}
+
+      {/* Divider */}
+      <div className="h-px bg-gray-100 dark:bg-neutral-800" />
+
       {/* Social links */}
       <div className="space-y-3">
         {socialEntries.map(([key, value]) => {

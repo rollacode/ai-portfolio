@@ -28,6 +28,12 @@ export interface PortfolioConfig {
     greeting: string;
     personality: string;
   };
+  partner?: {
+    name: string;
+    role: string;
+    url: string;
+    description: string;
+  };
 }
 
 export interface Skill {
