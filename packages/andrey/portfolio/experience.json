@@ -8,8 +8,7 @@
     "highlights": [
       "Help companies assess where LLMs fit their product (and where they don't)",
       "Architecture design + hands-on implementation to production",
-      "Train engineering teams to own and maintain AI systems independently",
-      "For larger projects, bring in QuantumSoft — a team worked with for 11 years"
+      "Train engineering teams to own and maintain AI systems independently"
     ],
     "stack": ["LangChain", "LangGraph", "Claude Code", "OpenAI API", "Anthropic API", "RAG", "Python", "FastAPI", "React", "TypeScript"]
   },
