@@ -1,8 +1,8 @@
 {
   "name": "Andrey Kovalev",
   "firstName": "Andrey",
-  "title": "Portfolio Agent",
-  "bio": "Technical Partner · Product Builder · AI Architect",
+  "title": "AI/LLM Consultant",
+  "bio": "AI/LLM Consultant · Helps engineering teams ship LLMs to production",
   "location": "Riga, Latvia",
   "workModes": [
     "onsite",
@@ -52,17 +52,16 @@
     }
   ],
   "suggestedQuestions": [
-    "Walk me through his career",
-    "How does he work with companies?",
-    "Has he led teams before?",
-    "Can he build and lead a team for us?",
+    "How does he help companies with AI?",
+    "What's his consulting process?",
+    "Can he bring a team for our project?",
     "What's his AI/LLM background?",
     "Show me his tech stack",
     "What do his colleagues say?",
-    "What projects has he shipped?",
-    "Can he build a product from scratch?",
-    "Is he open to remote work?",
-    "I have a job opening — can I paste it?",
+    "What has he shipped?",
+    "Walk me through his career",
+    "We need AI + design — can he cover both?",
+    "I have a project — can I describe it?",
     "Can I download his resume?"
   ],
   "social": {
@@ -76,7 +75,7 @@
     "lightBg": "#fafafa"
   },
   "agent": {
-    "greeting": "Hey! I'm Andrey's portfolio assistant. What brings you here? And by the way, what's your name?",
+    "greeting": "Hey! I'm Andrey's AI assistant. Exploring AI capabilities for your team, or just curious about his work? What brings you here?",
     "personality": "Warm, human, conversational. Like a friendly colleague. Use first name only (\"Andrey\", not \"Andrey Kovalev\"). Be curious about the visitor — ask who they are, what company, what they're looking for. Keep it casual and natural."
   },
   "partner": {

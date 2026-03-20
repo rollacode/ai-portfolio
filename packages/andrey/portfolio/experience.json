@@ -1,15 +1,29 @@
 [
   {
+    "company": "AI/LLM Consulting",
+    "role": "Independent Consultant",
+    "period": "Oct 2025 - Present",
+    "location": "Riga, Latvia (Remote)",
+    "description": "Consulting for engineering teams adopting LLMs. Architecture reviews, hands-on implementation, developer training. Built an AI portfolio agent (this site) as a showcase of agent capabilities.",
+    "highlights": [
+      "Help companies assess where LLMs fit their product (and where they don't)",
+      "Architecture design + hands-on implementation to production",
+      "Train engineering teams to own and maintain AI systems independently",
+      "For larger projects, bring in QuantumSoft — a team worked with for 11 years"
+    ],
+    "stack": ["LangChain", "LangGraph", "Claude Code", "OpenAI API", "Anthropic API", "RAG", "Python", "FastAPI", "React", "TypeScript"]
+  },
+  {
     "company": "REKAP",
     "role": "Product Developer",
-    "period": "Feb 2025 - Present",
+    "period": "Feb 2025 - Oct 2025",
     "location": "Remote (US-based)",
-    "description": "AI-powered \"Chief of Staff\" platform for automated meeting intelligence, relationship mapping, and action tracking. Shaping the product end-to-end: from defining features and user flows to building AI agent pipelines and full-stack implementation.",
+    "description": "AI-powered \"Chief of Staff\" platform for automated meeting intelligence. Joined through acquisition — his LLM work at Performica triggered the deal. Shaped product end-to-end: AI agent pipelines, full-stack implementation.",
     "highlights": [
-      "Own product direction for AI features — from concept to shipping",
-      "Build and iterate on LLM agent pipelines (LangGraph, LiveKit)",
-      "React + TypeScript frontend, Python/Django backend",
-      "Joined after REKAP acquired Performica, selected as 1 of 2 engineers to transition"
+      "Built and iterated LLM agent pipelines (LangGraph, LiveKit)",
+      "Owned product direction for AI features — from concept to shipping",
+      "Joined after REKAP acquired Performica, selected as 1 of 2 engineers to transition",
+      "React + TypeScript frontend, Python/Django backend"
     ],
     "stack": ["React", "TypeScript", "Python", "Django", "LangChain", "LangGraph", "LiteLLM", "LiveKit", "PostgreSQL", "Redis", "Celery", "WebSocket", "PostHog"]
   },
@@ -18,11 +32,11 @@
     "role": "Product Developer",
     "period": "Sep 2023 - Feb 2025",
     "location": "Remote",
-    "description": "People analytics platform (similar to Lattice). Hybrid role: led product vision for OrgGraph — organizational network analysis visualization. Stayed hands-on with code: Django backend, product design in Figma, marketing website redesign.",
+    "description": "People analytics platform. Led product vision for OrgGraph — organizational network analysis. His LLM integration work caught REKAP's attention and triggered the acquisition.",
     "highlights": [
-      "Built OrgGraph — interactive network graph of organizational relationships (Scala + WebSocket + optimized rendering)",
+      "Built OrgGraph — interactive network graph of organizational relationships",
       "Rewrote entire product vision and user story flow from scratch",
-      "Began LLM integration — caught REKAP's attention, led to acquisition",
+      "Began LLM integration — directly led to acquisition by REKAP",
       "Selected as 1 of 2 engineers (out of 7) to transition to REKAP"
     ],
     "stack": ["Python", "Django", "Vue.js", "Scala", "WebSocket", "Figma", "Product Strategy"]
@@ -56,16 +70,17 @@
   },
   {
     "company": "QuantumSoft LLC",
-    "role": "Product Developer",
+    "role": "Product Developer → AI Practice Lead",
     "period": "Dec 2014 - Present",
     "location": "Riga, Latvia",
-    "description": "11+ year tenure at a software company, evolving from iOS developer to product-minded engineer across healthcare, entertainment, developer tools, and sustainability. Own features end-to-end: architecture, implementation, and product decisions.",
+    "description": "11+ year partnership with a software company. Evolved from iOS developer to product engineer to AI practice lead. Last 2 years focused on AI: LLM integration consulting, agent systems, team upskilling. This is the team Andrey brings in for larger consulting engagements.",
     "highlights": [
       "SOS Portal — COVID-19 teleconsultation platform (Team Lead, 17 people)",
       "Bugsee — developer insights SDK (Lead iOS Developer)",
       "Minnow — streaming aggregator (Lead iOS + backend)",
       "EcoIQ — ESG/sustainability platform (Architecture Consultant + LLM integration)",
-      "Dishero — restaurant discovery (Lead iOS Developer)"
+      "Dishero — restaurant discovery (Lead iOS Developer)",
+      "Last 2 years: AI practice — LLM consulting, agent systems, team training"
     ],
     "stack": ["Swift", "Objective-C", "React", "ASP.NET", "C#", "Python", "Django", "Firebase"]
   }
