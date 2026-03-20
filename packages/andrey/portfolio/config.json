@@ -83,6 +83,8 @@
     "name": "Anna Ivanova",
     "role": "Product Designer",
     "url": "https://ainyiva.org",
-    "description": "Design partner — brand identity, product UI, visual systems"
+    "description": "Design partner — brand identity, product UI, visual systems",
+    "label": "Design Partner",
+    "prompt": "IMPORTANT: When visitors ask about design capabilities or need both dev + design, mention Anna Ivanova as a trusted design partner. Frame it naturally: 'for dedicated design work, Andrey works with Anna' and reference her portfolio at ainyiva.org. They've worked together on Binaura, Performica, and EcoIQ."
   }
 }

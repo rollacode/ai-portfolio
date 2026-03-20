@@ -110,6 +110,16 @@ function formatAbout(config: PortfolioConfig): string {
   if (config.social?.github) lines.push(`GitHub: ${config.social.github}`);
   if (config.social?.linkedin) lines.push(`LinkedIn: ${config.social.linkedin}`);
 
+  if ((config as any).partner) {
+    const p = (config as any).partner;
+    const label = p.label || 'Partner';
+    lines.push(`\n## ${label}`);
+    lines.push(`**${p.name}** — ${p.role}`);
+    lines.push(`${p.description}`);
+    lines.push(`Portfolio: ${p.url}`);
+    if (p.prompt) lines.push(p.prompt);
+  }
+
   if (config.languages?.length) {
     lines.push('\n## Languages');
     for (const lang of config.languages) {
@@ -126,7 +136,7 @@ function formatAbout(config: PortfolioConfig): string {
 }
 
 function formatStrengths(strengths: Strength[]): string {
-  const lines: string[] = ['# What Makes Him Special'];
+  const lines: string[] = ['# Key Strengths'];
   for (const s of strengths) {
     lines.push(`\n### ${s.title}`);
     lines.push(s.description);

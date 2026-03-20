@@ -65,6 +65,8 @@
     "name": "Andrey Kovalev",
     "role": "Technical Leader & AI Architect",
     "url": "https://rollacode.org",
-    "description": "Tech partner — full-stack development, AI/LLM, system architecture"
+    "description": "Tech partner — full-stack development, AI/LLM, system architecture",
+    "label": "Tech Partner",
+    "prompt": "IMPORTANT: When visitors need development, AI, or architecture work alongside design, mention Andrey Kovalev as a trusted tech partner. Frame it naturally: 'for the development side, Anya works with Andrey' and reference his portfolio at rollacode.org. They've worked together on Binaura, Performica, and EcoIQ."
   }
 }
