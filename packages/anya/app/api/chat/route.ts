@@ -4,6 +4,7 @@ import { getToolsWithContext } from '@/lib/tools';
 import { trimMessages } from '@/lib/message-window';
 import { rateLimit, checkDailyQuota, getClientIp } from '@/lib/rate-limit';
 import { enrichMessageWithUrls } from '@/lib/url-fetcher';
+import { runAgentLoop } from '@/lib/agent-loop';
 import { API_KEY, BASE_URL, MODEL } from '@/lib/ai-config';
 import config from '@/portfolio/config.json';
 import projects from '@/portfolio/projects.json';
@@ -85,6 +86,8 @@ function validateMessages(messages: unknown): string | null {
 // POST /api/chat
 // ---------------------------------------------------------------------------
 
+export const maxDuration = 60;
+
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
   if (!rateLimit(ip, 20)) {
@@ -155,37 +158,15 @@ export async function POST(request: NextRequest) {
       ...urlContext,
     ];
 
-    const response = await fetch(`${BASE_URL()}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: MODEL(),
-        messages: finalMessages,
-        tools,
-        stream: true,
-        temperature: 0.7,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorBody = await response.text();
-      return Response.json(
-        { error: `AI API error: ${response.status}`, detail: errorBody },
-        { status: response.status },
-      );
-    }
-
-    // Pipe the raw SSE stream straight through — the client-side parser
-    // handles content deltas and tool_calls from the chunked response.
-    return new Response(response.body, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        Connection: 'keep-alive',
-      },
+    // Server-side agentic loop: act → talk → act → talk within one turn,
+    // merged into a single SSE stream the client parser already understands.
+    return runAgentLoop({
+      baseUrl: BASE_URL(),
+      apiKey,
+      model: MODEL(),
+      messages: finalMessages,
+      tools,
+      temperature: 0.7,
     });
   } catch (error) {
     console.error('Chat API error:', error);

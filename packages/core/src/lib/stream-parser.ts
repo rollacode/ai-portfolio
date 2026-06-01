@@ -109,45 +109,57 @@ export async function* parseStream(response: Response): AsyncGenerator<StreamEve
           continue;
         }
 
-        const delta = data?.choices?.[0]?.delta;
-        if (!delta) continue;
+        const choice = data?.choices?.[0];
+        const delta = choice?.delta;
 
-        // --- Reasoning content (model thinking) ---
-        if (delta.reasoning_content) {
-          yield { type: 'reasoning', content: delta.reasoning_content };
-        }
+        if (delta) {
+          // --- Reasoning content (model thinking) ---
+          if (delta.reasoning_content) {
+            yield { type: 'reasoning', content: delta.reasoning_content };
+          }
 
-        // --- Text content ---
-        if (delta.content) {
-          yield { type: 'text', content: delta.content };
-        }
+          // --- Text content ---
+          if (delta.content) {
+            yield { type: 'text', content: delta.content };
+          }
 
-        // --- Tool calls ---
-        if (delta.tool_calls) {
-          for (const tc of delta.tool_calls as any[]) {
-            const idx: number = tc.index;
+          // --- Tool calls ---
+          if (delta.tool_calls) {
+            for (const tc of delta.tool_calls as any[]) {
+              const idx: number = tc.index;
 
-            // New tool call starting — has id + function.name
-            if (tc.id && tc.function?.name) {
-              // If there was already a pending call at a different index, flush it
-              // (shouldn't normally collide on the same index, but be safe)
-              const existing = pendingCalls.get(idx);
-              if (existing) {
-                yield finalizePending(existing);
-              }
+              // New tool call starting — has id + function.name
+              if (tc.id && tc.function?.name) {
+                // If there was already a pending call at a different index, flush it
+                // (shouldn't normally collide on the same index, but be safe)
+                const existing = pendingCalls.get(idx);
+                if (existing) {
+                  yield finalizePending(existing);
+                }
 
-              pendingCalls.set(idx, {
-                id: tc.id,
-                name: tc.function.name,
-                arguments: tc.function.arguments ?? '',
-              });
-            } else if (tc.function?.arguments != null) {
-              // Continuation chunk — append arguments
-              const pending = pendingCalls.get(idx);
-              if (pending) {
-                pending.arguments += tc.function.arguments;
+                pendingCalls.set(idx, {
+                  id: tc.id,
+                  name: tc.function.name,
+                  arguments: tc.function.arguments ?? '',
+                });
+              } else if (tc.function?.arguments != null) {
+                // Continuation chunk — append arguments
+                const pending = pendingCalls.get(idx);
+                if (pending) {
+                  pending.arguments += tc.function.arguments;
+                }
               }
             }
+          }
+        }
+
+        // A round ends with a finish_reason (the server merges multiple rounds
+        // under one [DONE]). Flush pending tool calls now so their UI actions
+        // fire before any later round's text.
+        if (choice?.finish_reason) {
+          for (const [idx, pending] of pendingCalls) {
+            yield finalizePending(pending);
+            pendingCalls.delete(idx);
           }
         }
       }

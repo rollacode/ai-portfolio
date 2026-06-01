@@ -46,6 +46,46 @@ function sseData(delta: Record<string, unknown>): string {
 }
 
 // ---------------------------------------------------------------------------
+// Multi-round (server-merged) stream: finish_reason flushes pending tool calls
+// ---------------------------------------------------------------------------
+
+describe('parseStream finish_reason flush', () => {
+  it('finalizes a tool call on finish_reason before later text (one [DONE])', async () => {
+    const sse =
+      sseData({ tool_calls: [{ index: 0, id: 'a1', type: 'function', function: { name: 'show_skills', arguments: '{}' } }] }) +
+      'data: {"choices":[{"delta":{},"finish_reason":"tool_calls"}]}\n\n' +
+      sseData({ content: 'Here are his skills!' }) +
+      'data: {"choices":[{"delta":{},"finish_reason":"stop"}]}\n\n' +
+      'data: [DONE]\n\n';
+
+    const events = await collectEvents(makeResponse(sse));
+
+    expect(events).toEqual([
+      { type: 'tool_call', id: 'a1', name: 'show_skills', arguments: {} },
+      { type: 'text', content: 'Here are his skills!' },
+      { type: 'done' },
+    ]);
+  });
+
+  it('finalizes round-1 tools before round-2 tool of the same index', async () => {
+    const sse =
+      sseData({ tool_calls: [{ index: 0, id: 'a1', type: 'function', function: { name: 'show_skills', arguments: '{}' } }] }) +
+      'data: {"choices":[{"delta":{},"finish_reason":"tool_calls"}]}\n\n' +
+      sseData({ tool_calls: [{ index: 0, id: 'b2', type: 'function', function: { name: 'highlight_skill', arguments: '{"name":"Swift / iOS"}' } }] }) +
+      'data: {"choices":[{"delta":{},"finish_reason":"tool_calls"}]}\n\n' +
+      'data: [DONE]\n\n';
+
+    const events = await collectEvents(makeResponse(sse));
+
+    expect(events).toEqual([
+      { type: 'tool_call', id: 'a1', name: 'show_skills', arguments: {} },
+      { type: 'tool_call', id: 'b2', name: 'highlight_skill', arguments: { name: 'Swift / iOS' } },
+      { type: 'done' },
+    ]);
+  });
+});
+
+// ---------------------------------------------------------------------------
 // isToolCallEvent type guard
 // ---------------------------------------------------------------------------
 
