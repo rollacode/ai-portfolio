@@ -651,16 +651,10 @@ export function getToolsWithContext(
       case 'scroll_timeline_to':
       case 'highlight_period':
         t.function.description += ` Known companies: [${companyList}].`;
-        if (t.function.parameters.properties.company) {
-          t.function.parameters.properties.company.enum = companies;
-        }
         break;
 
       case 'highlight_skill':
         t.function.description += ` Available skills: [${skillList}].`;
-        if (t.function.parameters.properties.name) {
-          t.function.parameters.properties.name.enum = skillNames;
-        }
         break;
 
       case 'focus_screenshot':
