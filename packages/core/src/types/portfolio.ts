@@ -3,6 +3,7 @@ export interface PortfolioConfig {
   firstName: string;
   title: string;
   bio: string;
+  experienceYears?: number;
   location: string;
   workModes: string[];
   avatar: string | null;

@@ -36,7 +36,7 @@ interface Project {
 /*  Data                                                               */
 /* ------------------------------------------------------------------ */
 
-const topProjectSlugs = ['rekap', 'binaura', 'trax-retail', 'scan-mania', 'bugsee', 'sos-portal'];
+const topProjectSlugs = ['domios', 'rekap', 'binaura', 'trax-retail', 'scan-mania', 'bugsee', 'sos-portal'];
 
 const categoryLabels: Record<string, string> = {
   primary: 'Expert',

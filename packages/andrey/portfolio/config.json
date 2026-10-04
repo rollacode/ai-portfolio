@@ -2,7 +2,7 @@
   "name": "Andrey Kovalev",
   "firstName": "Andrey",
   "title": "AI/LLM Consultant",
-  "bio": "AI/LLM Consultant · Helps engineering teams ship LLMs to production",
+  "bio": "AI/LLM Consultant · 14+ years building software · Creator of Domios",
   "location": "Riga, Latvia",
   "workModes": [
     "onsite",
@@ -28,7 +28,7 @@
   "strengths": [
     {
       "title": "Depth + Breadth",
-      "description": "11-year iOS expert who also builds web frontends, Python backends, and computer vision pipelines. Can go deep on a single platform or own the full stack — whatever the product needs."
+      "description": "14+ years building software across mobile, web, backend systems and AI. Deep iOS expertise alongside Python backends, computer vision pipelines and cross-platform desktop products. Can go deep on a single platform or own the full stack."
     },
     {
       "title": "Product Sense",
@@ -36,7 +36,7 @@
     },
     {
       "title": "AI Native",
-      "description": "Building with LLMs daily at work (REKAP) and personally (Rollo agent). Designed custom AI agent with 30+ skills, knowledge graphs, multi-device orchestration. Deep experience with Claude Code, OpenAI/Anthropic APIs, RAG, prompt engineering, and vibe coding. Proudly AI-augmented: Andrey doesn't hide that he uses AI tools — he highlights it. His philosophy: engineers optimize processes, and AI tools are the ultimate optimization. Why write boilerplate by hand when you can generate it and review with 11+ years of experience? The value is in knowing WHAT to build and WHY, not in typing it character by character."
+      "description": "Created and develops Domios (formerly CodeTerm), a desktop home for AI agents with coordinated teams, shared local memory, a knowledge graph, connected machines and provider plugins. Also builds LLM features at REKAP and personal agent workflows with Rollo. Proudly AI-augmented: he applies 14+ years of engineering experience to architecture, review and delivery. The value is in knowing what to build and why."
     },
     {
       "title": "Shipping Record",
@@ -48,10 +48,11 @@
     },
     {
       "title": "Builder",
-      "description": "Founded and shipped revenue-generating products: SoundCalm/Binaura (iOS app), serve_ai (waitlist management), Rollo (personal AI agent with smart home, trading, proactive monitoring). Thinks like a founder — market, users, revenue — not just code."
+      "description": "Creates and ships his own products: Domios (the AI-agent workspace he conceived and develops), SoundCalm/Binaura (a revenue-generating iOS app), serve_ai (waitlist management), and Rollo (a personal AI agent). Owns product direction, architecture and delivery."
     }
   ],
   "suggestedQuestions": [
+    "What is Domios, and how did he build it?",
     "How does he help companies with AI?",
     "What's his consulting process?",
     "How does he scale for bigger projects?",
@@ -85,5 +86,6 @@
     "description": "Design partner — brand identity, product UI, visual systems",
     "label": "Design Partner",
     "prompt": "IMPORTANT: When visitors ask about design capabilities or need both dev + design, mention Anna Ivanova as a trusted design partner. Frame it naturally: 'for dedicated design work, Andrey works with Anna' and reference her portfolio at ainyiva.vercel.app. They've worked together on Binaura, Performica, and EcoIQ."
-  }
+  },
+  "experienceYears": 14
 }
