@@ -1,5 +1,51 @@
 [
   {
+    "slug": "domios",
+    "name": "Domios - A Home for AI Agents",
+    "role": "Creator & Lead Developer",
+    "stack": [
+      "Rust",
+      "Tauri v2",
+      "React",
+      "TypeScript",
+      "xterm.js",
+      "SQLite"
+    ],
+    "period": "2026 - Present",
+    "screenshots": [
+      "domios/mesh-workspace.png",
+      "domios/shared-memory.webp",
+      "domios/dreams.webp"
+    ],
+    "description": "Andrey created and develops Domios (formerly CodeTerm), a cross-platform workspace where AI agents work as teams. It brings agent sessions, plans, shared local memory and connected machines into one desktop application.",
+    "highlights": [
+      "Conceived the product and leads its architecture, engineering and delivery using AI-assisted development",
+      "Coordinates AI teams with Orchestrator, Planner and Worker roles, durable plans and reviewable results",
+      "Shares facts, decisions and skills across agents on the same machine, with a searchable memory graph",
+      "Dreams consolidates memory with a reviewable diary and saved versions",
+      "Connects workspaces across paired computers through Mesh and supports connected Telegram messages and replies",
+      "Extends agent support through provider plugins, including Claude Code, Codex, OpenCode and local models"
+    ],
+    "links": {
+      "website": "https://domios.dev"
+    },
+    "skillIds": [
+      "llm-agents",
+      "ai-agent-orchestration",
+      "react-typescript",
+      "system-architecture",
+      "knowledge-graphs",
+      "claude-code",
+      "opencode",
+      "prompt-engineering",
+      "rag-vector-search",
+      "vibe-coding",
+      "linux-cli",
+      "ci-cd"
+    ],
+    "writeup": "# Domios - A Home for AI Agents\n\n**Role:** Creator & Lead Developer\n**Previously:** CodeTerm\n\n## What Andrey built\nAndrey conceived and develops Domios: a desktop environment for working with AI agents as a coordinated team. He owns the product direction, system architecture and engineering, using AI agents throughout development and reviewing their output.\n\n## From sessions to a team\nInstead of disconnected terminal sessions, Domios brings agents into workspaces with named roles, plans, tasks and reports. Orchestrators coordinate work, Planners shape tasks, and Workers implement changes for review. The goal is to retain the context of the work as agents and sessions change.\n\n## Memory that stays\nAgents on the same machine share a persistent memory of facts, decisions and skills. A knowledge graph makes that context inspectable. Dreams provides memory consolidation sessions, a diary and saved versions. Shared memory across different machines is on the roadmap; the existing local memory is not a claim of global synchronized memory.\n\n## Connected machines and extensible agents\nMesh connects paired computers and their workspaces. Provider plugins let different coding agents and local models live in the same environment. Connected Telegram messages and replies offer another way to stay in touch with ongoing work.\n\n## Engineering\nThe application combines Rust and Tauri v2 with React, TypeScript and xterm.js. Andrey works across the desktop UI, agent lifecycle, orchestration, memory and plugin architecture, with builds for macOS, Windows and Linux.\n\n## Screenshots\nThe gallery shows real product screens: the Mesh workspace, the shared local Memory graph and the Dreams diary.\n\n## Explore\n[Visit Domios and watch the product demo](https://domios.dev)."
+  },
+  {
     "slug": "trax-retail",
     "name": "Trax Retail - Shelf Recognition",
     "role": "Lead Developer",

@@ -263,13 +263,14 @@ export default function QuickFacts() {
   const totalSkills = useMemo(() => skillCategories.reduce((sum, c) => sum + c.count, 0), [skillCategories]);
 
   const yearsOfExperience = useMemo(() => {
+    if (config.experienceYears !== undefined) return config.experienceYears;
     const startYears = (experience as any[]).map((e: any) => {
       const match = e.period.match(/\b(19|20)\d{2}\b/);
       return match ? parseInt(match[0], 10) : Infinity;
     });
     const earliestYear = Math.min(...startYears);
     return new Date().getFullYear() - earliestYear;
-  }, [experience]);
+  }, [config.experienceYears, experience]);
 
   const uniqueCompanies = useMemo(() => [...new Set((experience as any[]).map((e: any) => e.company))], [experience]);
 

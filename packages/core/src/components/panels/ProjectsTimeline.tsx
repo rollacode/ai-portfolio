@@ -48,6 +48,7 @@ const THEME_SKILL_IDS: Record<string, string[]> = {
 
 // Projects where Andrey held leadership roles (Team Lead, Tech Lead, PM, Co-Founder)
 const LEADERSHIP_SLUGS = new Set([
+  'domios',
   'sos-portal',      // Team Lead, 17 people
   'performica',      // Product Manager, 7 engineers
   'rekap',           // Senior Engineer, AI architecture lead
