@@ -35,6 +35,21 @@ export interface PortfolioConfig {
     url: string;
     description: string;
   };
+  /** A product the site owner wants to show off; the agent gets a show_spotlight tool only when this is set. */
+  spotlight?: Spotlight;
+}
+
+export interface Spotlight {
+  name: string;
+  tagline: string;
+  summary: string;
+  video?: { mp4: string; webm?: string; poster?: string };
+  /** One story that proves the product, told in a sentence or two rather than as a stats grid. */
+  proof?: { title: string; body: string };
+  differences: Array<{ title: string; body: string }>;
+  capabilities: Array<{ title: string; body: string }>;
+  openSource?: string;
+  links: { website: string; download?: string; source?: string };
 }
 
 export interface Skill {

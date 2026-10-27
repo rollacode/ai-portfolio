@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Playfair_Display } from "next/font/google";
+import { Inter, JetBrains_Mono, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import config from "@/portfolio/config.json";
 import CookieConsent from "@ai-portfolio/core/components/ui/CookieConsent";
@@ -12,11 +12,27 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 
+// Domios type: Inter for the interface, JetBrains Mono for small technical labels.
+const inter = Inter({
+  subsets: ["latin", "cyrillic"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const mono = JetBrains_Mono({
+  subsets: ["latin", "cyrillic"],
+  variable: "--font-mono",
+  display: "swap",
+});
+
 const title = `${config.name} — ${config.title}`;
 const description = `${config.bio}. Interactive AI-powered portfolio.`;
 
 export const viewport: Viewport = {
-  themeColor: config.theme.accent || "#0ea5e9",
+  themeColor: [
+    { media: "(prefers-color-scheme: dark)", color: config.theme.darkBg },
+    { media: "(prefers-color-scheme: light)", color: config.theme.lightBg },
+  ],
   maximumScale: 1,
 };
 
@@ -45,7 +61,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={playfair.variable} suppressHydrationWarning>
+    <html lang="en" className={`${playfair.variable} ${inter.variable} ${mono.variable}`} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{

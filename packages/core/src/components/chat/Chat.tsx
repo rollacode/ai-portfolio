@@ -141,13 +141,14 @@ export default function Chat() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, transition: { duration: 0.2 } }}
             className="fixed inset-0 flex flex-col items-center justify-center z-10 print:hidden"
+            data-welcome
           >
-            <h1 className="text-2xl md:text-3xl font-medium text-gray-500 dark:text-gray-500 mb-6">
-              ask me about <span className="text-black dark:text-white">{firstName}</span>
+            <h1 data-welcome-title className="text-2xl md:text-3xl font-medium text-gray-500 dark:text-gray-500 mb-6">
+              ask me about <span data-welcome-name className="text-black dark:text-white">{firstName}</span>
             </h1>
-            <div className="w-full max-w-3xl px-4">
+            <div data-welcome-input className="w-full max-w-3xl px-4">
               <ChatInput onSend={sendMessage} disabled={isLoading} animatePlaceholder prefillText={prefillText} onPrefillConsumed={() => setPrefillText('')} />
-              <p className="text-[10px] text-center text-gray-400 dark:text-gray-600 mt-2">
+              <p data-welcome-meta className="text-[10px] text-center text-gray-400 dark:text-gray-600 mt-2">
                 {firstName}&apos;s portfolio agent
                 {config.social?.github && (
                   <>

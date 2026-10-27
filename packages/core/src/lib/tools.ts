@@ -32,7 +32,8 @@ export type ToolName =
   | 'play_game'
   | 'show_insight'
   | 'match_job'
-  | 'start_showtime';
+  | 'start_showtime'
+  | 'show_spotlight';
 
 export interface ToolCall {
   name: ToolName;
@@ -219,6 +220,18 @@ export const tools: ToolDefinition[] = [
       name: 'show_quick_facts',
       description:
         'Show animated quick facts/stats about the portfolio — project count, skill count, years of experience, etc. Use when the user asks for a quick overview or summary stats.',
+      parameters: {
+        type: 'object',
+        properties: {},
+      },
+    },
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'show_spotlight',
+      description:
+        'Open the spotlight panel: a promo for the product the portfolio owner built, with its trailer, what makes it different, what it can do, scale, open-source status and download links.',
       parameters: {
         type: 'object',
         properties: {},
@@ -629,13 +642,16 @@ export function getToolsWithContext(
   companies: string[],
   skillNames: string[],
   recommendationAuthors: string[] = [],
+  spotlightName?: string,
 ): ToolDefinition[] {
   const slugList = projectSlugs.join(', ');
   const companyList = companies.join(', ');
   const skillList = skillNames.join(', ');
   const authorList = recommendationAuthors.join(', ');
 
-  return tools.map((tool) => {
+  // A site without a spotlight never offers the tool.
+  const offered = spotlightName ? tools : tools.filter((tool) => tool.function.name !== 'show_spotlight');
+  return offered.map((tool) => {
     const t = structuredClone(tool);
     const { name } = t.function;
 
@@ -678,6 +694,10 @@ export function getToolsWithContext(
         if (t.function.parameters.properties.slug2) {
           t.function.parameters.properties.slug2.enum = projectSlugs;
         }
+        break;
+
+      case 'show_spotlight':
+        t.function.description += ` The product is ${spotlightName}. Use it whenever the visitor asks about ${spotlightName}, what the owner is building now, or wants to see it.`;
         break;
 
       case 'highlight_recommendation':

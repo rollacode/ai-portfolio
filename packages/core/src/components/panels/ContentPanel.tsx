@@ -19,6 +19,7 @@ import SnakeGame from '../games/SnakeGame';
 import Game2048 from '../games/Game2048';
 import InsightPanel from './InsightPanel';
 import JobMatchPanel from './JobMatchPanel';
+import SpotlightPanel from './SpotlightPanel';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -72,6 +73,8 @@ function panelTitle(type: PanelState['type'], state?: PanelState): string {
       return state?.insightTitle || 'Insight';
     case 'job-match':
       return 'Job Match';
+    case 'spotlight':
+      return 'Spotlight';
     default:
       return '';
   }
@@ -319,6 +322,9 @@ export default function ContentPanel({
 
       case 'quick-facts':
         return <QuickFacts />;
+
+      case 'spotlight':
+        return <SpotlightPanel />;
 
       case 'recommendations':
         return (
