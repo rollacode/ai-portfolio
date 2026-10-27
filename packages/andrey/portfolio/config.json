@@ -71,9 +71,9 @@
     "email": "g.andry90@gmail.com"
   },
   "theme": {
-    "accent": "#84cc16",
-    "darkBg": "#0a0a0a",
-    "lightBg": "#fafafa"
+    "accent": "#58a6ff",
+    "darkBg": "#0b1016",
+    "lightBg": "#f7f9fc"
   },
   "agent": {
     "greeting": "Hey! I'm Andrey's AI assistant. Exploring AI capabilities for your team, or just curious about his work? What brings you here?",
@@ -86,6 +86,52 @@
     "description": "Design partner — brand identity, product UI, visual systems",
     "label": "Design Partner",
     "prompt": "IMPORTANT: When visitors ask about design capabilities or need both dev + design, mention Anna Ivanova as a trusted design partner. Frame it naturally: 'for dedicated design work, Andrey works with Anna' and reference her portfolio at ainyiva.vercel.app. They've worked together on Binaura, Performica, and EcoIQ."
+  },
+  "spotlight": {
+    "name": "Domios",
+    "tagline": "Agents live here.",
+    "summary": "Domios is a distributed OS for AI agents: the place where Claude Code, Codex, OpenCode and local models live, work and coordinate as one team. It's not a terminal with AI bolted on. It's the infrastructure agents need, wrapped in a terminal because that's where developers already work. Andrey conceived it and builds it every day, with agents doing the work under his review.",
+    "video": {
+      "mp4": "https://domios.dev/media/trailer.mp4",
+      "webm": "https://domios.dev/media/trailer.webm",
+      "poster": "https://domios.dev/media/trailer-poster.webp"
+    },
+    "proof": {
+      "title": "Domios is built inside Domios.",
+      "body": "One engineer, seven months, a desktop OS for Windows, macOS and Linux. Andrey sets the goal; an Orchestrator splits it into tasks, Workers build them in isolated lanes, and nothing merges until it has been reviewed. The tool is its own strongest case study."
+    },
+    "differences": [
+      {
+        "title": "An OS for agents, not an AI terminal",
+        "body": "A CLI and API every agent can use: open a tab, read output, spawn a worker, send a message, without knowing the host's internals."
+      },
+      {
+        "title": "Meta-teams that ship reviewed work",
+        "body": "An Orchestrator coordinates and verifies, a Planner shapes each task and gives its Worker a fitting personality, and Workers implement. A plan tracks progress, and review separates a submitted result from an accepted one."
+      },
+      {
+        "title": "Any agent, side by side",
+        "body": "Model- and provider-agnostic. Claude Code, Codex, OpenCode and local models share one workspace through provider plugins."
+      },
+      {
+        "title": "A spinal cord that keeps work moving",
+        "body": "Small, bounded judgments name each tab's state and recover stuck work while nobody watches. The model names the state; deterministic evidence authorizes the action."
+      }
+    ],
+    "capabilities": [
+      { "title": "Teams and plans", "body": "Give a goal, get tasks, isolated work lanes, reports and reviewed results." },
+      { "title": "Shared memory", "body": "Agents on one machine share facts, decisions and skills in a searchable knowledge graph. Dreams consolidates it." },
+      { "title": "Mesh", "body": "Pair your computers and send commands, agents and reports between them." },
+      { "title": "Desktop to phone", "body": "Continue with the same agents from your phone over your private Tailnet." },
+      { "title": "Telegram bridge", "body": "Message your agents and get replies and notifications wherever you are." },
+      { "title": "Schedules and sessions", "body": "Recurring agent jobs, plus searching and resuming any past conversation." }
+    ],
+    "openSource": "Domios is open source under AGPL-3.0. Download it, run it, read the code, or build on it.",
+    "links": {
+      "website": "https://domios.dev",
+      "download": "https://github.com/rollacode/codeterm-releases/releases/latest",
+      "source": "https://github.com/domios-dev/domios"
+    }
   },
   "experienceYears": 14
 }

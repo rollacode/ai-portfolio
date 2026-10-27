@@ -150,7 +150,7 @@ export async function POST(request: NextRequest) {
     }
 
     const systemPrompt = buildSystemPrompt();
-    const tools = getToolsWithContext(projectSlugs, companyNames, skillNames, recommendationAuthors);
+    const tools = getToolsWithContext(projectSlugs, companyNames, skillNames, recommendationAuthors, config.spotlight?.name);
 
     const finalMessages: Array<{ role: string; content: string | null }> = [
       { role: 'system', content: systemPrompt },

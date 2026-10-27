@@ -6,4 +6,5 @@ export type {
   Experience,
   Recommendation,
   PortfolioData,
+  Spotlight,
 } from './portfolio';

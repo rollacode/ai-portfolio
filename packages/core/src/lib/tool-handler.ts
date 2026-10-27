@@ -22,7 +22,7 @@ function getVisitorId(): string {
 
 export type PanelState = {
   open: boolean;
-  type: 'project' | 'projects' | 'skills' | 'contact' | 'timeline' | 'gallery' | 'comparison' | 'resume' | 'tech-radar' | 'recommendations' | 'quick-facts' | 'game' | 'insight' | 'job-match' | null;
+  type: 'project' | 'projects' | 'skills' | 'contact' | 'timeline' | 'gallery' | 'comparison' | 'resume' | 'tech-radar' | 'recommendations' | 'quick-facts' | 'game' | 'insight' | 'job-match' | 'spotlight' | null;
   slug?: string;
   slug2?: string;
   category?: string;
@@ -135,6 +135,11 @@ export function handleToolCall(
     case 'show_quick_facts':
       return {
         panelState: { open: true, type: 'quick-facts' },
+      };
+
+    case 'show_spotlight':
+      return {
+        panelState: { open: true, type: 'spotlight' },
       };
 
     case 'show_recommendations':
