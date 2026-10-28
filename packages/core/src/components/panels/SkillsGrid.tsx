@@ -1,12 +1,15 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { usePortfolioData } from '../../context/PortfolioDataContext';
+import { useConversationContext } from '../../context/ConversationContext';
+import { liquidSettle, reducedMotionCrossfade } from '../../lib/motion';
 
 type SkillLevel = 'expert' | 'professional' | 'familiar';
 
 interface Skill {
+  id: string;
   name: string;
   years?: number;
   level: SkillLevel;
@@ -24,7 +27,7 @@ const categoryLabels: Record<Category, string> = {
 
 const levelColors: Record<SkillLevel, string> = {
   expert: 'bg-green-500',
-  professional: 'bg-blue-500',
+  professional: 'bg-lime-500',
   familiar: 'bg-yellow-500',
 };
 
@@ -39,9 +42,10 @@ interface SkillsGridProps {
   highlightedSkill?: string | null;
   onHighlightConsumed?: () => void;
   onSkillClick?: (skillName: string) => void;
+  onProjectOpen?: (slug: string) => void;
 }
 
-export default function SkillsGrid({
+function LegacySkillsGrid({
   category,
   highlightedSkill,
   onHighlightConsumed,
@@ -192,4 +196,53 @@ export default function SkillsGrid({
       </AnimatePresence>
     </div>
   );
+}
+
+export function SkillProjects({ skillId, onProjectOpen }: { skillId: string | null; onProjectOpen?: (slug: string) => void }) {
+  const { projects, skills } = usePortfolioData();
+  const still = useReducedMotion();
+  const skill = Object.values(skills).flat().find(item => item.id === skillId);
+  const linked = projects.filter(project => skillId && project.skillIds?.includes(skillId));
+  return <div className="min-h-32 rounded-[14px_18px_14px_18px] border border-gray-200 p-4 dark:border-gray-800" aria-live="polite">
+    <h3 className="font-semibold">{skill ? skill.name + ' in practice' : 'Explore the project connections'}</h3>
+    {!skill ? <p className="mt-2 text-sm text-gray-500">Select a skill with a tap, keyboard focus or pointer.</p> : <>
+      <svg viewBox="0 0 200 12" className="my-3 h-3 w-full text-lime-500" aria-hidden="true"><motion.path key={skillId} d="M0 6 H200" stroke="currentColor" strokeWidth="2" initial={still ? false : { pathLength: 0 }} animate={{ pathLength: 1 }} transition={still ? reducedMotionCrossfade : liquidSettle} /></svg>
+      {linked.length ? <ul className="space-y-2">{linked.map(project => <li key={project.slug}>{onProjectOpen ? <button id={'skill-project-' + skillId + '-' + project.slug} type="button" className="rounded text-left text-sm underline decoration-lime-500 underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500" onClick={() => onProjectOpen(project.slug)}>{project.name}</button> : <span className="text-sm">{project.name}</span>}</li>)}</ul> : <p className="text-sm text-gray-500">No portfolio project is linked to this skill yet.</p>}
+    </>}
+  </div>;
+}
+
+function LivingSkillsGrid({ category, highlightedSkill, onHighlightConsumed, onSkillClick, onProjectOpen }: SkillsGridProps) {
+  const { skills } = usePortfolioData();
+  const [selected, setSelected] = useState<string | null>(null);
+  const categories = (Object.keys(categoryLabels) as Category[]).filter(key => !category || category === 'all' || category === key);
+  useEffect(() => {
+    if (!highlightedSkill) return;
+    const match = Object.values(skills).flat().find(skill => skill.name.toLowerCase().includes(highlightedSkill.toLowerCase()));
+    setSelected(match?.id || null);
+    onHighlightConsumed?.();
+  }, [highlightedSkill, onHighlightConsumed, skills]);
+  return <div className="space-y-6">
+    {!categories.length && <p role="status">No skills match this category. Ask to show all skills.</p>}
+    <div className="space-y-6">
+      {categories.map(category => <section key={category} aria-label={categoryLabels[category]}>
+        <h3 className="mb-3 text-lg font-semibold">{categoryLabels[category]}</h3>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {skills[category].map(skill => <button id={'skill-source-' + skill.id} key={skill.id} type="button" aria-pressed={selected === skill.id}
+            onPointerEnter={() => setSelected(skill.id)} onFocus={() => setSelected(skill.id)}
+            onClick={() => { setSelected(skill.id); onSkillClick?.(skill.name); }}
+            className={'flex items-center justify-between gap-3 rounded-[10px_16px_10px_16px] border p-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500 ' + (selected === skill.id ? 'border-lime-500 bg-lime-500/10' : 'border-transparent bg-gray-50 dark:bg-gray-900')}>
+            <span className="text-sm font-medium">{skill.name}</span><span className="text-xs text-gray-500">{levelLabels[skill.level as SkillLevel] || skill.level}{skill.years ? ' (' + skill.years + 'y)' : ''}</span>
+          </button>)}
+        </div>
+      </section>)}
+    </div>
+    <SkillProjects skillId={selected} onProjectOpen={onProjectOpen} />
+    {selected && <button type="button" className="text-sm underline" onClick={() => setSelected(null)}>Clear selection</button>}
+  </div>;
+}
+
+export default function SkillsGrid(props: SkillsGridProps) {
+  const { enabled } = useConversationContext();
+  return enabled ? <LivingSkillsGrid {...props} /> : <LegacySkillsGrid {...props} />;
 }

@@ -127,6 +127,11 @@
       { "title": "Schedules and sessions", "body": "Recurring agent jobs, plus searching and resuming any past conversation." }
     ],
     "openSource": "Domios is open source under AGPL-3.0. Download it, run it, read the code, or build on it.",
+    "loop": {
+      "mp4": "/loops/domios/loop.mp4",
+      "webm": "/loops/domios/loop.webm",
+      "poster": "/loops/domios/poster.webp"
+    },
     "links": {
       "website": "https://domios.dev",
       "download": "https://github.com/rollacode/codeterm-releases/releases/latest",

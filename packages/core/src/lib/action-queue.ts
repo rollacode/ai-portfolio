@@ -1,87 +1,44 @@
-// Manages sequencing of Layer 2 tool actions.
-// Actions (scroll, highlight, focus) depend on Layer 1 panels being open and
-// fully animated in. This queue buffers actions until the panel signals ready,
-// then flushes them with a stagger delay.
-
 import type { PanelAction } from './tool-handler';
+import type { PanelIdentity } from './chat-lifecycle';
 
-// -----------------------------------------------------------------------------
-// Types
-// -----------------------------------------------------------------------------
-
-interface QueuedAction {
-  action: PanelAction;
-}
-
-// -----------------------------------------------------------------------------
-// ActionQueue
-// -----------------------------------------------------------------------------
-
-const STAGGER_DELAY_MS = 150;
-
+/** Release actions only when their actual content identity is ready. */
 export class ActionQueue {
-  private queue: QueuedAction[] = [];
-  private panelReady = false;
-  private pendingTimeouts: ReturnType<typeof setTimeout>[] = [];
-  private onAction: (action: PanelAction) => void;
-
-  constructor(onAction: (action: PanelAction) => void) {
-    this.onAction = onAction;
-  }
-
-  /**
-   * Called when a panel open/close animation completes.
-   * When `ready` is true, any queued actions are flushed.
-   * When `ready` is false (panel closing), the queue is cleared.
-   */
-  setPanelReady(ready: boolean): void {
-    this.panelReady = ready;
-
-    if (ready) {
-      this.processQueue();
-    } else {
+  private queue: PanelAction[] = [];
+  private ready = false;
+  private active = false;
+  private identity?: PanelIdentity;
+  constructor(private onAction: (action: PanelAction) => void) {}
+  setPanelIdentity(identity: PanelIdentity) {
+    if (!this.isCurrent(identity)) {
       this.clear();
+      this.ready = false;
+      this.identity = { ...identity };
     }
   }
-
-  /**
-   * Enqueue an action. If the panel is already ready, execute immediately.
-   * Otherwise, buffer it until the panel signals ready.
-   */
-  enqueue(action: PanelAction): void {
-    if (this.panelReady) {
-      this.onAction(action);
-    } else {
-      this.queue.push({ action });
-    }
+  isCurrent(identity: PanelIdentity) {
+    return this.identity?.generation === identity.generation
+      && this.identity.type === identity.type && this.identity.slug === identity.slug;
   }
-
-  /**
-   * Process queued actions with a stagger delay between each.
-   */
-  private processQueue(): void {
-    const items = this.queue.splice(0);
-
-    items.forEach((item, i) => {
-      if (i === 0) {
-        this.onAction(item.action);
-      } else {
-        const timeout = setTimeout(() => {
-          this.onAction(item.action);
-        }, i * STAGGER_DELAY_MS);
-        this.pendingTimeouts.push(timeout);
-      }
-    });
+  setPanelReady(ready: boolean, identity?: PanelIdentity) {
+    if (identity && !this.isCurrent(identity)) return;
+    this.ready = ready;
+    if (!ready) this.clear();
+    else this.flush();
   }
-
-  /**
-   * Clear all pending actions and cancel scheduled timeouts.
-   */
-  clear(): void {
-    this.queue = [];
-    for (const timeout of this.pendingTimeouts) {
-      clearTimeout(timeout);
-    }
-    this.pendingTimeouts = [];
+  enqueue(action: PanelAction, identity?: PanelIdentity) {
+    if (identity && !this.isCurrent(identity)) return;
+    this.queue.push(action);
+    this.flush();
   }
+  consume(identity?: PanelIdentity) {
+    if (identity && !this.isCurrent(identity)) return;
+    this.active = false;
+    this.flush();
+  }
+  private flush() {
+    if (!this.ready || this.active) return;
+    const next = this.queue.shift();
+    if (next) { this.active = true; this.onAction(next); }
+  }
+  clear() { this.queue = []; this.active = false; }
 }
