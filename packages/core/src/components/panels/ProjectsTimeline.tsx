@@ -1,8 +1,13 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { usePortfolioData } from '../../context/PortfolioDataContext';
+import { useConversationContext } from '../../context/ConversationContext';
+import { brandSpring, liquidSettle, reducedMotionCrossfade, morphSpring } from '../../lib/motion';
+import type { ProjectLoopMedia } from '../../types/portfolio';
+import ProjectLoop from './ProjectLoop';
+import DeviceStrip from './DeviceStrip';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -15,6 +20,9 @@ interface Project {
   stack: string[];
   period: string;
   screenshots: string[];
+  loop?: ProjectLoopMedia;
+  phones?: string[];
+  phoneFrame?: boolean;
   description: string;
   highlights: string[];
   links: Record<string, string>;
@@ -31,6 +39,8 @@ interface ProjectsTimelineProps {
   onActionConsumed?: () => void;
   filter?: string;
   skillId?: string;
+  onProjectOpen?: (slug: string) => void;
+  onClearFilter?: () => void;
 }
 
 /* ------------------------------------------------------------------ */
@@ -95,39 +105,7 @@ function shouldShowYear(list: Project[], index: number): boolean {
 /* ------------------------------------------------------------------ */
 
 function TimelineDot({ isHighlighted }: { isHighlighted: boolean }) {
-  return (
-    <div className="relative flex items-center justify-center">
-      <AnimatePresence>
-        {isHighlighted && (
-          <motion.div
-            className="absolute w-8 h-8 rounded-full border-2 border-lime-400"
-            initial={{ scale: 0.5, opacity: 1 }}
-            animate={{ scale: [1, 1.8, 1], opacity: [0.8, 0, 0.8] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-          />
-        )}
-      </AnimatePresence>
-
-      {isHighlighted && (
-        <motion.div
-          className="absolute w-5 h-5 rounded-full bg-lime-500/40 blur-sm"
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 0.3 }}
-        />
-      )}
-
-      <motion.div
-        className={`relative z-10 w-3.5 h-3.5 rounded-full border-2 transition-colors duration-300 ${
-          isHighlighted
-            ? 'bg-lime-400 border-lime-400 shadow-[0_0_12px_rgba(132,204,22,0.6)]'
-            : 'bg-gray-400 border-gray-400 dark:bg-neutral-600 dark:border-neutral-500'
-        }`}
-        animate={isHighlighted ? { scale: [1, 1.2, 1] } : { scale: 1 }}
-        transition={isHighlighted ? { duration: 0.8, repeat: Infinity, ease: 'easeInOut' } : {}}
-      />
-    </div>
-  );
+  return <span className={'block h-3.5 w-3.5 rounded-full border-2 ' + (isHighlighted ? 'border-lime-500 bg-lime-500' : 'border-gray-400 bg-gray-400 dark:bg-neutral-600')} />;
 }
 
 /* ------------------------------------------------------------------ */
@@ -138,20 +116,20 @@ function ProjectTimelineCard({
   project,
   index,
   isHighlighted,
+  onProjectOpen,
 }: {
+  onProjectOpen?: (slug: string) => void;
   project: Project;
   index: number;
   isHighlighted: boolean;
 }) {
+  const { enabled, panelIdentity } = useConversationContext();
+  const still = useReducedMotion();
+  if (enabled) return <CompactProjectCard project={project} isHighlighted={isHighlighted} onProjectOpen={onProjectOpen} still={!!still} active={!panelIdentity || panelIdentity.type === 'projects'} />;
   return (
     <motion.div
-      initial={{ opacity: 0, x: -20, y: 12 }}
-      animate={{ opacity: 1, x: 0, y: 0 }}
-      transition={{
-        delay: index * 0.08,
-        duration: 0.5,
-        ease: [0.25, 0.46, 0.45, 0.94],
-      }}
+      initial={false}
+      transition={still ? reducedMotionCrossfade : liquidSettle}
       className={`
         relative rounded-xl p-5 transition-all duration-500
         bg-gray-100/80 dark:bg-white/[0.06]
@@ -162,25 +140,13 @@ function ProjectTimelineCard({
         }
       `}
     >
-      {/* Highlight pulse overlay */}
-      <AnimatePresence>
-        {isHighlighted && (
-          <motion.div
-            className="absolute inset-0 rounded-xl border-2 border-lime-400/50 pointer-events-none"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: [0, 1, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-          />
-        )}
-      </AnimatePresence>
-
       {/* Header */}
       <div className="mb-3">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="min-w-0 flex-1">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
-              {project.name}
-            </h3>
+            <motion.h3 layoutId={enabled && !still ? 'project-title-' + project.slug : undefined} transition={morphSpring} className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
+              {enabled && onProjectOpen ? <button id={'project-source-' + project.slug} type="button" className="text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-lime-500" onClick={() => onProjectOpen(project.slug)}>{project.name}<span className="sr-only"> open project</span></button> : project.name}
+            </motion.h3>
             {project.role && (
               <p className="text-xs font-medium text-lime-600 dark:text-lime-400 mt-0.5">
                 {project.role}
@@ -195,6 +161,17 @@ function ProjectTimelineCard({
         </div>
       </div>
 
+      {enabled && (project.loop || project.screenshots[0]) && (
+        <div className="mb-4">
+          {project.loop ? <ProjectLoop active={!panelIdentity || panelIdentity.type === 'projects'} surfaceId={'project-media-source-' + project.slug} media={project.loop} fallback={project.screenshots[0] ? '/screenshots/' + project.screenshots[0] : undefined}
+            layoutId={!still ? 'project-media-' + project.slug : undefined} alt={project.name + ' product preview'} onOpen={() => onProjectOpen?.(project.slug)} /> :
+            <motion.div layoutId={!still ? 'project-media-' + project.slug : undefined} transition={morphSpring} className="aspect-video overflow-hidden rounded-[18px_24px_18px_24px] bg-gray-100 dark:bg-neutral-900">
+              <button type="button" id={'project-media-source-' + project.slug} aria-label={'Open ' + project.name} className="h-full w-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500" onClick={() => onProjectOpen?.(project.slug)}>
+                <img src={'/screenshots/' + project.screenshots[0]} alt={project.name + ' product preview'} width={1280} height={720} loading="lazy" className="h-full w-full object-cover" />
+              </button>
+            </motion.div>}
+        </div>
+      )}
       {/* Description */}
       <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300 mb-4">
         {project.description}
@@ -234,6 +211,82 @@ function ProjectTimelineCard({
   );
 }
 
+const LIST_HIGHLIGHTS = 3;
+const LIST_STACK = 5;
+
+/** The list card for sites with the conversation layer: media beside a short read, the whole card opens the project. */
+function CompactProjectCard({ project, isHighlighted, onProjectOpen, still, active }: {
+  project: Project;
+  isHighlighted: boolean;
+  onProjectOpen?: (slug: string) => void;
+  still: boolean;
+  active: boolean;
+}) {
+  const media = project.loop || project.screenshots[0];
+  const extraStack = project.stack.length - LIST_STACK;
+  return (
+    <div
+      className={`living-card group relative grid gap-5 rounded-[14px_18px_14px_18px] border p-4 transition-[border-color,box-shadow] duration-[380ms] [transition-timing-function:cubic-bezier(.16,1,.3,1)] md:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] ${
+        isHighlighted
+          ? 'border-lime-500/45 shadow-[0_18px_40px_-26px_rgba(88,166,255,0.7)]'
+          : 'border-gray-200/70 hover:border-lime-500/35 dark:border-white/[0.08] dark:hover:border-lime-400/30'
+      }`}
+    >
+      {media && (
+        // Above the card-wide open target, so the loop keeps its own hover pause.
+        <div className="relative z-[1] self-start">
+          {project.phones?.length ? (
+            <DeviceStrip size="card" framed={project.phoneFrame !== false} label={project.name + ' screens'} onOpen={() => onProjectOpen?.(project.slug)}
+              screens={project.phones.map(src => ({ src, index: project.screenshots.indexOf(src) })).filter(screen => screen.index >= 0)} />
+          ) : project.loop ? (
+            <ProjectLoop active={active} surfaceId={'project-media-source-' + project.slug} media={project.loop}
+              fallback={project.screenshots[0] ? '/screenshots/' + project.screenshots[0] : undefined}
+              layoutId={!still ? 'project-media-' + project.slug : undefined} alt={project.name + ' product preview'} onOpen={() => onProjectOpen?.(project.slug)} />
+          ) : (
+            <motion.div layoutId={!still ? 'project-media-' + project.slug : undefined} transition={morphSpring} className="aspect-video overflow-hidden rounded-[12px_16px_12px_16px] bg-gray-100 dark:bg-neutral-900">
+              <button type="button" id={'project-media-source-' + project.slug} aria-label={'Open ' + project.name} className="h-full w-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500" onClick={() => onProjectOpen?.(project.slug)}>
+                <img src={'/screenshots/' + project.screenshots[0]} alt={project.name + ' product preview'} width={1280} height={720} loading="lazy" className="h-full w-full object-cover transition-transform duration-[520ms] [transition-timing-function:cubic-bezier(.3,1.6,.4,1)] group-hover:scale-[1.02]" />
+              </button>
+            </motion.div>
+          )}
+        </div>
+      )}
+      <div className="min-w-0">
+        <div className="flex items-baseline justify-between gap-3">
+          <motion.h3 layoutId={!still ? 'project-title-' + project.slug : undefined} transition={morphSpring} className="text-base font-semibold leading-snug tracking-[-0.015em] text-gray-900 dark:text-white">
+            {onProjectOpen ? (
+              <button id={'project-source-' + project.slug} type="button" className="text-left after:absolute after:inset-0 after:rounded-[inherit] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-lime-500" onClick={() => onProjectOpen(project.slug)}>
+                {project.name}<span className="sr-only"> open project</span>
+              </button>
+            ) : project.name}
+          </motion.h3>
+          <span className="flex-shrink-0 text-xs tabular-nums text-gray-500 dark:text-gray-500">{project.period}</span>
+        </div>
+        {project.role && <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{project.role}</p>}
+        <p className="mt-2.5 line-clamp-2 text-sm leading-relaxed text-gray-700 dark:text-gray-300">{project.description}</p>
+        {project.highlights.length > 0 && (
+          <ul className="mt-3 space-y-1">
+            {project.highlights.slice(0, LIST_HIGHLIGHTS).map((item) => (
+              <li key={item} className="flex items-start gap-2 text-[13px] leading-snug text-gray-600 dark:text-gray-400">
+                <span className="mt-[7px] h-1 w-1 flex-shrink-0 rounded-full bg-lime-500/80" aria-hidden="true" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {project.stack.length > 0 && (
+          <div className="relative z-[1] mt-3 flex flex-wrap gap-1.5">
+            {project.stack.slice(0, LIST_STACK).map((tech) => (
+              <span key={tech} className="rounded-full border border-gray-200 px-2 py-0.5 text-[11px] text-gray-600 dark:border-white/10 dark:text-gray-400">{tech}</span>
+            ))}
+            {extraStack > 0 && <span className="px-1 py-0.5 text-[11px] text-gray-500">+{extraStack}</span>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 /*  Main ProjectsTimeline component                                    */
 /* ------------------------------------------------------------------ */
@@ -243,7 +296,11 @@ export default function ProjectsTimeline({
   onActionConsumed,
   filter,
   skillId,
+  onProjectOpen,
+  onClearFilter,
 }: ProjectsTimelineProps) {
+  const still = useReducedMotion();
+  const { enabled } = useConversationContext();
   const { projects: projectsData } = usePortfolioData();
   const allProjects = useMemo(() => sortProjectsByPeriod(projectsData as unknown as Project[]), [projectsData]);
   const [highlightedSlug, setHighlightedSlug] = useState<string | null>(null);
@@ -271,7 +328,7 @@ export default function ProjectsTimeline({
     }
 
     return result;
-  }, [filter, skillId]);
+  }, [filter, skillId, allProjects]);
   const highlightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const setEntryRef = useCallback(
@@ -292,7 +349,7 @@ export default function ProjectsTimeline({
     if (type === 'scroll_to_project' && slug) {
       const el = entryRefs.current.get(slug);
       if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'center' });
       }
       onActionConsumed?.();
     }
@@ -300,7 +357,7 @@ export default function ProjectsTimeline({
     if (type === 'highlight_project' && slug) {
       const el = entryRefs.current.get(slug);
       if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'center' });
       }
 
       setHighlightedSlug(slug);
@@ -337,7 +394,7 @@ export default function ProjectsTimeline({
     if (skillId) {
       parts.push(skillId);
     }
-    return parts.join(' · ');
+    return parts.join(enabled ? ', ' : ' · ');
   }, [filter, skillId]);
 
   return (
@@ -345,7 +402,7 @@ export default function ProjectsTimeline({
       {/* Filter indicator */}
       {isFiltered && (
         <motion.div
-          initial={{ opacity: 0, y: -6 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
           className="mb-4"
@@ -368,11 +425,11 @@ export default function ProjectsTimeline({
       {/* Empty state */}
       {filteredProjects.length === 0 && (
         <motion.p
-          initial={{ opacity: 0 }}
+          initial={false}
           animate={{ opacity: 1 }}
           className="text-sm text-gray-400 dark:text-gray-500 text-center py-12"
         >
-          No matching projects found.
+          No matching projects found. <button type="button" className="underline" onClick={onClearFilter}>Show all projects</button>
         </motion.p>
       )}
 
@@ -382,11 +439,7 @@ export default function ProjectsTimeline({
           {/* The vertical timeline line */}
           <div className="absolute left-[7px] top-0 bottom-0 w-0.5">
             <div className="absolute inset-0 bg-gradient-to-b from-lime-500/50 via-lime-500/20 to-gray-600/20 dark:from-lime-500/40 dark:via-lime-500/15 dark:to-gray-700/20 rounded-full" />
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-b from-lime-400/30 to-transparent rounded-full blur-[2px]"
-              animate={{ opacity: [0.3, 0.7, 0.3] }}
-              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-            />
+
           </div>
 
           {/* Entries */}
@@ -401,7 +454,7 @@ export default function ProjectsTimeline({
                   {/* Year marker */}
                   {showYear && (
                     <motion.div
-                      initial={{ opacity: 0 }}
+                      initial={false}
                       animate={{ opacity: 1 }}
                       transition={{ delay: index * 0.06 }}
                       className="flex items-center gap-3 mb-4 pl-7"
@@ -425,6 +478,7 @@ export default function ProjectsTimeline({
                     {/* Card */}
                     <div className="flex-1 min-w-0">
                       <ProjectTimelineCard
+                        onProjectOpen={onProjectOpen}
                         project={project}
                         index={index}
                         isHighlighted={isHighlighted}

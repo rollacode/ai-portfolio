@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo } from 'react';
 import { usePortfolioData } from '../../context/PortfolioDataContext';
+import { useConversationContext } from '../../context/ConversationContext';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -130,6 +131,7 @@ function downloadFile(content: string, filename: string, mime: string) {
 
 export default function ResumePanel() {
   const { config, experience, skills, projects } = usePortfolioData();
+  const { enabled } = useConversationContext();
   const entries = experience as ExperienceEntry[];
   const allSkills = skills as unknown as Record<string, Skill[]>;
   const topProjects = useMemo(() => (projects as Project[]).filter(p => topProjectSlugs.includes(p.slug)), [projects]);
@@ -163,7 +165,7 @@ export default function ResumePanel() {
           className="px-3 py-1.5 text-xs font-medium rounded-lg
                      bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700
                      text-gray-700 dark:text-gray-300
-                     hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors"
+                     hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-500"
         >
           Download PDF
         </button>
@@ -172,7 +174,7 @@ export default function ResumePanel() {
           className="px-3 py-1.5 text-xs font-medium rounded-lg
                      bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700
                      text-gray-700 dark:text-gray-300
-                     hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors"
+                     hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-500"
         >
           Download Markdown
         </button>
@@ -187,7 +189,7 @@ export default function ResumePanel() {
             {config.name}
           </h1>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 print:text-gray-700">
-            {config.bio}
+            {enabled ? config.bio.replace(/ · /g, ', ') : config.bio}
           </p>
           <div className="mt-2 flex flex-wrap gap-3 text-xs text-gray-500 dark:text-gray-400 print:text-gray-600">
             {config.location && <span>{config.location}</span>}
@@ -211,14 +213,14 @@ export default function ResumePanel() {
           {/* Work modes */}
           {config.workModes && config.workModes.length > 0 && (
             <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 print:text-gray-600">
-              {config.workModes.join(' · ')}
+              {config.workModes.join(enabled ? ', ' : ' · ')}
             </p>
           )}
 
           {/* Languages */}
           {config.languages && config.languages.length > 0 && (
             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 print:text-gray-600">
-              {config.languages.map(l => `${l.language} (${l.level})`).join(' · ')}
+              {config.languages.map(l => `${l.language} (${l.level})`).join(enabled ? ', ' : ' · ')}
             </p>
           )}
         </header>
@@ -227,7 +229,7 @@ export default function ResumePanel() {
 
         {/* Skills */}
         <section>
-          <h2 className="text-sm font-bold text-black dark:text-white uppercase tracking-wider mb-3">
+          <h2 className={enabled ? "text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3" : "text-sm font-bold text-black dark:text-white uppercase tracking-wider mb-3"}>
             Skills
           </h2>
           <div className="space-y-1.5">
@@ -239,7 +241,7 @@ export default function ResumePanel() {
                 <p className="text-gray-700 dark:text-gray-300 print:text-gray-800 leading-relaxed">
                   {(catSkills as Skill[]).map(s =>
                     s.years ? `${s.name} (${s.years}y)` : s.name
-                  ).join(' \u00b7 ')}
+                  ).join(enabled ? ', ' : ' \u00b7 ')}
                 </p>
               </div>
             ))}
@@ -251,7 +253,7 @@ export default function ResumePanel() {
           <>
             <hr className="border-gray-200 dark:border-neutral-800 print:border-gray-300" />
             <section>
-              <h2 className="text-sm font-bold text-black dark:text-white uppercase tracking-wider mb-3">
+              <h2 className={enabled ? "text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3" : "text-sm font-bold text-black dark:text-white uppercase tracking-wider mb-3"}>
                 Strengths
               </h2>
               <div className="space-y-1.5">
@@ -270,7 +272,7 @@ export default function ResumePanel() {
 
         {/* Experience */}
         <section>
-          <h2 className="text-sm font-bold text-black dark:text-white uppercase tracking-wider mb-4">
+          <h2 className={enabled ? "text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4" : "text-sm font-bold text-black dark:text-white uppercase tracking-wider mb-4"}>
             Experience
           </h2>
           <div className="space-y-5">
@@ -282,7 +284,7 @@ export default function ResumePanel() {
                       {entry.role}
                     </h3>
                     <p className="text-xs text-gray-500 dark:text-gray-400 print:text-gray-600">
-                      {entry.company} &middot; {entry.location}
+                      {entry.company}{enabled ? <span className="ml-3">{entry.location}</span> : <> &middot; {entry.location}</>}
                     </p>
                   </div>
                   <p className="text-xs text-gray-400 print:text-gray-500 tabular-nums flex-shrink-0">
@@ -311,7 +313,7 @@ export default function ResumePanel() {
 
         {/* Key Projects */}
         <section>
-          <h2 className="text-sm font-bold text-black dark:text-white uppercase tracking-wider mb-4">
+          <h2 className={enabled ? "text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4" : "text-sm font-bold text-black dark:text-white uppercase tracking-wider mb-4"}>
             Key Projects
           </h2>
           <div className="space-y-4">
@@ -329,7 +331,7 @@ export default function ResumePanel() {
                   {project.description}
                 </p>
                 <p className="mt-1 text-[11px] text-gray-400 print:text-gray-500">
-                  {project.stack.join(' \u00b7 ')}
+                  {project.stack.join(enabled ? ', ' : ' \u00b7 ')}
                 </p>
               </div>
             ))}

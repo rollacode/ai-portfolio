@@ -39,7 +39,14 @@ export interface PortfolioConfig {
   spotlight?: Spotlight;
 }
 
+export interface ProjectLoopMedia {
+  mp4: string;
+  webm?: string;
+  poster: string;
+}
+
 export interface Spotlight {
+  loop?: ProjectLoopMedia;
   name: string;
   tagline: string;
   summary: string;
@@ -68,6 +75,11 @@ export interface SkillsData {
 }
 
 export interface Project {
+  loop?: ProjectLoopMedia;
+  /** Portrait screenshots shown as a living strip of phones instead of a video. */
+  phones?: string[];
+  /** False when the screenshots already include a drawn device. */
+  phoneFrame?: boolean;
   slug: string;
   name: string;
   role: string;

@@ -19,7 +19,7 @@ describe('spotlight', () => {
   it('gives the panel everything it shows', () => {
     const spotlight = config.spotlight;
     expect(spotlight.name).toBe('Domios');
-    expect(spotlight.video.mp4).toMatch(/^https:\/\//);
+    expect(spotlight.video.mp4).toMatch(/^(https:\/\/|\/loops\/)/);
     expect(spotlight.links.source).toMatch(/^https:\/\/github\.com\//);
     expect(spotlight.differences.length).toBeGreaterThan(0);
     expect(spotlight.capabilities.length).toBeGreaterThan(0);

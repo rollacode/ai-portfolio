@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { usePortfolioData } from '../../context/PortfolioDataContext';
+import { useConversationContext } from '../../context/ConversationContext';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -27,6 +28,8 @@ interface TimelineAction {
 interface TimelineProps {
   currentAction?: TimelineAction | null;
   onActionConsumed?: () => void;
+  onProjectOpen?: (slug: string) => void;
+  selectedCompany?: string;
 }
 
 /* ------------------------------------------------------------------ */
@@ -206,7 +209,7 @@ function TimelineCard({
 /*  Main Timeline component                                            */
 /* ------------------------------------------------------------------ */
 
-export default function Timeline({ currentAction, onActionConsumed }: TimelineProps) {
+function LegacyTimeline({ currentAction, onActionConsumed }: TimelineProps) {
   const { experience } = usePortfolioData();
   const entries = experience as ExperienceEntry[];
   const [highlightedCompany, setHighlightedCompany] = useState<string | null>(null);
@@ -342,4 +345,64 @@ export default function Timeline({ currentAction, onActionConsumed }: TimelinePr
       </div>
     </div>
   );
+}
+
+function LivingTimeline({ currentAction, onActionConsumed, onProjectOpen, selectedCompany }: TimelineProps) {
+  const { experience, projects, skills } = usePortfolioData();
+  const still = useReducedMotion();
+  const host = useRef<HTMLDivElement>(null);
+  const refs = useRef(new Map<string, HTMLElement>());
+  const [showRelated, setShowRelated] = useState(!!selectedCompany);
+  const [active, setActive] = useState(Math.max(0, experience.findIndex(entry => entry.company === selectedCompany)));
+  const [progress, setProgress] = useState(0);
+  const [highlight, setHighlight] = useState<string | null>(null);
+  useEffect(() => {
+    const root = host.current?.closest<HTMLElement>('[data-panel-scroll]');
+    if (!root) return;
+    const onScroll = () => {
+      const height = root.scrollHeight - root.clientHeight;
+      setProgress(height > 0 ? Math.max(0, Math.min(1, root.scrollTop / height)) : 1);
+    };
+    onScroll();
+    root.addEventListener('scroll', onScroll, { passive: true });
+    const observer = new IntersectionObserver(entries => {
+      for (const entry of entries) if (entry.isIntersecting) setActive(Number((entry.target as HTMLElement).dataset.roleIndex));
+    }, { root, rootMargin: '-5% 0px -65% 0px', threshold: 0 });
+    refs.current.forEach(element => observer.observe(element));
+    return () => { root.removeEventListener('scroll', onScroll); observer.disconnect(); };
+  }, [experience]);
+  useEffect(() => {
+    if (!currentAction) return;
+    const entry = experience.find(entry => currentAction.company && matchesCompany(entry, currentAction.company));
+    if (entry) {
+      refs.current.get(entry.company)?.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'nearest' });
+      setHighlight(entry.company);
+    }
+    onActionConsumed?.();
+  }, [currentAction, onActionConsumed, experience, still]);
+  if (!experience.length) return <p role="status">No work history is available. Explore the projects instead.</p>;
+  const current = experience[active] || experience[0];
+  const ids = Object.values(skills).flat().filter(skill => current.stack.some(tech => tech.toLowerCase() === skill.name.toLowerCase())).map(skill => skill.id);
+  const related = projects.filter(project => project.skillIds?.some(id => ids.includes(id)));
+  return <div ref={host} className="relative space-y-6">
+    <aside className="sticky top-0 z-20 rounded-lg border border-gray-200 bg-white p-3 text-sm dark:border-gray-800 dark:bg-black" aria-label="Current role">
+      <p className="font-medium">{current.company}<span className="ml-3 font-normal text-gray-500">{current.role}</span></p>
+      {related.length > 0 && <div className="mt-1"><button type="button" aria-expanded={showRelated} onClick={() => setShowRelated(!showRelated)} className="text-xs text-gray-500 underline underline-offset-4">Projects using this stack</button>{showRelated && <ul className="mt-2 max-h-24 space-y-2 overflow-y-auto">{related.map(project => <li key={project.slug}><button id={'timeline-project-' + current.company.replace(/[^a-z0-9]/gi, '-') + '-' + project.slug} data-related-company={current.company} type="button" className="underline" onClick={() => onProjectOpen?.(project.slug)}>{project.name}</button></li>)}</ul>}</div>}
+    </aside>
+    <div className="relative pl-7">
+      <svg className="absolute left-1 top-0 h-full w-2 text-lime-500" preserveAspectRatio="none" viewBox="0 0 2 100" aria-hidden="true"><path d="M1 0 V100" stroke="currentColor" opacity=".15" /><path data-timeline-rail d="M1 0 V100" pathLength="1" stroke="currentColor" strokeDasharray="1" strokeDashoffset={still ? 0 : 1 - progress} /></svg>
+      <div className="space-y-6">{experience.map((entry, index) => <section key={entry.company} data-role-index={index} ref={element => { if (element) refs.current.set(entry.company, element); else refs.current.delete(entry.company); }} className={'relative rounded-[14px_18px_14px_18px] border p-5 ' + (highlight === entry.company ? 'border-lime-500' : 'border-gray-200 dark:border-gray-800')}>
+        <span className="absolute -left-[27px] top-6 h-3 w-3 rounded-full bg-lime-500" aria-hidden="true" />
+        <h3 className="text-lg font-semibold">{entry.company}</h3><p className="text-sm font-medium text-lime-600 dark:text-lime-400">{entry.role}</p><p className="mt-1 text-xs text-gray-500">{entry.period}<span className="ml-3">{entry.location}</span></p>
+        <p className="mt-4 text-sm leading-relaxed text-gray-700 dark:text-gray-300">{entry.description}</p>
+        <ul className="mt-3 list-disc space-y-2 pl-4 text-sm">{entry.highlights.map(item => <li key={item}>{item}</li>)}</ul>
+        <p className="mt-4 text-xs text-gray-500">{entry.stack.join(', ')}</p>
+      </section>)}</div>
+    </div>
+  </div>;
+}
+
+export default function Timeline(props: TimelineProps) {
+  const { enabled } = useConversationContext();
+  return enabled ? <LivingTimeline {...props} /> : <LegacyTimeline {...props} />;
 }

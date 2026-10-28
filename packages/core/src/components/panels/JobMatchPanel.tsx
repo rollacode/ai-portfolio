@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
+import FitBoardView from './FitBoardView';
 import { useJobMatchStream } from '../../hooks/useJobMatchStream';
 import type { PanelState } from '../../lib/tool-handler';
 
@@ -171,6 +172,8 @@ export default function JobMatchPanel({
   onNavigate,
 }: JobMatchPanelProps) {
   const data = useJobMatchStream({ role, company, description, language });
+
+  if (data.calibrated) return <FitBoardView originalRole={role} originalCompany={company} originalDescription={description} board={data.board} loading={data.isLoading} error={data.error} retry={data.retry} onNavigate={onNavigate} />;
 
   if (!data.hasParsedContent && data.isLoading) {
     return <SkeletonLoader />;

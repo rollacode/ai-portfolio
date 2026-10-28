@@ -1,8 +1,11 @@
 'use client';
 
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { usePortfolioData } from '../../context/PortfolioDataContext';
+import { useConversationContext } from '../../context/ConversationContext';
+import { brandSpring } from '../../lib/motion';
+import { SkillProjects } from './SkillsGrid';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -21,6 +24,9 @@ interface TechRadarProps {
   highlightedSkill?: string | null;
   focusCategory?: string | null;
   onActionConsumed?: () => void;
+  onProjectOpen?: (slug: string) => void;
+  selectedSkillId?: string;
+  initialCategory?: string;
 }
 
 interface SimNode extends Skill {
@@ -506,7 +512,7 @@ function svgToScreen(
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
-export default function TechRadar({
+function LegacyTechRadar({
   highlightedSkill,
   focusCategory,
   onActionConsumed,
@@ -1249,4 +1255,52 @@ export default function TechRadar({
       </div>
     </div>
   );
+}
+
+function LivingRadar({ highlightedSkill, focusCategory, onActionConsumed, onProjectOpen, selectedSkillId, initialCategory }: TechRadarProps) {
+  const { skills } = usePortfolioData();
+  const still = useReducedMotion();
+  const [category, setCategory] = useState<string>(initialCategory || 'all');
+  const [selected, setSelected] = useState<string | null>(selectedSkillId || null);
+  const categories = Object.keys(skills) as Category[];
+  const all = categories.flatMap(category => skills[category].map(skill => ({ ...skill, category })));
+  const nodes = all.filter(skill => category === 'all' || skill.category === category);
+  useEffect(() => {
+    if (focusCategory) { setCategory(focusCategory); onActionConsumed?.(); }
+  }, [focusCategory, onActionConsumed]);
+  useEffect(() => {
+    if (!highlightedSkill) return;
+    const found = all.find(skill => skill.name.toLowerCase().includes(highlightedSkill.toLowerCase()));
+    setSelected(found?.id || null);
+    if (found) setCategory(found.category);
+    onActionConsumed?.();
+  }, [highlightedSkill, onActionConsumed, skills]);
+  const positions = all.map((skill, index) => {
+    const ring = categories.indexOf(skill.category);
+    const peers = all.filter(item => item.category === skill.category);
+    const angle = peers.findIndex(item => item.id === skill.id) / peers.length * Math.PI * 2 - Math.PI / 2;
+    const radius = 50 + ring * 27;
+    return { ...skill, x: 210 + Math.cos(angle) * radius, y: 210 + Math.sin(angle) * radius };
+  });
+  const entered = useRef(new Set<string>());
+  useEffect(() => { nodes.forEach(node => entered.current.add(node.id)); }, [category, skills]);
+  const selectedNode = positions.find(skill => skill.id === selected);
+  return <div className="h-full space-y-4 overflow-y-auto pb-6">
+    <aside className="sticky top-0 z-20"><SkillProjects skillId={selected} onProjectOpen={onProjectOpen} /></aside>
+    <label className="block text-sm">Skill group <select value={category} onChange={event => setCategory(event.target.value)} className="ml-2 rounded-lg border border-gray-300 bg-white p-2 dark:border-gray-700 dark:bg-black"><option value="all">All skills</option>{categories.map(key => <option key={key} value={key}>{({primary: 'Expert', strong: 'Professional', ai: 'AI and LLM', working: 'Working knowledge', hobby: 'Hobby'})[key]}</option>)}</select></label>
+    <svg viewBox="0 0 420 420" role="img" aria-label="Skill radar. Use the skill buttons below to explore project evidence." className="mx-auto aspect-square max-h-[45vh] w-full max-w-lg text-lime-500">
+      {categories.map((key, index) => <circle key={key} cx="210" cy="210" r={50 + index * 27} fill="none" stroke="currentColor" strokeOpacity={category === key ? .6 : .15} />)}
+      {selectedNode && <motion.line key={selectedNode.id} x1="210" y1="210" x2={selectedNode.x} y2={selectedNode.y} stroke="currentColor" initial={still ? false : { pathLength: 0 }} animate={{ pathLength: 1 }} transition={still ? { duration: 0 } : brandSpring} />}
+      {positions.filter(node => category === 'all' || category === node.category).map(node => <motion.circle onPointerEnter={() => setSelected(node.id)} onClick={() => setSelected(node.id)} key={node.id} cx={node.x} cy={node.y} r={selected === node.id ? 6 : 3.5} fill="currentColor" initial={still || entered.current.has(node.id) ? false : { opacity: 0, r: 0 }} animate={{ opacity: 1, r: selected === node.id ? 6 : 3.5 }} transition={still ? { duration: 0 } : brandSpring}><title>{node.name}</title></motion.circle>)}
+      <text x="210" y="232" textAnchor="middle" fontSize="10" fill="currentColor">Projects</text>
+    </svg>
+    {!nodes.length ? <p role="status">No skills in this group. <button type="button" className="underline" onClick={() => setCategory('all')}>Show all skills</button></p> :
+      <div className="flex flex-wrap gap-2" aria-label="Select a skill">{nodes.map(skill => <button key={skill.id} type="button" aria-pressed={selected === skill.id} onPointerEnter={() => setSelected(skill.id)} onFocus={() => setSelected(skill.id)} onClick={() => setSelected(skill.id)} className={'rounded-[10px_14px_10px_14px] border px-3 py-2 text-sm transition-colors duration-[380ms] motion-reduce:duration-0 hover:bg-lime-500/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500 ' + (selected === skill.id ? 'border-lime-500 bg-lime-500/10' : 'border-transparent bg-gray-50 dark:bg-gray-900')}>{skill.name}</button>)}</div>}
+    {selected && <button type="button" className="text-sm underline" onClick={() => setSelected(null)}>Clear selection</button>}
+  </div>;
+}
+
+export default function TechRadar(props: TechRadarProps) {
+  const { enabled } = useConversationContext();
+  return enabled ? <LivingRadar {...props} /> : <LegacyTechRadar {...props} />;
 }

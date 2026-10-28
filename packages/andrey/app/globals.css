@@ -641,3 +641,122 @@ body:has([data-welcome]) .social-proof {
     color-scheme: light !important;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/*  Activity dots, taken as is from the Domios app (agent-state.css)   */
+/* ------------------------------------------------------------------ */
+
+.activity-dots {
+  --activity-dot-duration: 1.05s;
+  --activity-dot-delay: 0.12s;
+  display: inline-flex;
+  align-items: flex-end;
+  gap: var(--activity-dot-gap);
+  height: calc(var(--activity-dot-size, 4px) + var(--activity-dot-jump, 0px));
+  flex: 0 0 auto;
+  color: color-mix(in srgb, var(--accent, #58a6ff) 72%, var(--foreground, #c9d1d9));
+}
+.activity-dots i {
+  width: var(--activity-dot-size, 4px);
+  height: var(--activity-dot-size, 4px);
+  border-radius: 50%;
+  background: currentColor;
+  display: block;
+  transform-origin: 50% 100%;
+  animation: ct-dots-squash-jump var(--activity-dot-duration) cubic-bezier(.22, .9, .25, 1) infinite;
+}
+.activity-dots i:nth-child(2) { animation-delay: var(--activity-dot-delay); }
+.activity-dots i:nth-child(3) { animation-delay: calc(var(--activity-dot-delay) * 2); }
+.activity-dots--medium { --activity-dot-size: 5px; --activity-dot-gap: 3px; --activity-dot-jump: 3.25px; }
+.activity-dots--thinking { --activity-dot-duration: 1.35s; --activity-dot-delay: 0.16s; }
+.activity-dots--streaming { --activity-dot-duration: 0.88s; --activity-dot-delay: 0.1s; }
+.activity-dots--still-visible i { animation: none; opacity: .64; }
+@keyframes ct-dots-squash-jump {
+  0%, 70%, 100% { opacity: 0.64; transform: translateY(0) scaleX(1) scaleY(1); }
+  10% { opacity: 0.9; transform: translateY(calc(var(--activity-dot-size) * 0.15)) scaleX(1.28) scaleY(0.64); }
+  24% { opacity: 1; transform: translateY(calc(var(--activity-dot-jump) * -1)) scaleX(0.92) scaleY(1.1); }
+  42% { opacity: 0.95; transform: translateY(calc(var(--activity-dot-size) * 0.08)) scaleX(1.2) scaleY(0.7); }
+  54% { opacity: 0.78; transform: translateY(0) scaleX(1) scaleY(1); }
+}
+@media (prefers-reduced-motion: reduce) { .activity-dots i { animation: none; opacity: .64; } }
+
+/* Spinal cord vertebrae, from the Domios app (Sidebar/spinalCord.css): bones fire top to bottom when the cord reacts. */
+.spinal-vertebrae { fill: currentColor; }
+.spinal-vertebrae rect { transform-box: fill-box; transform-origin: center; }
+.spinal-vertebrae--firing rect { animation: spinal-reflex 720ms cubic-bezier(.16, 1, .3, 1) both, spinal-breathe 2.4s cubic-bezier(.42, 0, .58, 1) 900ms infinite; }
+.spinal-vertebrae--firing rect:nth-child(2) { animation-delay: 70ms, 970ms; }
+.spinal-vertebrae--firing rect:nth-child(3) { animation-delay: 140ms, 1040ms; }
+@keyframes spinal-reflex {
+  0% { transform: scale(1); opacity: .6; }
+  35% { transform: scale(1.25, 1.12); opacity: 1; }
+  100% { transform: scale(1); opacity: .85; }
+}
+@keyframes spinal-breathe { 0%, 100% { opacity: .85; } 50% { opacity: .45; } }
+@media (prefers-reduced-motion: reduce) { .spinal-vertebrae--firing rect { animation: none; } }
+
+/* ------------------------------------------------------------------ */
+/*  Living surfaces: bubbles, answers and cards that answer the pointer */
+/* ------------------------------------------------------------------ */
+
+/* The visitor's bubble: a whisper of the accent over the surface, a hairline rim, nothing heavy. */
+.chat-bubble {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--accent) 9%, transparent), color-mix(in srgb, var(--accent) 4%, transparent)),
+    color-mix(in srgb, var(--surface) 80%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 16%, transparent), 0 8px 24px -18px color-mix(in srgb, var(--accent) 55%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+          backdrop-filter: blur(8px);
+}
+
+/* Key facts read like a marker pass, not like shouting: a soft accent band under the lower half of the word. */
+.chat-answer strong {
+  background-image: linear-gradient(transparent 62%, color-mix(in srgb, var(--accent) 16%, transparent) 62%);
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+/* Lists: one small accent dot per line, no boxed rows. */
+.chat-answer > ul > li { position: relative; padding-left: 1.1rem; }
+.chat-answer > ul > li::before {
+  content: '';
+  position: absolute;
+  left: .2rem;
+  top: .72em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 70%, transparent);
+  transition: transform 380ms var(--ease-hover-swell), background 380ms var(--ease-liquid-settle);
+}
+.chat-answer > ul > li:hover::before { transform: scale(1.5); background: var(--accent); }
+
+/* Cards catch a soft light where the pointer is, the same light the dot field uses. */
+.living-card { position: relative; isolation: isolate; }
+.living-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(240px circle at var(--lx, 50%) var(--ly, 50%), color-mix(in srgb, var(--accent) 10%, transparent), transparent 70%);
+  transition: opacity 380ms var(--ease-liquid-settle);
+}
+.living-card:hover::after { opacity: 1; }
+.living-card::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(180px circle at var(--lx, 50%) var(--ly, 50%), color-mix(in srgb, var(--accent) 55%, transparent), transparent 70%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  transition: opacity 380ms var(--ease-liquid-settle);
+}
+.living-card:hover::before { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .living-card::after, .living-card::before { transition: none; } }

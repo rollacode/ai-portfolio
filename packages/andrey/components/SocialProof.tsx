@@ -18,7 +18,7 @@ function ProofCard({ rec, copy }: { rec: Proof; copy?: boolean }) {
       tabIndex={copy ? -1 : undefined}
       aria-hidden={copy || undefined}
       aria-label={`${rec.name} on LinkedIn: ${rec.highlight}`}
-      className="proof-card group"
+      className="proof-card living-card group"
       data-copy={copy || undefined}
     >
       <p className="proof-card__quote">&ldquo;{rec.highlight}&rdquo;</p>
