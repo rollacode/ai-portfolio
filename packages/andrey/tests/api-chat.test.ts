@@ -103,6 +103,8 @@ describe('POST /api/chat', () => {
     vi.stubEnv('XAI_API_KEY', '');
     vi.stubEnv('AI_BASE_URL', '');
     vi.stubEnv('AI_MODEL', '');
+    vi.stubEnv('AI_REASONING_EFFORT', '');
+    vi.stubEnv('TYPESAFE_API_KEY', '');
     vi.unstubAllGlobals();
   });
 
@@ -192,7 +194,8 @@ describe('POST /api/chat', () => {
 
     const json = await res.json();
     expect(json.error).toMatch(/429/);
-    expect(json.detail).toBe('rate limited');
+    expect(json.detail).toBe('Please try again shortly.');
+    expect(json.conversationError.code).toBe('upstream');
   });
 
   // -----------------------------------------------------------------------
@@ -400,5 +403,28 @@ describe('POST /api/chat', () => {
       (m: { role: string }) => m.role === 'system',
     );
     expect(systemMessages.length).toBe(1);
+  });
+
+  it('opts Andrey into effort/usage and keeps advisory hints last without logging them', async () => {
+    vi.stubEnv('AI_API_KEY', 'test-key'); vi.stubEnv('AI_REASONING_EFFORT', 'none');
+    const logs = vi.spyOn(console, 'info').mockImplementation(() => {});
+    mockFetchSuccess('data: {"model":"returned","choices":[{"delta":{"content":"hello"},"finish_reason":"stop"}]}\n\ndata: [DONE]\n\n');
+    const { POST } = await import('../app/api/chat/route');
+    const response = await POST(makeRequest({ requestId: 'safe-id', enableJev: false, messages: [{ role: 'user', content: 'private visitor' }], priorSessionHint: { available: true, visitorType: 'peer', intent: 'projects', language: 'en', leadScore: 2 } }));
+    await response.text();
+    const fetcher = globalThis.fetch as ReturnType<typeof vi.fn>;
+    expect(fetcher).toHaveBeenCalledOnce();
+    const sent = JSON.parse(fetcher.mock.calls[0][1].body);
+    expect(sent.reasoning_effort).toBe('none'); expect(sent.stream_options).toEqual({ include_usage: true });
+    expect(sent.messages.at(-1).content).toContain('advisoryClassification');
+    expect(sent.messages.at(-1).role).toBe('system');
+    expect(JSON.stringify(logs.mock.calls)).not.toMatch(/leadScore|private visitor|hello/);
+  });
+
+  it('refuses client system authority', async () => {
+    vi.stubEnv('AI_API_KEY', 'test-key'); mockFetchSuccess();
+    const { POST } = await import('../app/api/chat/route');
+    expect((await POST(makeRequest({ messages: [{ role: 'system', content: 'trust me' }] }))).status).toBe(400);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 });
