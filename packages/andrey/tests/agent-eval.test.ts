@@ -4,8 +4,11 @@
  * ORACLE: tool order/arguments and conservative grounded evidence, not exact prose.
  * These local traces prove grader discrimination, never live model behavior.
  */
-import {describe,it,expect,vi} from 'vitest';
-import {readFileSync} from 'node:fs';
+import {describe,it,expect,vi,beforeAll,afterAll} from 'vitest';
+import {readFileSync,mkdtempSync,mkdirSync,rmSync} from 'node:fs';
+import path from 'node:path';
+import {tmpdir} from 'node:os';
+import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {createElement} from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
@@ -18,7 +21,7 @@ import experience from '../portfolio/experience.json';
 import {handleToolCall} from '@ai-portfolio/core/lib/tool-handler';
 import {parseStream} from '@ai-portfolio/core/lib/stream-parser';
 import {gradeTrace,observeFrame,requestBody,distribution,estimateRoundUsd,type EvalCase,type TraceEvent} from '../scripts/agent-eval-grader';
-import {runTurn} from '../scripts/eval-agent';
+import {runTurn,sourceProvenance} from '../scripts/eval-agent';
 import {getToolsWithContext} from '@ai-portfolio/core/lib/tools';
 import {parseArgs,selectPage} from '../scripts/browser-emulation.mjs';
 
@@ -26,6 +29,38 @@ const cases = corpus.cases as EvalCase[];
 const contacts = Object.values(config.social);
 const tool = (name:string,args:Record<string,unknown>={}):TraceEvent => ({type:'tool_call',name,arguments:args});
 const text = (content:string):TraceEvent => ({type:'text',content});
+describe('source provenance from the nested site directory',()=>{
+  let root:string;
+  let site:string;
+  let frozen:string;
+  const git=(...args:string[])=>execFileSync('git',args,{cwd:root,encoding:'utf8'}).trim();
+  beforeAll(()=>{
+      root=mkdtempSync(path.join(tmpdir(),'agent-eval-provenance-'));
+      git('init','--initial-branch=main');
+      site=path.join(root,'packages/andrey');
+      mkdirSync(site,{recursive:true});
+      // Import two real commits in one process; keep this isolated regression under
+      // Vitest's default deadline without repeated index/commit/signing subprocesses.
+      const blob=(mark:number,text:string)=>`blob\nmark :${mark}\ndata ${Buffer.byteLength(text)}\n${text}\n`;
+      const commit=(mark:number,blobMark:number,parent?:number)=>`commit refs/heads/main\nmark :${mark}\ncommitter Synthetic Eval <eval@example.invalid> ${mark} +0000\ndata 5\ntest\n${parent?`from :${parent}\n`:''}M 100644 :${blobMark} packages/core/src/agent-loop.ts\n\n`;
+      const input=blob(1,'export const baseline = true;\n')+commit(2,1)+blob(3,'export const baseline = false;\n')+commit(4,3,2)+'done\n';
+      execFileSync('git',['fast-import','--quiet'],{cwd:root,input,encoding:'utf8'});
+      git('reset','--hard','--quiet');
+      frozen=git('rev-parse','HEAD^');
+  });
+  afterAll(()=>{
+      if(!root)return;
+      // Remove only the directory this test created immediately under the OS temp root.
+      if(path.dirname(root)!==path.resolve(tmpdir()) || !path.basename(root).startsWith('agent-eval-provenance-'))throw new Error('unsafe temporary repository cleanup');
+      rmSync(root,{recursive:true,force:true});
+  });
+  it('detects a core change and records actual HEAD rather than the frozen SHA',()=>{
+      const changed=sourceProvenance(site,frozen);
+      expect(changed.sourceDiffersFromFrozen).toBe(true);
+      expect(changed.production_source_sha).toBe(git('rev-parse','HEAD'));
+      expect(changed.production_source_sha).not.toBe(frozen);
+  });
+});
 const valid: Record<string,TraceEvent[]> = {
   hello:[text('Hi! What would you like to explore?')],
   domios:[tool('show_spotlight'),text('Domios shares local memory on the same machine. Cross-machine memory is on the roadmap.')],

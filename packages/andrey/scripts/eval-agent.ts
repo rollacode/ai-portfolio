@@ -15,7 +15,13 @@ import {buildSystemPrompt} from '../lib/system-prompt';
 import {gradeTrace,observeFrame,requestBody,distribution,estimateRoundUsd,type EvalCase,type TraceEvent} from './agent-eval-grader';
 
 const base = path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-const git = (...args:string[]) => execFileSync('git',args,{cwd:base,encoding:'utf8'}).trim();
+export function sourceProvenance(siteBase: string, frozenSha: string) {
+  const root = execFileSync('git', ['rev-parse', '--show-toplevel'], {cwd: siteBase, encoding: 'utf8'}).trim();
+  const sourceGit = (...args: string[]) => execFileSync('git', args, {cwd: root, encoding: 'utf8'}).trim();
+  const changed = sourceGit('diff', frozenSha, '--', 'packages/core/src', 'packages/andrey/prompts', 'packages/andrey/lib', 'packages/andrey/portfolio');
+  const head = sourceGit('rev-parse', 'HEAD');
+  return {production_source_sha: head, harness_sha: head, frozen_source_sha: frozenSha, sourceDiffersFromFrozen: !!changed};
+}
 const hash = (s: string | Buffer) => createHash('sha256').update(s).digest('hex');
 const read = (name:string) => JSON.parse(fs.readFileSync(path.join(base,'portfolio',`${name}.json`),'utf8'));
 // Git autocrlf changes checkout bytes; freeze UTF-8 with LF exactly as committed.
@@ -135,8 +141,8 @@ async function main() {
   const out=path.resolve(values.get('--out')!);
   if(fs.existsSync(out))throw new Error('refusing to overwrite immutable report');
   fs.mkdirSync(path.dirname(out),{recursive:true});
-  const changed=git('diff',corpus.productionSourceSha,'--','packages/core/src','packages/andrey/prompts','packages/andrey/lib','packages/andrey/portfolio');
-  const report:any={kind:'live',status:'running',startedAt:new Date().toISOString(),production_source_sha:changed?git('rev-parse','HEAD'):corpus.productionSourceSha,harness_sha:git('rev-parse','HEAD'),sourceDiffersFromFrozen:!!changed,corpusHash:expectedHash,node:process.version,platform:process.platform,requestedModel:MODEL(),requestedEffort:process.env.AI_REASONING_EFFORT || null,providerOrigin:new URL(BASE_URL()).origin,limits:corpus.limits,enableJev:false,adapter:'real-loop/parser; test-only effort+usage fetch observer',tokenCounter:'provider usage.prompt_tokens/completion_tokens; usage.prompt_tokens_details.cached_tokens (unknown if absent); no tokenizer',pricingSource:'https://docs.x.ai/developers/models/grok-4.3',pricingCheckedAt:'2026-10-28',turns:[]};
+  const provenance=sourceProvenance(base,corpus.productionSourceSha);
+  const report:any={kind:'live',status:'running',startedAt:new Date().toISOString(),...provenance,corpusHash:expectedHash,node:process.version,platform:process.platform,requestedModel:MODEL(),requestedEffort:process.env.AI_REASONING_EFFORT || null,providerOrigin:new URL(BASE_URL()).origin,limits:corpus.limits,enableJev:false,adapter:'real-loop/parser; test-only effort+usage fetch observer',tokenCounter:'provider usage.prompt_tokens/completion_tokens; usage.prompt_tokens_details.cached_tokens (unknown if absent); no tokenizer',pricingSource:'https://docs.x.ai/developers/models/grok-4.3',pricingCheckedAt:'2026-10-28',turns:[]};
   const save=()=>fs.writeFileSync(out,JSON.stringify(report,null,2));save();
   if(!API_KEY()){report.status='unavailable';report.error='missing AI_API_KEY / XAI_API_KEY';save();process.exitCode=2;return;}
   let baseline:any;

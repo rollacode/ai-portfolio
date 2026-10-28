@@ -16,6 +16,9 @@ checked-in portfolio records, relative to `portfolio/` unless stated otherwise.
 Measured source is `205199c5c38f8d13dc34e1486eee91fcf356ad9c`.
 The Orchestrator confirmed its only difference from prior `b17d3fb` is static loop assets.
 Reports distinguish `production_source_sha` and `harness_sha`, and record prompt hash/bytes.
+New reports record actual checkout HEAD in both SHA fields, retain the comparison basis
+as `frozen_source_sha`, and compute `sourceDiffersFromFrozen` from the repository root so
+shared core changes are detected even when launched inside the site package.
 Keep baseline and final reports separately for each model/effort. Do not overwrite reports.
 An integrated source change must be measured as an after report, never relabeled baseline.
 
