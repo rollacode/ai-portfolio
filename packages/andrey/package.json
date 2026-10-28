@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "eval:agent": "vitest run tests/agent-eval.test.ts",
+    "eval:agent:live": "tsx scripts/eval-agent.ts"
   },
   "dependencies": {
     "@ai-portfolio/core": "workspace:*",
