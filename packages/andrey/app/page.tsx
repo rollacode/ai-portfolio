@@ -2,6 +2,7 @@ import Chat from '@ai-portfolio/core/components/chat/Chat';
 import Toolbar from '@ai-portfolio/core/components/ui/Toolbar';
 import PoweredByDomios from '@/components/PoweredByDomios';
 import DotField from '@/components/DotField';
+import SocialProof from '@/components/SocialProof';
 
 export default function Home() {
   return (
@@ -16,6 +17,9 @@ export default function Home() {
       <main className="w-full h-screen">
         <Chat credit={<PoweredByDomios />} />
       </main>
+      <div className="print:hidden showtime-hide">
+        <SocialProof />
+      </div>
     </div>
   );
 }

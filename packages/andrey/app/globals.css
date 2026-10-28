@@ -130,7 +130,180 @@ input {
   animation: welcome-drop 520ms var(--ease-hover-swell) 900ms both;
 }
 
+/* ------------------------------------------------------------------ */
+/*  Social proof: a slow ribbon of recommendations under the welcome   */
+/* ------------------------------------------------------------------ */
+
+@keyframes proof-scroll {
+  /* Half the track plus half a gap lands the second pass exactly where the first began. */
+  to { transform: translateX(calc(-50% - 6px)); }
+}
+
+.social-proof {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 28px;
+  z-index: 15;
+}
+
+/* Present only while the welcome is, so it leaves the moment the conversation starts. */
+body:has([data-welcome]) .social-proof {
+  display: block;
+  animation: welcome-rise 900ms var(--ease-liquid-settle) 700ms both;
+}
+
+.social-proof__caption {
+  margin-bottom: 12px;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: -0.005em;
+  color: color-mix(in srgb, var(--foreground) 45%, transparent);
+}
+
+.social-proof__marquee {
+  overflow: hidden;
+  padding: 6px 0 10px;
+  -webkit-mask-image: linear-gradient(90deg, transparent, black 14%, black 86%, transparent);
+  mask-image: linear-gradient(90deg, transparent, black 14%, black 86%, transparent);
+}
+
+.social-proof__track {
+  display: flex;
+  gap: 12px;
+  width: max-content;
+  animation: proof-scroll 80s linear infinite;
+}
+
+.social-proof__marquee:hover .social-proof__track,
+.social-proof__marquee:focus-within .social-proof__track {
+  animation-play-state: paused;
+}
+
+.proof-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  width: 300px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--foreground) 10%, transparent);
+  border-radius: 14px 18px 14px 18px;
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  transition: transform 520ms var(--ease-hover-swell), border-color 380ms var(--ease-liquid-settle), box-shadow 380ms var(--ease-liquid-settle);
+}
+
+.proof-card:hover,
+.proof-card:focus-visible {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  box-shadow: 0 18px 40px -26px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+.proof-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.proof-card__quote {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.45;
+  letter-spacing: -0.012em;
+  color: var(--foreground);
+}
+
+.proof-card__who {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Faces stay in the site's black and white until you reach for one. */
+.proof-card__photo {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  filter: grayscale(1) contrast(1.05);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--foreground) 12%, transparent);
+  transition: filter 520ms var(--ease-liquid-settle), box-shadow 380ms var(--ease-liquid-settle);
+}
+
+.proof-card:hover .proof-card__photo,
+.proof-card:focus-visible .proof-card__photo {
+  filter: none;
+  box-shadow: 0 0 0 1.5px var(--accent);
+}
+
+.proof-card__name {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+/* A title is worth reading in full, so it may take a second line rather than an ellipsis. */
+.proof-card__byline {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  font-size: 11px;
+  line-height: 1.35;
+  color: color-mix(in srgb, var(--foreground) 50%, transparent);
+}
+
+.proof-card__in {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  color: color-mix(in srgb, var(--foreground) 22%, transparent);
+  transition: color 380ms var(--ease-liquid-settle), transform 520ms var(--ease-hover-swell);
+}
+
+.proof-card:hover .proof-card__in,
+.proof-card:focus-visible .proof-card__in {
+  color: var(--accent);
+  transform: scale(1.15);
+}
+
+/* Short screens keep the prompt clear; phones get narrower cards. */
+@media (max-height: 640px) {
+  body:has([data-welcome]) .social-proof { display: none; }
+}
+
+@media (max-width: 640px) {
+  .social-proof { bottom: 20px; }
+  .proof-card { width: 260px; }
+}
+
+.fallout .social-proof { display: none !important; }
+
 @media (prefers-reduced-motion: reduce) {
+  .social-proof__track { animation: none; }
+  .social-proof__marquee {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-inline: 16px;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .proof-card { scroll-snap-align: center; }
+  .proof-card[data-copy] { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body:has([data-welcome]) .social-proof,
   [data-welcome-title],
   [data-welcome-name],
   [data-welcome-input] > div:first-child,

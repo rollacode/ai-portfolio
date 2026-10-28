@@ -99,6 +99,14 @@ export interface Recommendation {
   company: string;
   projectSlugs: string[];
   text: string;
+  /** The recommender's LinkedIn profile. */
+  linkedin?: string;
+  /** Public path of the recommender's photo. */
+  photo?: string;
+  /** A verbatim sentence from `text`, short enough for a social proof card. */
+  highlight?: string;
+  /** How the recommender knows the owner, e.g. "Managed Andrey at Trax Retail". */
+  byline?: string;
 }
 
 export interface PortfolioData {
