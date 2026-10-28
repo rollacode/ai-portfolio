@@ -1,175 +1,96 @@
-// Parses SSE streams from the OpenAI-compatible xAI API.
-// Handles interleaved text content and tool calls with chunked arguments.
-
-// -----------------------------------------------------------------------------
-// Types
-// -----------------------------------------------------------------------------
+import type { ConversationEvent } from './conversation-events';
 
 export type StreamEvent =
   | { type: 'text'; content: string }
   | { type: 'reasoning'; content: string }
   | { type: 'tool_call'; id: string; name: string; arguments: Record<string, any> }
   | { type: 'done' }
-  | { type: 'error'; message: string };
+  | { type: 'error'; message: string }
+  | ConversationEvent;
 
-// Internal accumulator for a tool call whose arguments arrive in chunks
-interface PendingToolCall {
-  id: string;
-  name: string;
-  arguments: string;
-}
-
-// -----------------------------------------------------------------------------
-// Type guard
-// -----------------------------------------------------------------------------
-
-export function isToolCallEvent(
-  event: StreamEvent,
-): event is Extract<StreamEvent, { type: 'tool_call' }> {
+export function isToolCallEvent(event: StreamEvent): event is Extract<StreamEvent, { type: 'tool_call' }> {
   return event.type === 'tool_call';
 }
 
-// -----------------------------------------------------------------------------
-// Helpers
-// -----------------------------------------------------------------------------
-
-function finalizePending(pending: PendingToolCall): StreamEvent {
+/** Incremental UTF-8 decoder, including final unterminated data lines. */
+export async function* readSsePayloads(body: ReadableStream<Uint8Array>, signal?: AbortSignal): AsyncGenerator<string> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let abort: (() => void) | undefined;
+  const aborted = new Promise<never>((_, reject) => {
+    abort = () => { void reader.cancel().catch(() => {}); reject(new Error('aborted')); };
+    signal?.addEventListener('abort', abort, { once: true });
+  });
   try {
-    const parsed = pending.arguments.trim()
-      ? JSON.parse(pending.arguments)
-      : {};
-    return { type: 'tool_call', id: pending.id, name: pending.name, arguments: parsed };
-  } catch {
-    return {
-      type: 'error',
-      message: `Failed to parse arguments for tool "${pending.name}": ${pending.arguments}`,
-    };
+    for (;;) {
+      if (signal?.aborted) throw new Error('aborted');
+      const { done, value } = await Promise.race([reader.read(), aborted]);
+      if (signal?.aborted) throw new Error('aborted');
+      buffer += done ? decoder.decode() : decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() ?? '';
+      if (done && buffer) { lines.push(buffer); buffer = ''; }
+      for (const raw of lines) {
+        const line = raw.trim();
+        if (line.startsWith('data:')) yield line.slice(5).trim();
+      }
+      if (done) break;
+    }
+  } finally {
+    if (abort) signal?.removeEventListener('abort', abort);
+    void reader.cancel().catch(() => {});
+    reader.releaseLock();
   }
 }
 
-// -----------------------------------------------------------------------------
-// Main parser
-// -----------------------------------------------------------------------------
-
 export async function* parseStream(response: Response): AsyncGenerator<StreamEvent> {
-  const body = response.body;
-  if (!body) {
-    yield { type: 'error', message: 'Response body is null' };
-    return;
+  if (!response.body) { yield { type: 'error', message: 'Response body is null' }; return; }
+  const pending = new Map<number, { id: string; name: string; arguments: string }>();
+  const dispatched = new Set<string>();
+  function* flush(): Generator<StreamEvent> {
+    for (const call of pending.values()) {
+      if (!call.id || dispatched.has(call.id)) continue;
+      dispatched.add(call.id);
+      try {
+        const args = call.arguments.trim() ? JSON.parse(call.arguments) : {};
+        if (!args || typeof args !== 'object' || Array.isArray(args)) throw new Error();
+        yield { type: 'tool_call', id: call.id, name: call.name, arguments: args };
+      } catch { yield { type: 'error', message: `Failed to parse arguments for tool "${call.name}"` }; }
+    }
+    pending.clear();
   }
-
-  const reader = body.getReader();
-  const decoder = new TextDecoder();
-
-  // Accumulated tool calls keyed by their stream index
-  const pendingCalls = new Map<number, PendingToolCall>();
-  // Buffer for incomplete lines across chunks
-  let buffer = '';
-
   try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-
-      // Split on newlines — each SSE line ends with \n
-      const lines = buffer.split('\n');
-      // Keep the last (possibly incomplete) segment in the buffer
-      buffer = lines.pop() ?? '';
-
-      for (const rawLine of lines) {
-        const line = rawLine.trim();
-
-        // Skip empty lines and SSE comments
-        if (!line || line.startsWith(':')) continue;
-
-        // Must be a `data: ...` line
-        if (!line.startsWith('data:')) continue;
-
-        const payload = line.slice('data:'.length).trim();
-
-        // Terminal signal
-        if (payload === '[DONE]') {
-          // Flush any remaining pending tool calls
-          for (const [idx, pending] of pendingCalls) {
-            yield finalizePending(pending);
-            pendingCalls.delete(idx);
-          }
-          yield { type: 'done' };
-          return;
-        }
-
-        // Parse the JSON payload
-        let data: any;
-        try {
-          data = JSON.parse(payload);
-        } catch {
-          yield { type: 'error', message: `Malformed JSON in SSE payload: ${payload}` };
-          continue;
-        }
-
-        const choice = data?.choices?.[0];
-        const delta = choice?.delta;
-
-        if (delta) {
-          // --- Reasoning content (model thinking) ---
-          if (delta.reasoning_content) {
-            yield { type: 'reasoning', content: delta.reasoning_content };
-          }
-
-          // --- Text content ---
-          if (delta.content) {
-            yield { type: 'text', content: delta.content };
-          }
-
-          // --- Tool calls ---
-          if (delta.tool_calls) {
-            for (const tc of delta.tool_calls as any[]) {
-              const idx: number = tc.index;
-
-              // New tool call starting — has id + function.name
-              if (tc.id && tc.function?.name) {
-                // If there was already a pending call at a different index, flush it
-                // (shouldn't normally collide on the same index, but be safe)
-                const existing = pendingCalls.get(idx);
-                if (existing) {
-                  yield finalizePending(existing);
-                }
-
-                pendingCalls.set(idx, {
-                  id: tc.id,
-                  name: tc.function.name,
-                  arguments: tc.function.arguments ?? '',
-                });
-              } else if (tc.function?.arguments != null) {
-                // Continuation chunk — append arguments
-                const pending = pendingCalls.get(idx);
-                if (pending) {
-                  pending.arguments += tc.function.arguments;
-                }
-              }
-            }
-          }
-        }
-
-        // A round ends with a finish_reason (the server merges multiple rounds
-        // under one [DONE]). Flush pending tool calls now so their UI actions
-        // fire before any later round's text.
-        if (choice?.finish_reason) {
-          for (const [idx, pending] of pendingCalls) {
-            yield finalizePending(pending);
-            pendingCalls.delete(idx);
-          }
-        }
+    for await (const payload of readSsePayloads(response.body)) {
+      if (payload === '[DONE]') { yield* flush(); yield { type: 'done' }; return; }
+      let data: any;
+      try { data = JSON.parse(payload); }
+      catch { yield { type: 'error', message: 'Malformed JSON in SSE payload' }; continue; }
+      const meta = data?.conversation_event;
+      if (meta && typeof meta.id === 'string' && typeof meta.requestId === 'string' &&
+        ['classification', 'tool_start', 'claim_receipt', 'correction', 'error', 'usage', 'timing', 'context'].includes(meta.type)) {
+        yield meta as ConversationEvent;
+        continue;
       }
+      const choice = data?.choices?.[0], delta = choice?.delta;
+      if (delta?.reasoning_content) yield { type: 'reasoning', content: delta.reasoning_content };
+      if (delta?.content) yield { type: 'text', content: delta.content };
+      for (const tc of delta?.tool_calls ?? []) {
+        const index = tc.index ?? 0;
+        let call = pending.get(index);
+        if (call && tc.id && call.id && tc.id !== call.id) { yield* flush(); call = undefined; }
+        if (!call) { call = { id: '', name: '', arguments: '' }; pending.set(index, call); }
+        if (tc.id) call.id = tc.id;
+        if (tc.function?.name) call.name += tc.function.name;
+        if (tc.function?.arguments != null) call.arguments += tc.function.arguments;
+      }
+      if (choice?.finish_reason) yield* flush();
     }
-
-    // Stream ended without [DONE] — flush remaining
-    for (const [, pending] of pendingCalls) {
-      yield finalizePending(pending);
-    }
-  } finally {
-    reader.releaseLock();
+    yield* flush();
+    yield { type: 'error', message: 'Response interrupted before completion' };
+    yield { type: 'done' };
+  } catch {
+    yield { type: 'error', message: 'Response interrupted' };
+    yield { type: 'done' };
   }
 }
