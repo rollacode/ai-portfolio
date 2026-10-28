@@ -90,6 +90,30 @@ describe('ordered conversation policy (static supporting evidence)', () => {
     expect(policy).toContain('Welcome suitable consulting, contract and full-time employment enquiries');
     expect(policy.endsWith('SOURCE CONTENT')).toBe(true);
   });
+
+  it('makes the observed tool repairs explicit without changing the independent oracle', () => {
+    expect(policy).toContain('ENTIRE ORIGINAL MESSAGE VERBATIM');
+    expect(policy).toContain('drop the request suffix');
+    expect(policy).toContain('OWN role');
+    expect(policy).toContain('without match_job');
+    expect(policy).toContain('ALWAYS follow with highlight_skill');
+    expect(policy).toContain('experience WORKING AT A COMPANY -> show_timeline()');
+    expect(policy).toContain('scroll_timeline_to({company: "Trax Retail"})');
+  });
+
+  it('anchors leadership and deep dives in checked source facts with explicit uncertainty', () => {
+    const sos = projects.find(p => p.slug === 'sos-portal')!;
+    const performica = projects.find(p => p.slug === 'performica')!;
+    expect(sos.role).toContain('17 people');
+    expect(performica.writeup).toContain('Out of 7 engineers');
+    expect(sos.writeup).toContain('Binah (video consultation platform)');
+    expect(policy).toContain('BOTH SOS Portal (Team Lead, 17 people) and Performica');
+    expect(policy).toContain('team of 7 engineers');
+    expect(policy).toContain('unverified in the portfolio');
+    expect(policy).toContain('project panel retains the FULL writeup');
+    expect(policy).toContain('Binah, the video consultation platform');
+    expect(policy).toContain('never say the full portfolio lacks architecture notes');
+  });
 });
 
 describe('real core compact-content integration', () => {
