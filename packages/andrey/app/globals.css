@@ -96,35 +96,14 @@ input {
   100% { opacity: 1; transform: scale(1); }
 }
 
-@keyframes agent-breathe {
-  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); }
-  50% { box-shadow: 0 0 0 5px transparent; }
-}
-
 [data-welcome-title] {
   letter-spacing: -0.035em;
   animation: welcome-rise 760ms var(--ease-hover-swell) 80ms both;
 }
 
 [data-welcome-name] {
-  position: relative;
   display: inline-block;
   animation: welcome-rise 760ms var(--ease-hover-swell) 220ms both;
-}
-
-/* The agent is live: a status dot settles beside the name like a droplet, then breathes. */
-[data-welcome-name]::after {
-  content: '';
-  position: absolute;
-  top: .18em;
-  right: -.42em;
-  width: .2em;
-  height: .2em;
-  min-width: 6px;
-  min-height: 6px;
-  border-radius: 50%;
-  background: var(--accent);
-  animation: welcome-drop 520ms var(--ease-hover-swell) 820ms both, agent-breathe 2.8s ease-in-out 1.4s infinite;
 }
 
 [data-welcome-input] > div:first-child {
@@ -146,7 +125,7 @@ input {
   color: var(--accent);
 }
 
-/* The Domios mark lands last, the same droplet as the agent dot, once the line has settled. */
+/* The Domios mark lands last, like a droplet, once the line has settled. */
 [data-welcome-meta] .domios-credit__mark {
   animation: welcome-drop 520ms var(--ease-hover-swell) 900ms both;
 }
@@ -154,7 +133,6 @@ input {
 @media (prefers-reduced-motion: reduce) {
   [data-welcome-title],
   [data-welcome-name],
-  [data-welcome-name]::after,
   [data-welcome-input] > div:first-child,
   [data-welcome-meta],
   [data-welcome-meta] .domios-credit__mark {
