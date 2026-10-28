@@ -2,8 +2,12 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion, animate } from 'framer-motion';
 import { usePortfolioData } from '../../context/PortfolioDataContext';
+import { useConversationContext } from '../../context/ConversationContext';
+import { brandSpring, liquidSettle, reducedMotionCrossfade, DURATION_MS } from '../../lib/motion';
+import type { ProjectLoopMedia } from '../../types/portfolio';
+import ProjectLoop from './ProjectLoop';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -20,6 +24,7 @@ export interface ProjectData {
   highlights: string[];
   links: Record<string, string>;
   writeup?: string;
+  loop?: ProjectLoopMedia;
 }
 
 type HighlightField = 'stack' | 'highlights' | 'description' | 'links' | null;
@@ -59,9 +64,9 @@ function HighlightSection({
 }) {
   return (
     <div
-      className={`rounded-lg transition-all duration-300 ${
+      className={`rounded-lg transition-all duration-[380ms] motion-reduce:duration-0 ${
         active
-          ? 'ring-2 ring-lime-400/80 shadow-[0_0_16px_rgba(132,204,22,0.35)] animate-pulse'
+          ? 'ring-2 ring-lime-400/80 shadow-[0_0_16px_rgba(132,204,22,0.35)]'
           : ''
       } ${className}`}
     >
@@ -73,6 +78,29 @@ function HighlightSection({
 /* ------------------------------------------------------------------ */
 /*  Screenshots masonry grid                                           */
 /* ------------------------------------------------------------------ */
+
+export function sourcedMetrics(highlights: string[]): Array<{ value: number; suffix: string; label: string; source: string }> {
+  const metrics: Array<{ value: number; suffix: string; label: string; source: string }> = [];
+  for (const source of highlights) {
+    const team = source.match(/Team of (\d+)/);
+    if (team) metrics.push({ value: Number(team[1]), suffix: '', label: 'team members', source });
+    for (const match of source.matchAll(/(\d+)(\+?) (function-calling tools|layers|months|engineers)\b/g)) {
+      metrics.push({ value: Number(match[1]), suffix: match[2], label: match[3], source });
+    }
+  }
+  return metrics.slice(0, 3);
+}
+
+function Metric({ metric }: { metric: ReturnType<typeof sourcedMetrics>[number] }) {
+  const still = useReducedMotion();
+  const [count, setCount] = useState(still ? metric.value : 0);
+  useEffect(() => {
+    if (still) { setCount(metric.value); return; }
+    const controls = animate(0, metric.value, { ...liquidSettle, delay: DURATION_MS.morphLand / 1000, onUpdate: value => setCount(Math.round(value)) });
+    return () => controls.stop();
+  }, [metric.value, still]);
+  return <div aria-label={metric.source} className="rounded-lg border border-gray-200 p-3 dark:border-gray-800"><span aria-hidden="true"><span className="block text-2xl font-semibold tabular-nums">{still ? metric.value : count}{metric.suffix}</span><span className="text-xs text-gray-500">{metric.label}</span></span></div>;
+}
 
 const MAX_VISIBLE = 4;
 
@@ -99,6 +127,8 @@ function ScreenshotStrip({
         return (
           <button
             key={src}
+            id={'project-screenshot-' + slug + '-' + idx}
+            aria-label={'Open screenshot ' + (idx + 1)}
             onClick={() => onScreenshotClick?.(slug, idx)}
             className="relative shrink-0 w-20 h-20 overflow-hidden rounded-lg
                        bg-gray-100 dark:bg-white/[0.04]
@@ -111,7 +141,7 @@ function ScreenshotStrip({
               width={160}
               height={160}
               sizes="80px"
-              className="w-full h-full object-cover group-hover:scale-[1.08] transition-transform duration-300"
+              className="w-full h-full object-cover group-hover:scale-[1.03] motion-reduce:transform-none transition-transform duration-[380ms] motion-reduce:duration-0"
               loading="lazy"
             />
             {isLast && (
@@ -190,6 +220,18 @@ export default function ProjectCard({
   onScreenshotClick,
 }: ProjectCardProps) {
   const { projects } = usePortfolioData();
+  const { enabled } = useConversationContext();
+  const still = useReducedMotion();
+  const [writeupExpanded, setWriteupExpanded] = useState(false);
+  const [landed, setLanded] = useState(false);
+  useEffect(() => {
+    setWriteupExpanded(false);
+    setLanded(!enabled || !!still);
+    if (enabled && !still) {
+      const timer = setTimeout(() => setLanded(true), DURATION_MS.morphLand);
+      return () => clearTimeout(timer);
+    }
+  }, [slug, enabled, still]);
   /* Resolve project data ------------------------------------------- */
   const project: ProjectData | undefined =
     projectProp ?? (projects as unknown as ProjectData[]).find((p) => p.slug === slug);
@@ -208,42 +250,51 @@ export default function ProjectCard({
   /* Loading state -------------------------------------------------- */
   if (!project) {
     return (
-      <div className="animate-pulse space-y-4 p-4">
-        <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-2/3" />
-        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3" />
-        <div className="h-48 bg-gray-200 dark:bg-gray-700 rounded" />
-      </div>
+      <div role="status" className="space-y-4 p-4"><h3 className="font-semibold">Project unavailable</h3><p>Return to projects to choose another project.</p></div>
     );
   }
 
-  const [writeupExpanded, setWriteupExpanded] = useState(false);
-
+  const metrics = enabled ? sourcedMetrics(project.highlights) : [];
   const hasHighlights = project.highlights.length > 0;
   const hasLinks = Object.keys(project.links).length > 0;
   const hasWriteup = !!(project as ProjectData & { writeup?: string }).writeup;
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, ease: 'easeOut' }}
+      initial={false}
+      animate={{ opacity: 1 }}
+      transition={still ? reducedMotionCrossfade : liquidSettle}
       className="space-y-5 rounded-xl bg-gray-50 dark:bg-neutral-900 p-5 shadow-sm"
     >
       {/* Header ---------------------------------------------------- */}
       <div>
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">{project.name}</h2>
+        <motion.h2 layoutId={enabled && !still ? 'project-title-' + slug : undefined} transition={brandSpring} className="text-xl font-bold text-gray-900 dark:text-white">{project.name}</motion.h2>
         <div className="mt-0.5 flex items-center gap-2">
           <p className="text-xs font-medium text-gray-400 dark:text-gray-500">
             {project.period}
           </p>
           {project.role && (
             <span className="text-xs font-medium text-lime-600 dark:text-lime-400">
-              · {project.role}
+              {project.role}
             </span>
           )}
         </div>
       </div>
 
+      {enabled && (project.loop || project.screenshots[0]) && (
+        <motion.div layoutId={!still ? 'project-media-' + slug : undefined} transition={brandSpring} className="overflow-hidden rounded-[14px_22px_14px_22px]">
+          {project.loop && landed ? <ProjectLoop media={project.loop} fallback={project.screenshots[0] ? '/screenshots/' + project.screenshots[0] : undefined} alt={project.name + ' product preview'} active={landed} /> : (
+            <div className="aspect-video overflow-hidden">
+              <motion.img src={'/screenshots/' + project.screenshots[0]} alt={project.name + ' product preview'} width={1280} height={720} className="h-full w-full object-contain"
+                initial={still ? false : { scale: 1 }} animate={{ scale: still || project.loop ? 1 : 1.04 }}
+                transition={still ? { duration: 0 } : { duration: 6, delay: (DURATION_MS.morphLand + DURATION_MS.settle + DURATION_MS.readingHold) / 1000, ease: 'linear' }} />
+            </div>
+          )}
+        </motion.div>
+      )}
+
+      <motion.div className="space-y-5" initial={enabled && !still ? { opacity: 0 } : false} animate={{ opacity: 1 }} transition={still ? { duration: 0 } : { ...liquidSettle, delay: enabled ? DURATION_MS.morphLand / 1000 : 0 }}>
+      {metrics.length >= 2 && <div className="grid grid-cols-2 gap-3 sm:grid-cols-3" aria-label="Sourced project facts">{metrics.map(metric => <Metric key={metric.source + metric.label} metric={metric} />)}</div>}
       {/* Screenshots ----------------------------------------------- */}
       {project.screenshots.length > 0 && (
         <ScreenshotStrip
@@ -263,7 +314,7 @@ export default function ProjectCard({
       {/* Tech stack ------------------------------------------------ */}
       <HighlightSection active={activeHighlight === 'stack'}>
         <div>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+          <h3 className="mb-2 text-xs font-semibold tracking-wide text-gray-500 dark:text-gray-400">
             Stack
           </h3>
           <div className="flex flex-wrap gap-1.5">
@@ -283,7 +334,7 @@ export default function ProjectCard({
       {hasHighlights && (
         <HighlightSection active={activeHighlight === 'highlights'}>
           <div>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            <h3 className="mb-2 text-xs font-semibold tracking-wide text-gray-500 dark:text-gray-400">
               Highlights
             </h3>
             <ul className="space-y-1">
@@ -305,10 +356,11 @@ export default function ProjectCard({
       {hasWriteup && (
         <div>
           <button
+            aria-expanded={writeupExpanded}
             onClick={() => setWriteupExpanded(!writeupExpanded)}
             className="text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-lime-500 dark:hover:text-lime-400 transition-colors"
           >
-            {writeupExpanded ? 'Hide writeup \u25B4' : 'Read full writeup \u25BE'}
+            {writeupExpanded ? 'Hide writeup' : 'Read full writeup'}
           </button>
           {writeupExpanded && (
             <div className="mt-3 pt-3 border-t border-gray-200/60 dark:border-white/[0.06]">
@@ -322,7 +374,7 @@ export default function ProjectCard({
       {hasLinks && (
         <HighlightSection active={activeHighlight === 'links'}>
           <div>
-            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            <h3 className="mb-2 text-xs font-semibold tracking-wide text-gray-500 dark:text-gray-400">
               Links
             </h3>
             <div className="flex flex-wrap gap-2">
@@ -355,6 +407,7 @@ export default function ProjectCard({
           </div>
         </HighlightSection>
       )}
+      </motion.div>
     </motion.div>
   );
 }

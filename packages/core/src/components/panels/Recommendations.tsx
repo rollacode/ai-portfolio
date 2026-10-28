@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { usePortfolioData } from '../../context/PortfolioDataContext';
+import { useConversationContext } from '../../context/ConversationContext';
+import { liquidSettle, reducedMotionCrossfade } from '../../lib/motion';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -49,6 +51,8 @@ function RecommendationCard({
   onVisible?: () => void;
   projectNameMap: Record<string, string>;
 }) {
+  const still = useReducedMotion();
+  const { enabled } = useConversationContext();
   const [expanded, setExpanded] = useState(false);
   const [needsClamp, setNeedsClamp] = useState(false);
   const textRef = useRef<HTMLParagraphElement>(null);
@@ -65,7 +69,7 @@ function RecommendationCard({
   // Auto-scroll to highlighted card
   useEffect(() => {
     if (isHighlighted && cardRef.current) {
-      cardRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      cardRef.current.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'center' });
       onVisible?.();
     }
   }, [isHighlighted, onVisible]);
@@ -73,15 +77,15 @@ function RecommendationCard({
   return (
     <motion.div
       ref={cardRef}
-      initial={{ opacity: 0, y: 20 }}
+      initial={still || enabled ? false : { opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.08, duration: 0.4, ease: 'easeOut' }}
+      transition={still ? reducedMotionCrossfade : liquidSettle}
       className={`
         relative rounded-xl p-5 md:p-6
         bg-gray-100/80 dark:bg-white/[0.06]
         transition-all duration-300
         ${isHighlighted
-          ? 'border-2 border-lime-500 shadow-[0_0_20px_rgba(132,204,22,0.15)]'
+          ? 'border border-lime-500 shadow-[0_0_20px_rgba(132,204,22,0.15)]'
           : 'border border-gray-200/60 dark:border-white/[0.06]'
         }
       `}
@@ -120,6 +124,7 @@ function RecommendationCard({
 
         {needsClamp && (
           <button
+            aria-expanded={expanded}
             onClick={() => setExpanded(!expanded)}
             className="mt-2 text-xs font-medium text-gray-500 dark:text-gray-400 hover:text-lime-500 dark:hover:text-lime-400 transition-colors"
           >
