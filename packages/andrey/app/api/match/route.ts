@@ -3,6 +3,9 @@ import { loadPortfolioContent } from '@/lib/system-prompt';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import { API_KEY, BASE_URL, MODEL, SSE_HEADERS, sseErrorResponse } from '@/lib/ai-config';
 import config from '@/portfolio/config.json';
+import { calibratedMatch } from '@/lib/calibrated-match';
+import { FIT_CAPABILITY } from '@ai-portfolio/core/lib/evidence/fit';
+export const maxDuration = 60;
 
 function buildMatchPrompt(
   role: string,
@@ -76,6 +79,11 @@ export async function POST(request: NextRequest) {
     return sseErrorResponse('Too many requests', 429);
   }
 
+  if (Number(request.headers.get('content-length')) > 100000) return sseErrorResponse('Job description is too long', 413);
+  try {
+    const body = await request.clone().json();
+    if (body?.capability === FIT_CAPABILITY) return calibratedMatch(body, request.signal);
+  } catch { /* legacy validation below */ }
   const apiKey = API_KEY();
   if (!apiKey) {
     return sseErrorResponse('AI API key is not configured', 500);
@@ -122,8 +130,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!response.ok || !response.body) {
-      const errorBody = await response.text();
-      console.error('Match AI API error:', response.status, errorBody);
+      console.error('Match AI API error:', response.status);
       return sseErrorResponse(`AI API error: ${response.status}`, response.status);
     }
 
@@ -171,7 +178,7 @@ export async function POST(request: NextRequest) {
 
     return new Response(stream, { headers: SSE_HEADERS });
   } catch (error) {
-    console.error('Match API error:', error);
+    console.error('Match API unavailable');
     return sseErrorResponse('Failed to generate match', 500);
   }
 }

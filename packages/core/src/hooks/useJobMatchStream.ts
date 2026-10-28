@@ -2,6 +2,9 @@
 
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { loadJobMatch, saveJobMatch } from '../lib/chat-store';
+import { useConversationContext } from '../context/ConversationContext';
+import { settleFitNarration, takeReopenedFitSuppression } from '../lib/evidence/fit-narration';
+import { FIT_CAPABILITY, parseFitBoard, type FitBoard } from '../lib/evidence/fit';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -37,6 +40,9 @@ export interface Requirement {
 }
 
 export interface JobMatchStreamData {
+  calibrated?: boolean;
+  board?: FitBoard;
+  retry?: () => void;
   role: string | null;
   company: string | null;
   matchPercent: number | null;
@@ -176,6 +182,21 @@ export function useJobMatchStream({
   description,
   language = 'en',
 }: UseJobMatchStreamOptions): JobMatchStreamData {
+  const conversation = useConversationContext();
+  const contextRef = useRef(conversation);
+  contextRef.current = conversation;
+  const calibrated = conversation.enabled;
+  const [board, setBoard] = useState<FitBoard>();
+  const [commentary, setCommentary] = useState<{requestId:string;text:string}>();
+  const [attempt, setAttempt] = useState(0);
+  const delivered = useRef(new Set<string>());
+  const [narrationSettled, setNarrationSettled] = useState<string>();
+  useEffect(() => { if (narrationSettled) settleFitNarration(narrationSettled); }, [narrationSettled]);
+  useEffect(() => {
+    if (!board || !commentary || commentary.requestId !== board.requestId || contextRef.current.activeRequestId !== board.requestId || delivered.current.has(board.requestId)) return;
+    const callback = contextRef.current.onFitCommentary;
+    if (callback) { delivered.current.add(board.requestId); callback(board.requestId, commentary.text); setNarrationSettled(board.requestId); }
+  }, [board, commentary, conversation.activeRequestId, conversation.onFitCommentary]);
   const [fullText, setFullText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -222,14 +243,22 @@ export function useJobMatchStream({
 
   useEffect(() => {
     const controller = new AbortController();
+    const requestId = contextRef.current.activeRequestId;
+    const reopened = takeReopenedFitSuppression(description, requestId);
+    setBoard(undefined);
+    setCommentary(undefined);
     fullTextRef.current = '';
     setFullText('');
     setIsLoading(true);
     setError(null);
 
     async function fetchMatch() {
+      if (calibrated && (!role.trim() || !description.trim() || !requestId)) return;
+      await Promise.resolve();
+      if (controller.signal.aborted) return;
       // Check cache first — avoid re-streaming on page refresh
-      const cached = await loadJobMatch(role, company, description);
+      const cached = calibrated ? null : await loadJobMatch(role, company, description);
+      if (controller.signal.aborted) return;
       if (cached) {
         fullTextRef.current = cached;
         setFullText(cached);
@@ -240,7 +269,7 @@ export function useJobMatchStream({
       const res = await fetch('/api/match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role, company, description, language }),
+        body: JSON.stringify({ role, company, description, language, ...(calibrated ? { capability: FIT_CAPABILITY, requestId } : {}) }),
         signal: controller.signal,
       });
 
@@ -264,13 +293,20 @@ export function useJobMatchStream({
 
           if (payload === '[DONE]') {
             // Cache the completed result
-            await saveJobMatch(role, company, description, fullTextRef.current);
+            if (!calibrated) await saveJobMatch(role, company, description, fullTextRef.current);
             setIsLoading(false);
             return;
           }
 
           try {
             const parsed = JSON.parse(payload);
+            if (controller.signal.aborted) return;
+            if (calibrated && contextRef.current.activeRequestId !== requestId) { await reader.cancel(); setIsLoading(false); return; }
+            if (calibrated && parsed.board && requestId) {
+              const validated=parseFitBoard(parsed.board,requestId,description);
+              if(validated)setBoard(validated);else setError('The comparison could not be verified');
+            }
+            if (calibrated && !reopened && parsed.commentary && parsed.requestId === requestId) setCommentary({requestId: parsed.requestId, text: parsed.commentary});
             if (parsed.delta) {
               fullTextRef.current += parsed.delta;
               setFullText(fullTextRef.current);
@@ -281,7 +317,7 @@ export function useJobMatchStream({
 
       // Stream ended without [DONE] — still cache what we got
       if (fullTextRef.current) {
-        await saveJobMatch(role, company, description, fullTextRef.current);
+        if (!calibrated) await saveJobMatch(role, company, description, fullTextRef.current);
       }
       setIsLoading(false);
     }
@@ -293,9 +329,10 @@ export function useJobMatchStream({
     });
 
     return () => controller.abort();
-  }, [role, company, description, language]);
+  }, [role, company, description, language, calibrated, attempt]);
 
   return {
+    calibrated, board, retry: () => setAttempt(n => n + 1),
     role: header?.role || null,
     company: header?.company || null,
     matchPercent: header?.match ?? null,

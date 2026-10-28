@@ -1,11 +1,21 @@
 'use client';
 
+import { useEffect, useSyncExternalStore } from 'react';
+import { useConversationContext } from '../../context/ConversationContext';
+import { CALIBRATION, currentReceipt } from '../../lib/evidence/receipts';
+import { subscribeFitNarration, isFitNarrationSettled } from '../../lib/evidence/fit-narration';
+import { subscribeReceiptBatches, getReceiptBatch, requestReceiptBatch } from '../../lib/evidence/receipt-batches';
+import ReceiptDot from './ReceiptDot';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
+import type { PanelState } from '../../lib/tool-handler';
 import ToolCallBadge from './ToolCallBadge';
 import MemoryLine from '../panels/MemoryLine';
 
 interface ChatMessageProps {
+  /** Originating volatile request; never infer it for persisted messages. */
+  requestId?: string;
+  onNavigate?: (state: Partial<PanelState>) => void;
   role: 'user' | 'assistant';
   content: string;
   toolCalls?: Array<{ name: string; arguments: Record<string, any> }>;
@@ -17,14 +27,25 @@ interface ChatMessageProps {
   memoryNewKeys?: Set<string>;
 }
 
-export default function ChatMessage({ role, content, toolCalls, isError, onRetry, memorySnapshot, memoryNewKeys }: ChatMessageProps) {
+export default function ChatMessage({ requestId, onNavigate, role, content, toolCalls, isError, onRetry, memorySnapshot, memoryNewKeys }: ChatMessageProps) {
+  const conversation = useConversationContext();
+  const fitSettled = useSyncExternalStore(subscribeFitNarration, () => isFitNarrationSettled(requestId), () => false);
+  const awaitsFitCommentary = toolCalls?.some(call => call.name === 'match_job') && !fitSettled;
+  const computed = useSyncExternalStore(subscribeReceiptBatches, () => getReceiptBatch(requestId), () => undefined);
+  useEffect(() => {
+    if (awaitsFitCommentary) return;
+    if (!CALIBRATION.enabled || role !== 'assistant' || !requestId || !conversation.enabled || conversation.activeRequestId !== requestId || conversation.requestStatus !== 'complete') return;
+    requestReceiptBatch(requestId,content);
+  }, [requestId, content, role, conversation.enabled, conversation.activeRequestId, conversation.requestStatus, awaitsFitCommentary]);
+  const validReceipts = conversation.enabled && computed?.content === content && requestId === conversation.activeRequestId ? computed.receipts.filter(r=>currentReceipt(r,requestId,content)) : [];
+  const corrections = requestId && requestId === conversation.activeRequestId ? conversation.correctionsByRequest?.[requestId] : undefined;
   const isUser = role === 'user';
   const hasToolCalls = toolCalls && toolCalls.length > 0;
   const hasMemoryCall = toolCalls?.some((tc) => tc.name === 'remember_visitor') ?? false;
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={conversation.enabled ? false : { opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
       className="py-0.5"
@@ -60,11 +81,17 @@ export default function ChatMessage({ role, content, toolCalls, isError, onRetry
                           [&>ul>li]:border-l-2 [&>ul>li]:border-lime-500/40 [&>ul>li]:pl-3
                           [&>ul>li]:py-2 [&>ul>li]:rounded-r
                           [&>ul>li]:bg-white/[0.04] dark:[&>ul>li]:bg-white/[0.04]">
-            <ReactMarkdown>
+            <ReactMarkdown components={{strong: ({node, children, ...props}) => {
+              const start = node?.position?.start.offset;
+              const end = node?.position?.end.offset;
+              const receipt = validReceipts.find(r => start !== undefined && end !== undefined && r.start === start + 2 && r.end === end - 2);
+              return <strong {...props}>{children}{receipt && <ReceiptDot receipt={receipt}/>}</strong>;
+            }}}>
               {content}
             </ReactMarkdown>
           </div>
 
+          {corrections?.map((note,i)=><p key={i} role="note" className="mt-2 border-l-2 border-lime-500 pl-3 text-sm text-gray-600 dark:text-gray-300">Correction: {note}</p>)}
           {isError && onRetry && (
             <button
               onClick={onRetry}
@@ -81,7 +108,7 @@ export default function ChatMessage({ role, content, toolCalls, isError, onRetry
           )}
 
           {hasToolCalls && (
-            <ToolCallBadge toolCalls={toolCalls} />
+            <ToolCallBadge toolCalls={toolCalls} onNavigate={onNavigate} />
           )}
 
           {hasMemoryCall && memorySnapshot && memoryNewKeys && memoryNewKeys.size > 0 && (
