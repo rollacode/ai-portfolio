@@ -81,18 +81,6 @@ input {
   caret-color: var(--accent);
 }
 
-/* The signature steps aside while a panel holds the left side, and springs back after. */
-.domios-signature {
-  transition: opacity 380ms var(--ease-liquid-settle), transform 380ms var(--ease-hover-swell), visibility 0s;
-}
-
-body:has([data-print-content]) .domios-signature {
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-8px) scale(.96);
-  transition: opacity 380ms var(--ease-liquid-settle), transform 380ms var(--ease-hover-swell), visibility 0s 380ms;
-}
-
 /* ------------------------------------------------------------------ */
 /*  Welcome: one orchestrated entrance, then a live agent dot          */
 /* ------------------------------------------------------------------ */
@@ -154,8 +142,13 @@ body:has([data-print-content]) .domios-signature {
   animation: welcome-rise 600ms var(--ease-liquid-settle) 520ms both;
 }
 
-[data-welcome-meta] a:hover {
+[data-welcome-meta] a:not(.domios-credit):hover {
   color: var(--accent);
+}
+
+/* The Domios mark lands last, the same droplet as the agent dot, once the line has settled. */
+[data-welcome-meta] .domios-credit__mark {
+  animation: welcome-drop 520ms var(--ease-hover-swell) 900ms both;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -163,7 +156,8 @@ body:has([data-print-content]) .domios-signature {
   [data-welcome-name],
   [data-welcome-name]::after,
   [data-welcome-input] > div:first-child,
-  [data-welcome-meta] {
+  [data-welcome-meta],
+  [data-welcome-meta] .domios-credit__mark {
     animation: none;
   }
 }

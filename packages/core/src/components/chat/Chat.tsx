@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
@@ -31,7 +31,8 @@ const DEFAULT_PANEL_STATE: PanelState = { open: false, type: null };
 // Component
 // -----------------------------------------------------------------------------
 
-export default function Chat() {
+/** `credit` replaces the "<name>'s portfolio agent" label under the input. */
+export default function Chat({ credit }: { credit?: ReactNode } = {}) {
   const { config } = usePortfolioData();
 
   // Core state
@@ -149,7 +150,7 @@ export default function Chat() {
             <div data-welcome-input className="w-full max-w-3xl px-4">
               <ChatInput onSend={sendMessage} disabled={isLoading} animatePlaceholder prefillText={prefillText} onPrefillConsumed={() => setPrefillText('')} />
               <p data-welcome-meta className="text-[10px] text-center text-gray-400 dark:text-gray-600 mt-2">
-                {firstName}&apos;s portfolio agent
+                {credit ?? <>{firstName}&apos;s portfolio agent</>}
                 {config.social?.github && (
                   <>
                     {' · '}
@@ -237,7 +238,7 @@ export default function Chat() {
             <div className={`mx-auto px-4 pb-4 pt-2 pointer-events-auto ${layout === 'split' ? 'max-w-[500px]' : 'max-w-3xl'}`}>
               <ChatInput onSend={sendMessage} disabled={isLoading} prefillText={prefillText} onPrefillConsumed={() => setPrefillText('')} />
               <p className="text-[10px] text-center text-gray-400 dark:text-gray-600 mt-2">
-                {firstName}&apos;s portfolio agent
+                {credit ?? <>{firstName}&apos;s portfolio agent</>}
                 {config.social?.github && (
                   <>
                     {' · '}
