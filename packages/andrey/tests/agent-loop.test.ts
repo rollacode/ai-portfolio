@@ -81,7 +81,7 @@ describe('bounded transport and rounds', () => {
     vi.stubGlobal('fetch', vi.fn((url, init) => {
       if (String(url).includes('typesafe')) {
         const body = JSON.parse(init.body);
-        if (body.questions.support) { rejects++; return Promise.resolve(Response.json({ answers: { support: { type: 'noul', noul: 0.1 } } })); }
+        if (body.questions.support) { rejects++; return Promise.resolve(Response.json({ answers: { support: { type: 'noul', noul: 0.05 }, contradiction: { type: 'noul', noul: 0.97 } } })); }
         return Promise.resolve(new Response('bad', { status: 500 }));
       }
       chats++; return Promise.resolve(textResponse());

@@ -42,10 +42,10 @@ export default function SpinalCordLine({ classification, corrected }: { classifi
   return (
     <div className="relative mb-2" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)}>
       <button type="button" aria-expanded={open} onClick={() => setOpen((value) => !value)} onFocus={() => setOpen(true)} onBlur={() => setOpen(false)}
-        className="group inline-flex max-w-full items-center gap-2 rounded-full border border-lime-500/20 bg-lime-500/[0.06] py-1 pl-2 pr-3 text-[11px] text-gray-600 transition-colors hover:border-lime-500/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-500 dark:text-gray-300">
+        className="group inline-flex max-w-full flex-wrap items-center gap-x-2 gap-y-1 rounded-[14px_18px_14px_18px] border border-lime-500/20 bg-lime-500/[0.06] py-1 pl-2 pr-3 text-[11px] text-gray-600 transition-colors hover:border-lime-500/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-500 dark:text-gray-300">
         <Vertebrae firing className="h-3.5 w-2.5 flex-shrink-0 text-lime-600 dark:text-lime-400" />
-        <span className="font-medium text-gray-800 dark:text-gray-100">Spinal cord</span>
-        <span className="flex min-w-0 items-center gap-1.5 overflow-hidden">
+        <span className="whitespace-nowrap font-medium text-gray-800 dark:text-gray-100">Spinal cord</span>
+        <span className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1">
           {signals.map((signal, index) => (
             <motion.span key={signal} className="flex items-center gap-1.5 whitespace-nowrap"
               initial={still ? false : { opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0 }}
