@@ -147,9 +147,9 @@ export default function Gallery({
       {/* Close button */}
       <motion.button
         ref={closeButton}
-        whileHover={still ? {} : { scale: 1.03 }}
-        whileTap={still ? {} : { scale: 0.98 }}
-        transition={{ ...hoverSwell, scale: press }}
+        whileHover={still ? {} : { scale: 1.03, transition: hoverSwell }}
+        whileTap={still ? {} : { scale: 0.98, transition: press }}
+        transition={hoverSwell}
         onClick={(e) => {
           e.stopPropagation();
           onClose?.();

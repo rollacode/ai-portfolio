@@ -65,7 +65,7 @@ beforeEach(() => {
     disconnect() {}
   } as any;
   vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(() => {});
-  vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue();
+  vi.spyOn(HTMLMediaElement.prototype, 'play').mockImplementation(function(this: HTMLMediaElement) { this.dispatchEvent(new Event('playing')); return Promise.resolve(); });
   mount = document.createElement('div');
   document.body.append(mount);
   root = createRoot(mount);
@@ -84,16 +84,21 @@ describe('ProjectLoop DOM lifecycle', () => {
     expect(video.loop).toBe(true);
     expect(video.querySelectorAll('source')).toHaveLength(2);
     enter(false);
-    expect(mount.querySelector('video')).toBeNull();
+    expect(mount.querySelector('video')).toBe(video);
     expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled();
   });
   it('pauses on inactive and document hidden; resumes only after eligibility returns', async () => {
     render(); enter(true); await act(async () => {});
+    const playing = mount.querySelector('video');
+    const calls = vi.mocked(HTMLMediaElement.prototype.play).mock.calls.length;
     render({ active: false });
-    expect(mount.querySelector('video')).toBeNull();
+    expect(mount.querySelector('video')).toBe(playing);
+    expect(HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(calls);
+    expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled();
     render({ active: true }); await act(async () => {});
     act(() => { visibility = 'hidden'; document.dispatchEvent(new Event('visibilitychange')); });
-    expect(mount.querySelector('video')).toBeNull();
+    expect(mount.querySelector('video')).toBe(playing);
+    expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled();
     act(() => { visibility = 'visible'; document.dispatchEvent(new Event('visibilitychange')); });
     await act(async () => {});
     expect(mount.querySelector('video')).not.toBeNull();
@@ -108,31 +113,78 @@ describe('ProjectLoop DOM lifecycle', () => {
     act(() => { reduced = true; preferenceChanged(); });
     expect(mount.querySelector('video')).toBeNull();
   });
-  it('offers tap/keyboard-native pause and play, without losing the poster', async () => {
+  it('keyboard focus holds the same video frame and blur resumes without player chrome', async () => {
     render(); enter(true); await act(async () => {});
-    act(() => mount.querySelector('button')!.click());
-    expect(mount.textContent).toContain('Play demo');
-    expect(mount.querySelector('video')).toBeNull();
-    expect(mount.querySelector('img')).not.toBeNull();
-    act(() => mount.querySelector('button')!.click()); await act(async () => {});
-    expect(mount.querySelector('video')).not.toBeNull();
+    const video = mount.querySelector('video')!;
+    video.currentTime = 2.5;
+    render({ media: { ...media } });
+    expect(mount.querySelector('video')).toBe(video);
+    expect(HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(1);
+    const surface = mount.querySelector<HTMLElement>('[tabindex]')!;
+    act(() => surface.focus());
+    expect(mount.querySelector('[data-loop-state]')?.getAttribute('data-loop-state')).toBe('inspecting');
+    expect(mount.querySelector('video')).toBe(video);
+    expect(video.currentTime).toBe(2.5);
+    expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled();
+    act(() => surface.blur()); await act(async () => {});
+    expect(mount.querySelector('video')).toBe(video);
+    expect(video.currentTime).toBe(2.5);
+    expect(mount.querySelector('button')).toBeNull();
+    expect(video.controls).toBe(false);
+    expect(video.hasAttribute('disablepictureinpicture')).toBe(true);
   });
-  it('rejected play and media errors produce a still and bounded explicit retry', async () => {
+  it('rejected play and media errors retain the poster with no automatic retry or player UI', async () => {
     vi.mocked(HTMLMediaElement.prototype.play).mockRejectedValue(new Error('codec'));
     render(); enter(true); await act(async () => {});
     expect(mount.querySelector('video')).toBeNull();
-    expect(mount.textContent).toContain('Demo unavailable');
+    expect(mount.querySelector('[data-loop-state]')?.getAttribute('data-loop-state')).toBe('unavailable');
     expect(HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(1);
+    expect(mount.querySelector('button')).toBeNull();
+    expect(mount.querySelector('img')?.getAttribute('src')).toBe(media.poster);
     vi.mocked(HTMLMediaElement.prototype.play).mockResolvedValue();
-    act(() => mount.querySelector('button')!.click()); await act(async () => {});
+    render({ media: { mp4: '/loops/sos-portal/loop.mp4', webm: '/loops/sos-portal/loop.webm', poster: '/loops/sos-portal/poster.webp' } }); await act(async () => {});
     act(() => mount.querySelector('video')!.dispatchEvent(new Event('error')));
-    expect(mount.textContent).toContain('Demo unavailable');
+    expect(mount.querySelector('[data-loop-state]')?.getAttribute('data-loop-state')).toBe('unavailable');
   });
   it('no-loop projects remain an honest screenshot without media controls', () => {
     render({ media: undefined, fallback: '/screenshots/example.webp' }); enter(true);
     expect(mount.querySelector('video')).toBeNull();
     expect(mount.querySelector('button')).toBeNull();
     expect(mount.querySelector('img')?.getAttribute('src')).toBe('/screenshots/example.webp');
+  });
+  it('tries the other delivered codec when one source fails, then falls back if both fail', async () => {
+    render(); enter(true); await act(async () => {});
+    const sources = mount.querySelectorAll('source');
+    act(() => sources[0].dispatchEvent(new Event('error')));
+    expect(mount.querySelector('video')).not.toBeNull();
+    expect(mount.querySelector('[data-loop-state]')?.getAttribute('data-loop-state')).not.toBe('unavailable');
+    act(() => sources[1].dispatchEvent(new Event('error')));
+    expect(mount.querySelector('video')).toBeNull();
+    expect(mount.querySelector('[data-loop-state]')?.getAttribute('data-loop-state')).toBe('unavailable');
+  });
+  it('falls back once to the delivered MP4 after a WebM decode failure', async () => {
+    render(); enter(true); await act(async () => {});
+    const first = mount.querySelector('video')!;
+    Object.defineProperty(first, 'error', { value: { code: 3 } });
+    act(() => first.dispatchEvent(new Event('error')));
+    await act(async () => {});
+    const second = mount.querySelector('video')!;
+    expect(second).not.toBe(first);
+    expect(second.querySelectorAll('source')).toHaveLength(1);
+    expect(second.querySelector('source')?.getAttribute('src')).toBe(media.mp4);
+    Object.defineProperty(second, 'error', { value: { code: 3 } });
+    act(() => second.dispatchEvent(new Event('error')));
+    expect(mount.querySelector('[data-loop-state]')?.getAttribute('data-loop-state')).toBe('unavailable');
+    expect(HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(2);
+  });
+  it('uses the screenshot if the poster fails and an honest still state if both are unavailable', () => {
+    render({ fallback: '/screenshots/example.webp', active: false });
+    act(() => mount.querySelector('img')!.dispatchEvent(new Event('error')));
+    expect(mount.querySelector('img')?.getAttribute('src')).toBe('/screenshots/example.webp');
+    act(() => mount.querySelector('img')!.dispatchEvent(new Event('error')));
+    expect(mount.querySelector('img')).toBeNull();
+    expect(mount.textContent).toContain('Preview unavailable');
+    expect(mount.querySelector('video')).toBeNull();
   });
   it('unmount pauses media and disconnects observers', async () => {
     render(); enter(true); await act(async () => {});

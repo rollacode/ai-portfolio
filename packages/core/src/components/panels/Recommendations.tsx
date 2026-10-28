@@ -142,7 +142,7 @@ function RecommendationCard({
           {rec.title}
         </p>
         <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-          {rec.relation} &middot; {rec.date}
+          {rec.relation}{enabled ? <span className="ml-3">{rec.date}</span> : <> &middot; {rec.date}</>}
         </p>
         {rec.projectSlugs && rec.projectSlugs.length > 0 && (
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">

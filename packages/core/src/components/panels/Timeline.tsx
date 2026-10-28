@@ -29,6 +29,7 @@ interface TimelineProps {
   currentAction?: TimelineAction | null;
   onActionConsumed?: () => void;
   onProjectOpen?: (slug: string) => void;
+  selectedCompany?: string;
 }
 
 /* ------------------------------------------------------------------ */
@@ -346,12 +347,13 @@ function LegacyTimeline({ currentAction, onActionConsumed }: TimelineProps) {
   );
 }
 
-function LivingTimeline({ currentAction, onActionConsumed, onProjectOpen }: TimelineProps) {
+function LivingTimeline({ currentAction, onActionConsumed, onProjectOpen, selectedCompany }: TimelineProps) {
   const { experience, projects, skills } = usePortfolioData();
   const still = useReducedMotion();
   const host = useRef<HTMLDivElement>(null);
   const refs = useRef(new Map<string, HTMLElement>());
-  const [active, setActive] = useState(0);
+  const [showRelated, setShowRelated] = useState(!!selectedCompany);
+  const [active, setActive] = useState(Math.max(0, experience.findIndex(entry => entry.company === selectedCompany)));
   const [progress, setProgress] = useState(0);
   const [highlight, setHighlight] = useState<string | null>(null);
   useEffect(() => {
@@ -383,9 +385,9 @@ function LivingTimeline({ currentAction, onActionConsumed, onProjectOpen }: Time
   const ids = Object.values(skills).flat().filter(skill => current.stack.some(tech => tech.toLowerCase() === skill.name.toLowerCase())).map(skill => skill.id);
   const related = projects.filter(project => project.skillIds?.some(id => ids.includes(id)));
   return <div ref={host} className="relative space-y-6">
-    <aside className="sticky top-0 z-20 rounded-lg border border-gray-200 bg-white/95 p-3 text-sm dark:border-gray-800 dark:bg-black/95" aria-label="Current role">
+    <aside className="sticky top-0 z-20 rounded-lg border border-gray-200 bg-white p-3 text-sm dark:border-gray-800 dark:bg-black" aria-label="Current role">
       <p className="font-medium">{current.company}<span className="ml-3 font-normal text-gray-500">{current.role}</span></p>
-      {related.length > 0 && <details className="mt-1"><summary className="cursor-pointer text-xs text-gray-500">Projects using this stack</summary><ul className="mt-2 space-y-2">{related.map(project => <li key={project.slug}><button type="button" className="underline" onClick={() => onProjectOpen?.(project.slug)}>{project.name}</button></li>)}</ul></details>}
+      {related.length > 0 && <div className="mt-1"><button type="button" aria-expanded={showRelated} onClick={() => setShowRelated(!showRelated)} className="text-xs text-gray-500 underline underline-offset-4">Projects using this stack</button>{showRelated && <ul className="mt-2 max-h-24 space-y-2 overflow-y-auto">{related.map(project => <li key={project.slug}><button id={'timeline-project-' + current.company.replace(/[^a-z0-9]/gi, '-') + '-' + project.slug} data-related-company={current.company} type="button" className="underline" onClick={() => onProjectOpen?.(project.slug)}>{project.name}</button></li>)}</ul>}</div>}
     </aside>
     <div className="relative pl-7">
       <svg className="absolute left-1 top-0 h-full w-2 text-lime-500" preserveAspectRatio="none" viewBox="0 0 2 100" aria-hidden="true"><path d="M1 0 V100" stroke="currentColor" opacity=".15" /><path data-timeline-rail d="M1 0 V100" pathLength="1" stroke="currentColor" strokeDasharray="1" strokeDashoffset={still ? 0 : 1 - progress} /></svg>

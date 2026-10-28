@@ -65,7 +65,7 @@ describe('shared motion and honest data contract', () => {
     const root = createRoot(mount);
     const data = { config, projects, skills, experience, recommendations } as unknown as PortfolioData;
     act(() => root.render(h(PortfolioDataProvider, { data, children: h(ConversationProvider, { value: { enabled: true }, children: h(ProjectCard, { slug: 'sos-portal' }) }) })));
-    const facts = mount.querySelector('[aria-label="Sourced project facts"]')!;
+    const facts = mount.querySelector('[aria-label="Project at a glance"]')!;
     expect(facts.textContent).toContain('17');
     expect(facts.textContent).toContain('6');
     expect(mount.querySelector('video')).toBeNull();

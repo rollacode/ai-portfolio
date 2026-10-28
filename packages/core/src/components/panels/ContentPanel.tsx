@@ -2,9 +2,10 @@
 
 import { Component, useMemo, useCallback, useState, useEffect, useRef, useLayoutEffect, type ReactNode } from 'react';
 import { motion, AnimatePresence, LayoutGroup, useReducedMotion } from 'framer-motion';
+import { usePortfolioData } from '../../context/PortfolioDataContext';
 import { useConversationContext } from '../../context/ConversationContext';
 import type { PanelIdentity } from '../../lib/conversation-events';
-import { brandSpring, reducedMotionCrossfade, DURATION_MS } from '../../lib/motion';
+import { brandSpring, liquidSettle, liquidBreathe, hoverSwell, press, reducedMotionCrossfade, DURATION_MS } from '../../lib/motion';
 import type { PanelState, PanelAction } from '../../lib/tool-handler';
 import { useMediaQuery } from '../../hooks/useMediaQuery';
 import ProjectCard from './ProjectCard';
@@ -118,14 +119,16 @@ export default function ContentPanel({
   onPrefillChat,
 }: ContentPanelProps) {
   const context = useConversationContext();
+  const { projects } = usePortfolioData();
   const still = useReducedMotion();
   const provisionalType = context.enabled && context.pendingTool && context.pendingTool.generation >= (context.panelIdentity?.generation ?? 0) && pendingPanels[context.pendingTool.name] === context.pendingTool.panelType ? pendingPanels[context.pendingTool.name] : undefined;
   const provisional = !!provisionalType;
   const { slug, slug2, category } = panelState;
   const type = provisionalType || panelState.type;
   const open = panelState.open || provisional;
+  const detailHeader = context.enabled && type === 'project' && !provisional && projects.some(project => project.slug === slug);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const returnContext = useRef<{ state: PanelState; top: number; focusId: string } | null>(null);
+  const returnContext = useRef<{ state: PanelState; top: number; focusId: string; selectedSkillId?: string; selectedCompany?: string; radarCategory?: string } | null>(null);
   const restoreSource = useRef(false);
   const lastPanel = useRef('');
   const externalFocus = useRef<HTMLElement | null>(null);
@@ -143,7 +146,11 @@ export default function ContentPanel({
     } else onNavigate?.({ open: true, type: 'projects', slug: undefined, filter: undefined, skillId: undefined });
   }, [onNavigate]);
   const openProject = useCallback((projectSlug: string) => {
-    returnContext.current = { state: { ...panelState }, top: scrollRef.current?.scrollTop || 0, focusId: type === 'projects' ? 'project-source-' + projectSlug : (document.activeElement as HTMLElement)?.id || '' };
+    returnContext.current = { state: { ...panelState }, selectedSkillId: document.activeElement?.getAttribute('data-related-skill') || undefined,
+      selectedCompany: document.activeElement?.getAttribute('data-related-company') || undefined,
+      radarCategory: scrollRef.current?.querySelector('select')?.value,
+      top: scrollRef.current?.scrollTop || 0,
+      focusId: document.activeElement?.id || (type === 'projects' ? 'project-source-' + projectSlug : '') };
     onNavigate?.({ open: true, type: 'project', slug: projectSlug });
   }, [onNavigate, panelState, type]);
 
@@ -167,17 +174,22 @@ export default function ContentPanel({
     return () => { externalFocus.current?.focus({ preventScroll: true }); };
   }, [open]);
   useEffect(() => {
-    if (!open || provisional || !context.enabled) return;
+    if (!open || provisional) { if (!open) readyKey.current = ''; return; }
     const identity = context.panelIdentity;
-    if (!identity || identity.type !== type || (identity.slug || '') !== (slug || '')) return;
+    if (context.enabled && (!identity || identity.type !== type || (identity.slug || '') !== (slug || ''))) return;
+    const key = context.enabled ? JSON.stringify(identity) : 'legacy:' + type + ':' + (slug || '');
     const timer = setTimeout(() => {
-      const current = latestIdentity.current;
-      const key = JSON.stringify(identity);
-      if (current?.generation === identity.generation && current.type === identity.type && current.slug === identity.slug && readyKey.current !== key) {
+      if (readyKey.current === key) return;
+      if (context.enabled && identity) {
+        const current = latestIdentity.current;
+        if (current?.generation !== identity.generation || current.type !== identity.type || current.slug !== identity.slug) return;
         readyKey.current = key;
         readinessCallback.current(identity);
+      } else {
+        readyKey.current = key;
+        readinessCallback.current();
       }
-    }, still ? 0 : DURATION_MS.morphLand + DURATION_MS.settle);
+    }, still ? 0 : DURATION_MS.morphLand + DURATION_MS.settle + (context.enabled && type === 'project' ? DURATION_MS.detailStagger * 3 : 0));
     return () => clearTimeout(timer);
   }, [open, provisional, context.enabled, identityKey, type, slug, still]);
 
@@ -254,9 +266,11 @@ export default function ContentPanel({
   // When focus_screenshot arrives for gallery, route it
   useEffect(() => {
     if (type === 'gallery' && focusScreenshotIndex != null) {
-      setGalleryFocusIndex(focusScreenshotIndex);
+      const count = projects.find(project => project.slug === slug)?.screenshots.length || 0;
+      if (currentAction?.type === 'focus_screenshot' && (currentAction.slug !== slug || focusScreenshotIndex >= count || focusScreenshotIndex < 0)) onActionConsumed();
+      else setGalleryFocusIndex(focusScreenshotIndex);
     }
-  }, [type, focusScreenshotIndex]);
+  }, [type, slug, focusScreenshotIndex, projects, currentAction, onActionConsumed]);
 
   /* Recommendation highlight ---------------------------------------- */
   const highlightedRecommendation = useMemo(() => {
@@ -287,8 +301,8 @@ export default function ContentPanel({
 
   const handleGalleryFocusConsumed = useCallback(() => {
     setGalleryFocusIndex(null);
-    onActionConsumed();
-  }, [onActionConsumed]);
+    if (currentAction?.type === 'focus_screenshot') onActionConsumed();
+  }, [onActionConsumed, currentAction]);
 
   const handleSkillHighlightConsumed = useCallback(() => {
     onActionConsumed();
@@ -301,13 +315,32 @@ export default function ContentPanel({
     setGalleryFocusIndex(index);
   }, [onNavigate]);
 
+  useEffect(() => {
+    if (type !== 'project' || currentAction?.type !== 'focus_screenshot') return;
+    const project = projects.find(project => project.slug === slug);
+    if (currentAction.slug === slug && project && currentAction.index >= 0 && currentAction.index < project.screenshots.length) handleScreenshotClick(slug!, currentAction.index);
+    onActionConsumed();
+  }, [type, slug, currentAction, projects, handleScreenshotClick, onActionConsumed]);
+
   /* Render panel content ------------------------------------------- */
   function renderContent() {
-    if (provisional) return <div role="status" aria-live="polite" className="rounded-[14px_22px_14px_22px] border border-gray-200 p-6 dark:border-gray-800"><p className="font-medium">{context.requestStatus === 'error' || context.requestStatus === 'complete' ? 'This panel could not be loaded.' : 'Loading ' + panelTitle(type).toLowerCase() + '…'}</p><p className="mt-2 text-sm text-gray-500">You can keep reading the conversation.</p><button type="button" onClick={returnToProjects} className="mt-4 underline">Show projects</button></div>;
+    if (provisional) {
+      const stopped = context.requestStatus === 'error' || context.requestStatus === 'complete';
+      return <motion.div role="status" aria-live="polite" initial={still ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={still ? reducedMotionCrossfade : liquidSettle} className="space-y-5 py-3">
+        <p className="text-xs text-gray-500">{stopped ? 'This view could not open' : 'Opening ' + panelTitle(type).toLowerCase()}</p>
+        {!stopped && <motion.div aria-hidden="true" className="space-y-4" animate={still ? { opacity: 1 } : { opacity: [.45, .8, .45] }} transition={still ? { duration: 0 } : { ...liquidBreathe, duration: 2.8, repeat: Infinity }}>
+          <div className="h-6 w-2/3 rounded-lg bg-gray-100 dark:bg-gray-800/60" />
+          {['project', 'gallery', 'spotlight'].includes(type || '') ? <div className="aspect-video rounded-[18px_24px_18px_24px] bg-gray-100 dark:bg-gray-800/40" /> :
+            <div className={type === 'skills' || type === 'tech-radar' ? 'grid grid-cols-2 gap-3' : 'space-y-3'}>{[0, 1, 2].map(index => <div key={index} className="h-16 rounded-[14px_18px_14px_18px] bg-gray-100 dark:bg-gray-800/40" />)}</div>}
+          <div className="h-3 w-full rounded bg-gray-100 dark:bg-gray-800/40" /><div className="h-3 w-4/5 rounded bg-gray-100 dark:bg-gray-800/40" />
+        </motion.div>}
+      </motion.div>;
+    }
     switch (type) {
       case 'project':
         return slug ? (
           <ProjectCard
+            onClose={onClose}
             slug={slug}
             highlightField={projectHighlightField}
             onScreenshotClick={handleScreenshotClick}
@@ -329,6 +362,8 @@ export default function ContentPanel({
       case 'skills':
         return (
           <SkillsGrid
+            onClearCategory={() => onNavigate?.({ open: true, type: 'skills', category: undefined })}
+            selectedSkillId={restoreSource.current ? returnContext.current?.selectedSkillId : undefined}
             onProjectOpen={openProject}
             category={category}
             highlightedSkill={highlightedSkill}
@@ -343,6 +378,7 @@ export default function ContentPanel({
       case 'timeline':
         return (
           <Timeline
+            selectedCompany={restoreSource.current ? returnContext.current?.selectedCompany : undefined}
             onProjectOpen={openProject}
             currentAction={timelineAction}
             onActionConsumed={onActionConsumed}
@@ -357,13 +393,14 @@ export default function ContentPanel({
             onFocusConsumed={handleGalleryFocusConsumed}
             onClose={handleGalleryClose}
           />
-        ) : null;
+        ) : <p role="status">Choose a project to view its screenshots. <button type="button" className="underline" onClick={returnToProjects}>Show projects</button></p>;
 
       case 'comparison':
         return (
           <div className="space-y-6">
             {slug && (
               <ProjectCard
+                immersive={false}
                 slug={slug}
                 highlightField={
                   projectHighlightField && currentAction?.type === 'highlight_project_detail' && (currentAction as { slug: string }).slug === slug
@@ -377,6 +414,7 @@ export default function ContentPanel({
               <div>
                 <div className="h-px bg-gray-200 dark:bg-gray-700 my-2" />
                 <ProjectCard
+                  immersive={false}
                   slug={slug2}
                   highlightField={
                     projectHighlightField && currentAction?.type === 'highlight_project_detail' && (currentAction as { slug: string }).slug === slug2
@@ -393,6 +431,8 @@ export default function ContentPanel({
       case 'tech-radar':
         return (
           <TechRadar
+            initialCategory={restoreSource.current ? returnContext.current?.radarCategory : undefined}
+            selectedSkillId={restoreSource.current ? returnContext.current?.selectedSkillId : undefined}
             onProjectOpen={openProject}
             highlightedSkill={highlightedSkillForRadar}
             focusCategory={radarFocusCategory}
@@ -442,7 +482,7 @@ export default function ContentPanel({
         const game = panelState?.game;
         if (game === 'snake') return <SnakeGame />;
         if (game === '2048') return <Game2048 />;
-        return null;
+        return <p role="status">Choose Snake or 2048 to start a game.</p>;
       }
 
       default:
@@ -459,7 +499,7 @@ export default function ContentPanel({
     }
   }, [slug, onNavigate, onClose]);
 
-  if (type === 'gallery' && open && !provisional) {
+  if (type === 'gallery' && open && slug && !provisional) {
     return (
       <AnimatePresence>
         {slug && (
@@ -499,17 +539,6 @@ export default function ContentPanel({
             animate={panelAnimate}
             exit={panelExit}
             transition={still ? reducedMotionCrossfade : brandSpring}
-            onAnimationComplete={(definition) => {
-              if (typeof definition === 'object' && definition !== null) {
-                const def = definition as Record<string, unknown>;
-                if (
-                  ('x' in def && (def.x === 0 || def.x === '0%')) ||
-                  ('y' in def && (def.y === 0 || def.y === '0%'))
-                ) {
-                  if (!context.enabled) onAnimationComplete();
-                }
-              }
-            }}
             role="region"
             aria-label={panelTitle(type, panelState)}
             data-print-content
@@ -523,13 +552,11 @@ export default function ContentPanel({
             <motion.div ref={scrollRef} layoutScroll data-panel-scroll className={`h-full ${type === 'tech-radar' ? 'flex flex-col' : 'overflow-y-auto'}`}>
             <div className={`${type === 'tech-radar' ? 'flex flex-col flex-1 min-h-0' : ''} p-4 md:p-6`}>
               {/* Header (hidden when printing) */}
-              <div className="flex justify-between items-center mb-4 md:mb-6 print:hidden shrink-0">
-                <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
-                  {panelTitle(type, panelState)}
-                </h2>
+              <div className={`flex justify-between items-center mb-4 md:mb-6 print:hidden shrink-0 ${context.enabled ? 'pr-24 md:pr-0' : ''}`}>
+                {detailHeader ? <button type="button" onClick={returnToProjects} className="min-h-8 text-xs text-gray-500 underline decoration-gray-300 underline-offset-4 hover:text-lime-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500 dark:decoration-gray-700 dark:hover:text-lime-400">Back to {returnContext.current ? panelTitle(returnContext.current.state.type).toLowerCase() : 'projects'}</button> : <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{panelTitle(type, panelState)}</h2>}
+                {context.enabled && !detailHeader && <motion.button type="button" aria-label="Close panel" onClick={onClose} whileHover={still ? {} : { scale: 1.03, transition: hoverSwell }} whileTap={still ? {} : { scale: .97, transition: press }} transition={hoverSwell} className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-900/10 text-gray-500 hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-500 dark:border-gray-100/10 dark:hover:bg-gray-900"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m4 4 8 8M12 4l-8 8" /></svg></motion.button>}
               </div>
 
-              {context.enabled && <div className="mb-4 flex gap-4 text-sm"><button type="button" onClick={onClose} className="rounded-lg border border-gray-300 px-3 py-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500 dark:border-gray-700">Close panel</button>{type === 'project' && <button type="button" onClick={returnToProjects} className="underline">Back to {returnContext.current ? panelTitle(returnContext.current.state.type).toLowerCase() : 'projects'}</button>}</div>}
               {/* Content */}
               <div className={type === 'tech-radar' ? 'flex-1 min-h-0' : ''}><PanelRecovery key={identityKey} onReturn={returnToProjects}>{renderContent()}</PanelRecovery></div>
 
