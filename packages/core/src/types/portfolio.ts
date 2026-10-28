@@ -39,7 +39,14 @@ export interface PortfolioConfig {
   spotlight?: Spotlight;
 }
 
+export interface ProjectLoopMedia {
+  mp4: string;
+  webm?: string;
+  poster: string;
+}
+
 export interface Spotlight {
+  loop?: ProjectLoopMedia;
   name: string;
   tagline: string;
   summary: string;
@@ -68,6 +75,7 @@ export interface SkillsData {
 }
 
 export interface Project {
+  loop?: ProjectLoopMedia;
   slug: string;
   name: string;
   role: string;
