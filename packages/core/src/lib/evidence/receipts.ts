@@ -10,8 +10,29 @@ export function claimsIn(content: string): Claim[] {
   return [...content.matchAll(/\*\*([^*\n]{3,400})\*\*/g)].slice(0, 12).map((m, i) => ({ id: `claim-${i}`, start: m.index! + 2, end: m.index! + 2 + m[1].length, text: m[1] }));
 }
 export function currentReceipt(receipt: Receipt, requestId: string | undefined, content: string): boolean {
-  return CALIBRATION.enabled && receipt.requestId === requestId && receipt.calibrationVersion === CALIBRATION.version && Number.isFinite(receipt.score) && receipt.score >= 0 && receipt.score <= 1 && content.slice(receipt.start, receipt.end) === receipt.text && claimsIn(content).some(c => c.id === receipt.id && c.start === receipt.start && c.end === receipt.end) && typeof receipt.source === 'string' && receipt.category === 'supported' && receipt.score >= CALIBRATION.supported && receipt.source.includes(receipt.text);
+  return CALIBRATION.enabled && receipt.requestId === requestId && receipt.calibrationVersion === CALIBRATION.version && Number.isFinite(receipt.score) && receipt.score >= 0 && receipt.score <= 1 && content.slice(receipt.start, receipt.end) === receipt.text && claimsIn(content).some(c => c.id === receipt.id && c.start === receipt.start && c.end === receipt.end) && typeof receipt.source === 'string' && receipt.category === 'supported' && receipt.score >= CALIBRATION.supported && receipt.source.toLowerCase().includes(receipt.text.toLowerCase());
 }
+function sentenceAround(content: string, claim: Claim) {
+  const before = content.slice(0, claim.start - 2);
+  const boundary = Math.max(before.lastIndexOf('.'), before.lastIndexOf('!'), before.lastIndexOf('?'), before.lastIndexOf('\n'));
+  const tail = content.slice(claim.end + 2);
+  const sentenceEnd = tail.search(/[.!?\n]/);
+  return content.slice(boundary + 1, sentenceEnd < 0 ? content.length : claim.end + 2 + sentenceEnd).replace(/\*\*/g, '').replace(/^\s*[-#>]\s*/, '').trim();
+}
+
+const NEGATION = /\b(not|never|no|without|none|nor|neither|isn['’]t|wasn['’]t|didn['’]t|doesn['’]t|hasn['’]t)\b/i;
+/**
+ * A paraphrase cannot match the portfolio word for word, so the sentence is grounded when it makes no
+ * negative claim and every number and proper name in it appears in the same source.
+ */
+export function statementGrounded(statement: string, source: string) {
+  if (NEGATION.test(statement)) return false;
+  const haystack = source.toLowerCase();
+  const numbers = statement.match(/\d+(?:[.,]\d+)?/g) ?? [];
+  const names = (statement.match(/\b[A-Z][\w.+#-]*(?:\s+[A-Z][\w.+#-]*)*/g) ?? []).filter((name, index) => index > 0 || !/^(He|She|They|It|This|The|A|An|In|At|On|For|With|Andrey)$/.test(name));
+  return [...numbers, ...names].every(token => /^(Andrey|He|She|They|It|This|The|A|An|In|At|On|For|With)$/.test(token) || haystack.includes(token.toLowerCase()));
+}
+
 export async function computeReceipts(input: { requestId: string; content: string; evidence: Evidence[]; ask: Ask; apiKey?: string; signal?: AbortSignal; policy?: {enabled:boolean;version:string;supported:number} }) {
   const policy = input.policy || CALIBRATION;
   // The Andrey pilot was approved after inspecting the frozen held-out matrix.
@@ -27,13 +48,10 @@ export async function computeReceipts(input: { requestId: string; content: strin
   for (const c of claims) {
     const answer = result.answers[c.id];
     if (!answer || answer.type !== 'noul' || !Number.isFinite(answer.noul) || answer.noul < 0 || answer.noul > 1) return { available: false as const, reason: 'invalid', receipts: [] };
-    // Exact canonical substring is required in addition to the auxiliary support score.
-    const before = input.content.slice(0, c.start - 2);
-    const boundary = Math.max(before.lastIndexOf('.'), before.lastIndexOf('!'), before.lastIndexOf('?'), before.lastIndexOf('\n'));
-    const tail = input.content.slice(c.end + 2);
-    const sentenceEnd = tail.search(/[.!?\n]/);
-    const statement = input.content.slice(boundary + 1, sentenceEnd < 0 ? input.content.length : c.end + 2 + sentenceEnd).replace(/\*\*/g, '').replace(/^\s*[-#>]\s*/, '').trim();
-    const source = input.evidence.find(e => e.text.includes(c.text) && e.text.includes(statement));
+    // The marked fact itself must exist verbatim in a canonical source; Jev judges the surrounding statement
+    // (the calibrated >= 0.7 gate), since a paraphrased sentence never appears word for word in the portfolio.
+    const statement = sentenceAround(input.content, c);
+    const source = input.evidence.find(e => e.text.toLowerCase().includes(c.text.toLowerCase()) && statementGrounded(statement, e.text));
     if (source && answer.noul >= policy.supported) receipts.push({ ...c, requestId: input.requestId, source: `${source.name || source.id}: ${c.text}`, sourceId: source.id, score: answer.noul, category: 'supported', calibrationVersion: policy.version });
   }
   return { available: true as const, receipts };

@@ -92,6 +92,7 @@
     "tagline": "Agents live here.",
     "summary": "Domios is a distributed OS for AI agents: the place where Claude Code, Codex, OpenCode and local models live, work and coordinate as one team. It's not a terminal with AI bolted on. It's the infrastructure agents need, wrapped in a terminal because that's where developers already work. Andrey conceived it and builds it every day, with agents doing the work under his review.",
     "video": {
+      "webm": "/loops/domios-film/film.webm",
       "mp4": "/loops/domios-film/film.mp4",
       "poster": "/loops/domios-film/poster.webp"
     },

@@ -80,8 +80,9 @@ function Trailer({ video, name, loop }: { video: NonNullable<Spotlight['video']>
         </motion.button>
       </div> : <div className="space-y-3" onKeyDown={e => { if (e.key === 'Escape') close(); }}>
         <video ref={ref} tabIndex={0} controls playsInline preload="none" poster={video.poster} aria-label={name + ' full trailer'} className="aspect-video w-full rounded-[14px_22px_14px_22px] bg-black" onError={() => setFailed(true)}>
-          <source src={video.mp4} type="video/mp4" />
+          {/* The smaller WebM first; Safari falls back to the MP4. */}
           {video.webm && <source src={video.webm} type="video/webm" />}
+          <source src={video.mp4} type="video/mp4" />
         </video>
         {failed && <p role="status">The trailer is unavailable. You can return to the preview.</p>}
         <button type="button" onClick={close} className="group/back -ml-2 inline-flex min-h-8 items-center gap-1.5 rounded-full px-2 text-xs text-gray-500 transition-colors hover:text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500 dark:hover:text-gray-100"><svg viewBox="0 0 16 16" aria-hidden="true" className="h-3.5 w-3.5 transition-transform duration-[380ms] [transition-timing-function:cubic-bezier(.3,1.6,.4,1)] group-hover/back:-translate-x-0.5"><path d="M10 3.5 5.5 8l4.5 4.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>Back to the preview</button>
