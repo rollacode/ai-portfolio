@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import { buildSystemPromptText } from '../prompts/system';
@@ -85,16 +84,14 @@ describe('ordered conversation policy (static supporting evidence)', () => {
   });
 });
 
-// These become real core integration tests once COD-1983 lands. Never make a
-// test-local formatter stand in for proof of the runtime's content reduction.
-const coreSource = readFileSync(path.resolve('../core/src/lib/system-prompt.ts'), 'utf8');
-const hasContentOptions = coreSource.includes('projectSummaryLines');
-describe.skipIf(!hasContentOptions)('real core compact-content integration', () => {
+describe('real core compact-content integration', () => {
   it('omits writeups and retains two grounded project lines while full load stays full', async () => {
     const core = await vi.importActual<typeof import('@ai-portfolio/core/lib/system-prompt')>('@ai-portfolio/core/lib/system-prompt');
-    const compactLoad = core.loadPortfolioContent as (basePath?: string, options?: { includeProjectWriteups: boolean; projectSummaryLines: number }) => string;
-    const compact = compactLoad(undefined, { includeProjectWriteups: false, projectSummaryLines: 2 });
+    const options = { includeProjectWriteups: false, projectSummaryLines: 2 };
+    const compact = core.loadPortfolioContent(undefined, options);
     const full = core.loadPortfolioContent();
+    const chat = core.buildSystemPrompt(buildSystemPromptText, undefined, options);
+    expect(chat.endsWith(compact)).toBe(true);
     const index = compact.split('# Projects Index')[1].split('\n\n---')[0];
     const sections = index.split(/\n## /).slice(1);
     expect(sections).toHaveLength(projects.length);
@@ -103,6 +100,9 @@ describe.skipIf(!hasContentOptions)('real core compact-content integration', () 
       expect(lines).toHaveLength(2);
       expect(lines[0]).toContain(project.slug);
       expect(lines[0]).toContain(project.name);
+      expect(lines[1]).toContain(project.role);
+      expect(lines[1]).toContain(project.description);
+      for (const stack of project.stack) expect(lines[1]).toContain(stack);
       if (project.writeup) {
         expect(compact).not.toContain(project.writeup);
         expect(full).toContain(project.writeup);
@@ -112,5 +112,13 @@ describe.skipIf(!hasContentOptions)('real core compact-content integration', () 
     expect(index).toContain('6 months');
     expect(index).toContain('ASP.NET');
     expect(compact.length).toBeLessThan(full.length);
+  });
+
+  it('keeps Anya and ordinary builder defaults full after compact Andrey loading', async () => {
+    const core = await vi.importActual<typeof import('@ai-portfolio/core/lib/system-prompt')>('@ai-portfolio/core/lib/system-prompt');
+    core.loadPortfolioContent(undefined, { includeProjectWriteups: false, projectSummaryLines: 2 });
+    for (const base of [process.cwd(), path.resolve('../anya')]) {
+      expect(core.buildSystemPrompt(p => p.portfolioContent, base)).toBe(core.loadPortfolioContent(base));
+    }
   });
 });
