@@ -226,7 +226,7 @@ function CompactProjectCard({ project, isHighlighted, onProjectOpen, still, acti
   const extraStack = project.stack.length - LIST_STACK;
   return (
     <div
-      className={`group relative grid gap-5 rounded-[14px_18px_14px_18px] border p-4 transition-[border-color,box-shadow] duration-[380ms] [transition-timing-function:cubic-bezier(.16,1,.3,1)] md:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] ${
+      className={`living-card group relative grid gap-5 rounded-[14px_18px_14px_18px] border p-4 transition-[border-color,box-shadow] duration-[380ms] [transition-timing-function:cubic-bezier(.16,1,.3,1)] md:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] ${
         isHighlighted
           ? 'border-lime-500/45 shadow-[0_18px_40px_-26px_rgba(88,166,255,0.7)]'
           : 'border-gray-200/70 hover:border-lime-500/35 dark:border-white/[0.08] dark:hover:border-lime-400/30'

@@ -103,7 +103,7 @@ export default function ContactCard() {
       initial={reduced ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={reducedMotionCrossfade}
-      className="rounded-[14px_18px_14px_18px] border border-gray-900/10 dark:border-gray-100/10 bg-white dark:bg-neutral-900 p-6 space-y-5"
+      className="living-card rounded-[18px_24px_18px_24px] border border-gray-900/[0.08] bg-gradient-to-b from-white/80 to-white/40 p-6 space-y-5 dark:border-white/[0.08] dark:from-white/[0.04] dark:to-transparent"
     >
       {/* Name & bio */}
       <div>

@@ -229,7 +229,7 @@ export default function Chat({ credit, enhancedExperience = false }: { credit?: 
             className="flex flex-col h-screen print:hidden"
             style={layout === 'split' ? { marginLeft: 'calc(100vw - 500px)' } : undefined}
           >
-            <div className="flex-1 overflow-y-auto pt-6" style={{ paddingBottom: 'calc(8rem + var(--consent-inset, 0px))' }}>
+            <div className="flex-1 overflow-y-auto pt-20" style={{ paddingBottom: 'calc(8rem + var(--consent-inset, 0px))' }}>
               <div className={`mx-auto px-4 space-y-4 ${layout === 'split' ? 'max-w-[500px]' : 'max-w-3xl'}`}>
                 {messages.map((msg, i) => {
                   if (msg.role === 'assistant' && !msg.content && !msg.toolCalls?.length) return null;

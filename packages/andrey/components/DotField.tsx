@@ -65,15 +65,23 @@ export default function DotField() {
     let frame = 0;
     let x = 0;
     let y = 0;
+    let card: HTMLElement | null = null;
     const paint = () => {
       frame = 0;
       layer.style.setProperty('--dot-x', `${x}px`);
       layer.style.setProperty('--dot-y', `${y}px`);
       layer.dataset.active = 'true';
+      // The same pointer light reaches into whichever card is under it (.living-card in globals.css).
+      if (card) {
+        const box = card.getBoundingClientRect();
+        card.style.setProperty('--lx', `${x - box.left}px`);
+        card.style.setProperty('--ly', `${y - box.top}px`);
+      }
     };
     const move = (event: PointerEvent) => {
       x = event.clientX;
       y = event.clientY;
+      card = (event.target as Element | null)?.closest?.('.living-card') as HTMLElement | null;
       if (!frame) frame = requestAnimationFrame(paint);
     };
     const leave = () => { delete layer.dataset.active; };

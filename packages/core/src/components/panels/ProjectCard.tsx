@@ -105,7 +105,8 @@ function Metric({ metric }: { metric: ReturnType<typeof sourcedMetrics>[number] 
     const controls = animate(0, metric.value, { ...liquidSettle, delay: DURATION_MS.morphLand / 1000, onUpdate: value => setCount(Math.round(value)) });
     return () => controls.stop();
   }, [metric.value, still]);
-  return <div aria-label={metric.source} className="rounded-lg border border-gray-200 p-3 dark:border-gray-800"><span aria-hidden="true"><span className="block text-2xl font-semibold tabular-nums">{still ? metric.value : count}{metric.suffix}</span><span className="text-xs text-gray-500">{metric.label}</span></span></div>;
+  // A fact tile like domios.dev's: a big number, a quiet label, a hairline frame that catches the pointer light.
+  return <div aria-label={metric.source} className="living-card overflow-hidden rounded-[14px_18px_14px_18px] border border-gray-900/[0.08] bg-gradient-to-b from-white/70 to-white/30 px-4 py-3.5 dark:border-white/[0.08] dark:from-white/[0.04] dark:to-transparent"><span aria-hidden="true"><span className="block text-[32px] font-medium leading-none tracking-[-0.04em] tabular-nums text-gray-950 dark:text-gray-50">{still ? metric.value : count}<span className="text-lime-600 dark:text-lime-400">{metric.suffix}</span></span><span className="mt-2 block text-xs text-gray-500">{metric.label}</span></span></div>;
 }
 
 const MAX_VISIBLE = 4;

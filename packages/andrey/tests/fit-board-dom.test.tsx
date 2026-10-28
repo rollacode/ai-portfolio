@@ -13,7 +13,8 @@ function response(b:FitBoard){return new Response(`data: ${JSON.stringify({board
 beforeEach(()=>{host=document.createElement('div');document.body.append(host);root=createRoot(host);});
 afterEach(async()=>{await act(async()=>root.unmount());host.remove();vi.unstubAllGlobals();});
 describe('Fit Board DOM and commentary sequence',()=>{
- it('commits board before commentary callback and exposes only computed levels',async()=>{
+ // Off: owner removed Jev scoring from job match and fact marks from chat; kept for a possible return.
+it.skip('commits board before commentary callback and exposes only computed levels',async()=>{
    vi.stubGlobal('fetch',vi.fn().mockResolvedValue(response(board)));
    const callback=vi.fn(()=>{expect(host.textContent).toContain('Strong match');expect(host.textContent).toContain('React');});
    await act(async()=>{root.render(<ConversationProvider value={{enabled:true,activeRequestId:'req-1',onFitCommentary:callback}}><JobMatchPanel role="Engineer" company="Example" description="React"/></ConversationProvider>);});
@@ -22,7 +23,8 @@ describe('Fit Board DOM and commentary sequence',()=>{
    expect(host.textContent).not.toContain('boost');expect(host.textContent).not.toContain('confidence');
    expect(host.querySelector('svg path')).not.toBeNull();
  });
- it('shows the original JD without marks or numeric ring when unavailable',async()=>{
+ // Off: owner removed Jev scoring from job match and fact marks from chat; kept for a possible return.
+it.skip('shows the original JD without marks or numeric ring when unavailable',async()=>{
    vi.stubGlobal('fetch',vi.fn().mockResolvedValue(response({...board,available:false,pairs:[]})));
    await act(async()=>{root.render(<ConversationProvider value={{enabled:true,activeRequestId:'req-1'}}><JobMatchPanel role="Engineer" company="Example" description="React"/></ConversationProvider>);});
    expect(host.textContent).toContain('I couldn’t compare the evidence');expect(host.textContent).toContain('View full job description');

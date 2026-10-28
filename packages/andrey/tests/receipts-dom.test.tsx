@@ -26,7 +26,8 @@ it('streaming narration leaves plain Markdown and renders source-grounded correc
  await act(async()=>root.unmount());host.remove();vi.unstubAllGlobals();
 });
 
-it('batches receipts once after fit commentary commits, bound to the revised final narration',async()=>{
+// Off: owner removed Jev scoring from job match and fact marks from chat; kept for a possible return.
+it.skip('batches receipts once after fit commentary commits, bound to the revised final narration',async()=>{
  (globalThis as any).ResizeObserver=class{observe(){}disconnect(){}};
  const requestId='receipt-fit-race';const receiptRequests:any[]=[];
  const board={requestId,role:'Engineer',company:'Example',description:'React',requirements:[{id:'r1',text:'React',start:0,end:5}],evidence:[{id:'domios',project:'domios',name:'Domios',text:'React'}],pairs:[{requirementId:'r1',sourceId:'domios',score:4,probabilities:{'0':0,'1':0,'2':0,'3':0,'4':1}}],available:true};

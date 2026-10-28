@@ -1,11 +1,7 @@
 'use client';
 
-import { useEffect, useSyncExternalStore } from 'react';
 import { useConversationContext } from '../../context/ConversationContext';
-import { CALIBRATION, currentReceipt } from '../../lib/evidence/receipts';
-import { subscribeFitNarration, isFitNarrationSettled } from '../../lib/evidence/fit-narration';
-import { subscribeReceiptBatches, getReceiptBatch, requestReceiptBatch } from '../../lib/evidence/receipt-batches';
-import ReceiptSummary from './ReceiptSummary';
+import SpinalCordLine, { Vertebrae } from './SpinalCordLine';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import type { PanelState } from '../../lib/tool-handler';
@@ -29,15 +25,7 @@ interface ChatMessageProps {
 
 export default function ChatMessage({ requestId, onNavigate, role, content, toolCalls, isError, onRetry, memorySnapshot, memoryNewKeys }: ChatMessageProps) {
   const conversation = useConversationContext();
-  const fitSettled = useSyncExternalStore(subscribeFitNarration, () => isFitNarrationSettled(requestId), () => false);
-  const awaitsFitCommentary = toolCalls?.some(call => call.name === 'match_job') && !fitSettled;
-  const computed = useSyncExternalStore(subscribeReceiptBatches, () => getReceiptBatch(requestId), () => undefined);
-  useEffect(() => {
-    if (awaitsFitCommentary) return;
-    if (!CALIBRATION.enabled || role !== 'assistant' || !requestId || !conversation.enabled || conversation.activeRequestId !== requestId || conversation.requestStatus !== 'complete') return;
-    requestReceiptBatch(requestId,content);
-  }, [requestId, content, role, conversation.enabled, conversation.activeRequestId, conversation.requestStatus, awaitsFitCommentary]);
-  const validReceipts = conversation.enabled && computed?.content === content && requestId === conversation.activeRequestId ? computed.receipts.filter(r=>currentReceipt(r,requestId,content)) : [];
+
   const corrections = requestId && requestId === conversation.activeRequestId ? conversation.correctionsByRequest?.[requestId] : undefined;
   const isUser = role === 'user';
   const hasToolCalls = toolCalls && toolCalls.length > 0;
@@ -51,9 +39,14 @@ export default function ChatMessage({ requestId, onNavigate, role, content, tool
       className="py-0.5"
     >
       {isUser ? (
-        <p className="text-sm text-gray-400 dark:text-gray-500 mb-1">{content}</p>
+        <div className="mb-1 flex justify-end">
+          {/* The visitor's words sit in a soft bubble on the right; it rises in once, like a message sent. */}
+          <motion.p initial={{ opacity: 0, y: 6, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ type: 'spring', stiffness: 260, damping: 30 }}
+            className="chat-bubble max-w-[85%] rounded-[18px_18px_6px_18px] px-3.5 py-2 text-sm leading-relaxed text-gray-800 dark:text-gray-100">{content}</motion.p>
+        </div>
       ) : (
         <div className="w-full">
+          {requestId && requestId === conversation.activeRequestId && <SpinalCordLine classification={conversation.classification} corrected={!!corrections?.length} />}
           {isError && (
             <div className="flex items-center gap-1.5 mb-1.5 text-red-500 dark:text-red-400 text-xs font-medium">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
@@ -77,17 +70,14 @@ export default function ChatMessage({ requestId, onNavigate, role, content, tool
                           text-gray-900 dark:text-gray-100
                           [&>p]:my-4 [&>p]:leading-relaxed
                           [&>hr]:!my-5 [&>hr]:border-neutral-700/50
-                          [&>ul]:!my-6 [&>ul]:space-y-3
-                          [&>ul>li]:border-l-2 [&>ul>li]:border-lime-500/40 [&>ul>li]:pl-3
-                          [&>ul>li]:py-2 [&>ul>li]:rounded-r
-                          [&>ul>li]:bg-white/[0.04] dark:[&>ul>li]:bg-white/[0.04]">
+                          [&>ul]:!my-5 [&>ul]:space-y-2 [&>ul]:!pl-0 [&>ul]:list-none
+                          chat-answer">
             <ReactMarkdown>
               {content}
             </ReactMarkdown>
           </div>
-          <ReceiptSummary receipts={validReceipts} />
 
-          {corrections?.map((note,i)=><p key={i} role="note" className="mt-2 border-l-2 border-lime-500 pl-3 text-sm text-gray-600 dark:text-gray-300">Correction: {note}</p>)}
+          {corrections?.map((note,i)=><p key={i} role="note" className="mt-2 flex items-start gap-2 rounded-[10px_14px_10px_14px] border border-lime-500/25 bg-lime-500/[0.06] px-3 py-2 text-sm text-gray-700 dark:text-gray-200"><Vertebrae firing className="mt-1 h-3.5 w-2.5 flex-shrink-0 text-lime-600 dark:text-lime-400" /><span><span className="font-medium">The spinal cord caught a slip.</span> {note}</span></p>)}
           {isError && onRetry && (
             <button
               onClick={onRetry}

@@ -135,7 +135,7 @@ export function useChatStream({ messages, setMessages, panelState, setPanelState
     try {
       const fields: ConversationRequestFields = enhancedExperience ? {
         requestId: id, ...(priorHint?.available ? { priorSessionHint: priorHint } : {}),
-        capabilities: { calibrated: true, deferMatchCommentary: true },
+        capabilities: {},
       } : {};
       const response = await fetch('/api/chat', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },

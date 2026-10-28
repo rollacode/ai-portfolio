@@ -185,7 +185,8 @@ export function useJobMatchStream({
   const conversation = useConversationContext();
   const contextRef = useRef(conversation);
   contextRef.current = conversation;
-  const calibrated = conversation.enabled;
+  // Job fit is written by the chat model; the spinal cord stays on reading the visitor, not scoring requirements.
+  const calibrated = false;
   const [board, setBoard] = useState<FitBoard>();
   const [commentary, setCommentary] = useState<{requestId:string;text:string}>();
   const [attempt, setAttempt] = useState(0);
