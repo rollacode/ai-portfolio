@@ -2,10 +2,10 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import Image from 'next/image';
-import { motion, useReducedMotion, animate } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion, animate } from 'framer-motion';
 import { usePortfolioData } from '../../context/PortfolioDataContext';
 import { useConversationContext } from '../../context/ConversationContext';
-import { brandSpring, liquidSettle, reducedMotionCrossfade, DURATION_MS } from '../../lib/motion';
+import { brandSpring, liquidSettle, hoverSwell, press, reducedMotionCrossfade, DURATION_MS } from '../../lib/motion';
 import type { ProjectLoopMedia } from '../../types/portfolio';
 import ProjectLoop from './ProjectLoop';
 
@@ -31,6 +31,8 @@ type HighlightField = 'stack' | 'highlights' | 'description' | 'links' | null;
 
 interface ProjectCardProps {
   slug: string;
+  immersive?: boolean;
+  onClose?: () => void;
   project?: ProjectData;
   highlightField?: HighlightField;
   onScreenshotClick?: (slug: string, index: number) => void;
@@ -52,7 +54,7 @@ const linkLabels: Record<string, string> = {
 /*  Helpers                                                            */
 /* ------------------------------------------------------------------ */
 
-/** Wrapper that adds a temporary pulsing glow when `active` is true. */
+/** Wrapper that adds a temporary focus ring when `active` is true. */
 function HighlightSection({
   active,
   children,
@@ -62,16 +64,17 @@ function HighlightSection({
   children: React.ReactNode;
   className?: string;
 }) {
+  const still = useReducedMotion();
   return (
-    <div
+    <motion.div variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: still ? { duration: 0 } : liquidSettle } }}
       className={`rounded-lg transition-all duration-[380ms] motion-reduce:duration-0 ${
         active
-          ? 'ring-2 ring-lime-400/80 shadow-[0_0_16px_rgba(132,204,22,0.35)]'
+          ? 'ring-2 ring-lime-400/80'
           : ''
       } ${className}`}
     >
       {children}
-    </div>
+    </motion.div>
   );
 }
 
@@ -209,29 +212,112 @@ function WriteupBlock({ text }: { text: string }) {
   return <div className="space-y-2">{blocks}</div>;
 }
 
+function DetailClose({ onClose }: { onClose: () => void }) {
+  const still = useReducedMotion();
+  return <motion.button type="button" aria-label="Close panel" onClick={onClose}
+    whileHover={still ? {} : { scale: 1.03, transition: hoverSwell }} whileTap={still ? {} : { scale: .97, transition: press }}
+    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gray-900/10 text-gray-500 hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-500 dark:border-gray-100/10 dark:hover:bg-gray-900">
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true"><path d="m4 4 8 8M12 4l-8 8" /></svg>
+  </motion.button>;
+}
+
+function LivingProjectDetail({ project, highlightField, onScreenshotClick, onClose, active }: {
+  project: ProjectData; highlightField: HighlightField; onScreenshotClick?: (slug: string, index: number) => void; onClose?: () => void; active: boolean;
+}) {
+  const still = useReducedMotion();
+  const [expanded, setExpanded] = useState(false);
+  const [landed, setLanded] = useState(!!still);
+  const metrics = sourcedMetrics(project.highlights);
+  useEffect(() => {
+    if (still) { setLanded(true); return; }
+    const timer = setTimeout(() => setLanded(true), DURATION_MS.morphLand);
+    return () => clearTimeout(timer);
+  }, [project.slug, still]);
+  const linked = Object.entries(project.links);
+  const primaryLink = project.links.appStore ? 'appStore' : project.links.website ? 'website' : linked[0]?.[0];
+  const filmstrip = project.screenshots.map((src, index) => ({ src, index })).filter(item => project.loop || item.index !== 0);
+  const arrival = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: still ? { duration: 0 } : liquidSettle } };
+  return <article data-project-slug={project.slug} className="space-y-6 pb-8">
+    <header className="space-y-2">
+      <div className="flex items-start justify-between gap-4">
+        <motion.h1 layoutId={!still ? 'project-title-' + project.slug : undefined} transition={brandSpring} className="text-2xl font-semibold leading-tight tracking-tight text-gray-950 dark:text-gray-50 md:text-3xl">{project.name}</motion.h1>
+        {onClose && <DetailClose onClose={onClose} />}
+      </div>
+      <p className="flex flex-wrap gap-x-3 gap-y-1 text-xs leading-relaxed text-gray-500"><span>{project.period}</span>{project.role && <span>{project.role}</span>}</p>
+    </header>
+
+    {project.loop ? <ProjectLoop media={project.loop} layoutId={!still ? 'project-media-' + project.slug : undefined} alt={project.name + ' product preview'} active={active && landed} /> :
+      project.screenshots[0] && <motion.div layoutId={!still ? 'project-media-' + project.slug : undefined} transition={brandSpring} className="aspect-video overflow-hidden rounded-[18px_24px_18px_24px] bg-gray-100 dark:bg-gray-900">
+        <button id={'project-screenshot-' + project.slug + '-0'} type="button" aria-label="Open project screenshots" onClick={() => onScreenshotClick?.(project.slug, 0)} className="block h-full w-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500">
+          <motion.img src={'/screenshots/' + project.screenshots[0]} alt={project.name + ' product preview'} width={1280} height={720} className="h-full w-full object-cover" initial={still ? false : { scale: 1 }} animate={{ scale: 1.04 }} transition={still ? { duration: 0 } : { duration: 6, delay: (DURATION_MS.morphLand + DURATION_MS.settle + DURATION_MS.readingHold) / 1000, ease: 'linear' }} />
+        </button>
+      </motion.div>}
+
+    <motion.div data-project-body className="space-y-7" initial={still ? false : 'hidden'} animate="visible" variants={{
+      hidden: { opacity: 0 }, visible: { opacity: 1, transition: still ? { duration: 0 } : { ...liquidSettle, delay: DURATION_MS.morphLand / 1000, delayChildren: DURATION_MS.morphLand / 1000, staggerChildren: DURATION_MS.detailStagger / 1000 } }
+    }}>
+      {filmstrip.length > 0 && <motion.div variants={arrival} className="space-y-2">
+        <div aria-label="Project screenshots" className="flex snap-x gap-3 overflow-x-auto pb-1">
+          {filmstrip.map(({ src, index }) => <motion.button key={src} id={'project-screenshot-' + project.slug + '-' + index} type="button" aria-label={'Open screenshot ' + (index + 1)}
+            onClick={() => onScreenshotClick?.(project.slug, index)} whileHover={still ? {} : { scale: 1.03, transition: hoverSwell }} whileTap={still ? {} : { scale: .98, transition: press }}
+            className="h-20 w-32 shrink-0 snap-start overflow-hidden rounded-[10px_14px_10px_14px] border border-gray-900/10 bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-500 dark:border-gray-100/10 dark:bg-gray-900">
+            <Image src={'/screenshots/' + src} alt="" width={256} height={160} sizes="128px" loading="lazy" className="h-full w-full object-cover" />
+          </motion.button>)}
+        </div>
+        <button type="button" onClick={() => onScreenshotClick?.(project.slug, 0)} className="text-xs text-gray-500 transition-colors hover:text-lime-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500 dark:hover:text-lime-400">View all {project.screenshots.length} screenshots</button>
+      </motion.div>}
+
+      <HighlightSection active={highlightField === 'description'}><p className="text-[15px] leading-7 text-gray-700 dark:text-gray-300">{project.description}</p></HighlightSection>
+      {metrics.length >= 2 && <motion.div variants={arrival} className="grid grid-cols-2 gap-4 sm:grid-cols-3" aria-label="Project at a glance">{metrics.map(metric => <Metric key={metric.source + metric.label} metric={metric} />)}</motion.div>}
+
+      {project.stack.length > 0 && <HighlightSection active={highlightField === 'stack'}>
+        <h2 className="mb-3 text-xs font-medium text-gray-500">Built with</h2>
+        <div className="flex flex-wrap gap-2">{project.stack.map(tech => <span key={tech} className="rounded-full border border-gray-900/10 px-3 py-1.5 text-xs text-gray-600 transition-colors duration-[380ms] motion-reduce:duration-0 hover:border-lime-500/30 hover:text-lime-600 dark:border-gray-100/10 dark:text-gray-400 dark:hover:text-lime-400">{tech}</span>)}</div>
+      </HighlightSection>}
+
+      {project.highlights.length > 0 && <HighlightSection active={highlightField === 'highlights'}>
+        <h2 className="mb-3 text-xs font-medium text-gray-500">Highlights</h2>
+        <motion.ul variants={{ visible: { transition: still ? {} : { staggerChildren: DURATION_MS.detailStagger / 1000 } } }} className="space-y-3">
+          {project.highlights.map(item => <motion.li key={item} variants={arrival} className="flex items-start gap-3 text-sm leading-6 text-gray-700 dark:text-gray-300"><span aria-hidden="true" className="mt-2.5 h-1 w-1 shrink-0 rounded-full bg-gray-400" /><span>{item}</span></motion.li>)}
+        </motion.ul>
+      </HighlightSection>}
+
+      {project.writeup && <motion.section variants={arrival} className="border-y border-gray-900/10 dark:border-gray-100/10">
+        <button type="button" aria-expanded={expanded} aria-controls={'project-story-' + project.slug} onClick={() => setExpanded(!expanded)} className="flex min-h-14 w-full items-center justify-between gap-4 py-4 text-left text-sm font-medium text-gray-800 transition-colors hover:text-lime-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500 dark:text-gray-200 dark:hover:text-lime-400">
+          <span>{expanded ? 'Hide full writeup' : 'Read full writeup'}</span><span aria-hidden="true" className="text-lg font-normal text-gray-500">{expanded ? '−' : '+'}</span>
+        </button>
+        <AnimatePresence initial={false}>{expanded && <motion.div id={'project-story-' + project.slug} initial={still ? false : { height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={still ? { duration: 0 } : liquidSettle} className="overflow-hidden"><div className="pb-6 pt-1"><WriteupBlock text={project.writeup} /></div></motion.div>}</AnimatePresence>
+      </motion.section>}
+
+      {linked.length > 0 && <HighlightSection active={highlightField === 'links'}>
+        <div className="flex flex-wrap gap-3">{linked.map(([key, url]) => <motion.a key={key} href={url} target="_blank" rel="noopener noreferrer" whileHover={still ? {} : { scale: 1.02, transition: hoverSwell }} whileTap={still ? {} : { scale: .98, transition: press }}
+          className={'inline-flex min-h-11 items-center justify-center gap-2 rounded-[10px_14px_10px_14px] border px-4 py-2 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-500 ' + (key === primaryLink ? 'border-gray-900/10 bg-gray-900 text-gray-50 dark:border-gray-100/10 dark:bg-gray-100 dark:text-gray-950' : 'border-gray-900/10 text-gray-600 hover:border-lime-500/30 dark:border-gray-100/10 dark:text-gray-400')}>
+          {key === 'appStore' ? <svg aria-hidden="true" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="5" y="1.5" width="10" height="17" rx="2.5" /><path d="M8 15.5h4" /></svg> : <svg aria-hidden="true" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M5 3h8v8M13 3 3 13" /></svg>}
+          {linkLabels[key] || (key === 'github' ? 'GitHub' : key)}
+        </motion.a>)}</div>
+      </HighlightSection>}
+    </motion.div>
+  </article>;
+}
+
 /* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
 export default function ProjectCard({
   slug,
+  immersive = true,
+  onClose,
   project: projectProp,
   highlightField: highlightFieldProp = null,
   onScreenshotClick,
 }: ProjectCardProps) {
   const { projects } = usePortfolioData();
-  const { enabled } = useConversationContext();
+  const { enabled: optedIn, panelIdentity } = useConversationContext();
+  const enabled = optedIn && immersive;
   const still = useReducedMotion();
   const [writeupExpanded, setWriteupExpanded] = useState(false);
-  const [landed, setLanded] = useState(false);
-  useEffect(() => {
-    setWriteupExpanded(false);
-    setLanded(!enabled || !!still);
-    if (enabled && !still) {
-      const timer = setTimeout(() => setLanded(true), DURATION_MS.morphLand);
-      return () => clearTimeout(timer);
-    }
-  }, [slug, enabled, still]);
+  useEffect(() => { setWriteupExpanded(false); }, [slug]);
   /* Resolve project data ------------------------------------------- */
   const project: ProjectData | undefined =
     projectProp ?? (projects as unknown as ProjectData[]).find((p) => p.slug === slug);
@@ -254,7 +340,8 @@ export default function ProjectCard({
     );
   }
 
-  const metrics = enabled ? sourcedMetrics(project.highlights) : [];
+  if (enabled) return <LivingProjectDetail key={slug} project={project} highlightField={activeHighlight} onScreenshotClick={onScreenshotClick} onClose={onClose} active={!panelIdentity || panelIdentity.type === 'project' && panelIdentity.slug === slug} />;
+
   const hasHighlights = project.highlights.length > 0;
   const hasLinks = Object.keys(project.links).length > 0;
   const hasWriteup = !!(project as ProjectData & { writeup?: string }).writeup;
@@ -264,6 +351,7 @@ export default function ProjectCard({
       initial={false}
       animate={{ opacity: 1 }}
       transition={still ? reducedMotionCrossfade : liquidSettle}
+      data-project-slug={slug}
       className="space-y-5 rounded-xl bg-gray-50 dark:bg-neutral-900 p-5 shadow-sm"
     >
       {/* Header ---------------------------------------------------- */}
@@ -281,20 +369,7 @@ export default function ProjectCard({
         </div>
       </div>
 
-      {enabled && (project.loop || project.screenshots[0]) && (
-        <motion.div layoutId={!still ? 'project-media-' + slug : undefined} transition={brandSpring} className="overflow-hidden rounded-[14px_22px_14px_22px]">
-          {project.loop && landed ? <ProjectLoop media={project.loop} fallback={project.screenshots[0] ? '/screenshots/' + project.screenshots[0] : undefined} alt={project.name + ' product preview'} active={landed} /> : (
-            <div className="aspect-video overflow-hidden">
-              <motion.img src={'/screenshots/' + project.screenshots[0]} alt={project.name + ' product preview'} width={1280} height={720} className="h-full w-full object-contain"
-                initial={still ? false : { scale: 1 }} animate={{ scale: still || project.loop ? 1 : 1.04 }}
-                transition={still ? { duration: 0 } : { duration: 6, delay: (DURATION_MS.morphLand + DURATION_MS.settle + DURATION_MS.readingHold) / 1000, ease: 'linear' }} />
-            </div>
-          )}
-        </motion.div>
-      )}
-
-      <motion.div className="space-y-5" initial={enabled && !still ? { opacity: 0 } : false} animate={{ opacity: 1 }} transition={still ? { duration: 0 } : { ...liquidSettle, delay: enabled ? DURATION_MS.morphLand / 1000 : 0 }}>
-      {metrics.length >= 2 && <div className="grid grid-cols-2 gap-3 sm:grid-cols-3" aria-label="Sourced project facts">{metrics.map(metric => <Metric key={metric.source + metric.label} metric={metric} />)}</div>}
+      <motion.div data-project-body className="space-y-5" initial={enabled && !still ? 'hidden' : false} animate="visible" variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: still ? { duration: 0 } : { ...liquidSettle, delay: enabled ? DURATION_MS.morphLand / 1000 : 0, staggerChildren: enabled ? DURATION_MS.detailStagger / 1000 : 0, delayChildren: enabled ? DURATION_MS.morphLand / 1000 : 0 } } }}>
       {/* Screenshots ----------------------------------------------- */}
       {project.screenshots.length > 0 && (
         <ScreenshotStrip

@@ -43,6 +43,8 @@ interface SkillsGridProps {
   onHighlightConsumed?: () => void;
   onSkillClick?: (skillName: string) => void;
   onProjectOpen?: (slug: string) => void;
+  selectedSkillId?: string;
+  onClearCategory?: () => void;
 }
 
 function LegacySkillsGrid({
@@ -203,18 +205,18 @@ export function SkillProjects({ skillId, onProjectOpen }: { skillId: string | nu
   const still = useReducedMotion();
   const skill = Object.values(skills).flat().find(item => item.id === skillId);
   const linked = projects.filter(project => skillId && project.skillIds?.includes(skillId));
-  return <div className="min-h-32 rounded-[14px_18px_14px_18px] border border-gray-200 p-4 dark:border-gray-800" aria-live="polite">
-    <h3 className="font-semibold">{skill ? skill.name + ' in practice' : 'Explore the project connections'}</h3>
+  return <div className="h-48 overflow-y-auto rounded-[14px_18px_14px_18px] border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-black" aria-live="polite">
+    <h3 className="font-semibold">{skill ? skill.name + ' in practice' : 'Choose a skill'}</h3>
     {!skill ? <p className="mt-2 text-sm text-gray-500">Select a skill with a tap, keyboard focus or pointer.</p> : <>
       <svg viewBox="0 0 200 12" className="my-3 h-3 w-full text-lime-500" aria-hidden="true"><motion.path key={skillId} d="M0 6 H200" stroke="currentColor" strokeWidth="2" initial={still ? false : { pathLength: 0 }} animate={{ pathLength: 1 }} transition={still ? reducedMotionCrossfade : liquidSettle} /></svg>
-      {linked.length ? <ul className="space-y-2">{linked.map(project => <li key={project.slug}>{onProjectOpen ? <button id={'skill-project-' + skillId + '-' + project.slug} type="button" className="rounded text-left text-sm underline decoration-lime-500 underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500" onClick={() => onProjectOpen(project.slug)}>{project.name}</button> : <span className="text-sm">{project.name}</span>}</li>)}</ul> : <p className="text-sm text-gray-500">No portfolio project is linked to this skill yet.</p>}
+      {linked.length ? <ul className="space-y-2">{linked.map(project => <li key={project.slug}>{onProjectOpen ? <button data-related-skill={skillId} id={'skill-project-' + skillId + '-' + project.slug} type="button" className="rounded text-left text-sm transition-colors hover:text-lime-600 dark:hover:text-lime-400 underline decoration-lime-500 underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500" onClick={() => onProjectOpen(project.slug)}>{project.name}</button> : <span className="text-sm">{project.name}</span>}</li>)}</ul> : <p className="text-sm text-gray-500">No project to show for this skill yet.</p>}
     </>}
   </div>;
 }
 
-function LivingSkillsGrid({ category, highlightedSkill, onHighlightConsumed, onSkillClick, onProjectOpen }: SkillsGridProps) {
+function LivingSkillsGrid({ category, highlightedSkill, onHighlightConsumed, onSkillClick, onProjectOpen, selectedSkillId, onClearCategory }: SkillsGridProps) {
   const { skills } = usePortfolioData();
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(selectedSkillId || null);
   const categories = (Object.keys(categoryLabels) as Category[]).filter(key => !category || category === 'all' || category === key);
   useEffect(() => {
     if (!highlightedSkill) return;
@@ -223,21 +225,21 @@ function LivingSkillsGrid({ category, highlightedSkill, onHighlightConsumed, onS
     onHighlightConsumed?.();
   }, [highlightedSkill, onHighlightConsumed, skills]);
   return <div className="space-y-6">
-    {!categories.length && <p role="status">No skills match this category. Ask to show all skills.</p>}
+    {!categories.length && <p role="status">No skills match this category. <button type="button" className="underline" onClick={onClearCategory}>Show all skills</button></p>}
+    <aside className="sticky top-0 z-20"><SkillProjects skillId={selected} onProjectOpen={onProjectOpen} /></aside>
     <div className="space-y-6">
-      {categories.map(category => <section key={category} aria-label={categoryLabels[category]}>
-        <h3 className="mb-3 text-lg font-semibold">{categoryLabels[category]}</h3>
+      {categories.map(category => <section key={category} aria-label={({ primary: 'Primary skills', strong: 'Strong skills', ai: 'AI and LLM', working: 'Working knowledge', hobby: 'Side projects' })[category]}>
+        <h3 className="mb-3 text-lg font-semibold">{({ primary: 'Primary skills', strong: 'Strong skills', ai: 'AI and LLM', working: 'Working knowledge', hobby: 'Side projects' })[category]}</h3>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {skills[category].map(skill => <button id={'skill-source-' + skill.id} key={skill.id} type="button" aria-pressed={selected === skill.id}
             onPointerEnter={() => setSelected(skill.id)} onFocus={() => setSelected(skill.id)}
             onClick={() => { setSelected(skill.id); onSkillClick?.(skill.name); }}
-            className={'flex items-center justify-between gap-3 rounded-[10px_16px_10px_16px] border p-3 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500 ' + (selected === skill.id ? 'border-lime-500 bg-lime-500/10' : 'border-transparent bg-gray-50 dark:bg-gray-900')}>
+            className={'flex items-center justify-between gap-3 rounded-[14px_18px_14px_18px] border p-3 transition-colors duration-[380ms] motion-reduce:duration-0 hover:bg-lime-500/5 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500 ' + (selected === skill.id ? 'border-lime-500 bg-lime-500/10' : 'border-transparent bg-gray-50 dark:bg-gray-900')}>
             <span className="text-sm font-medium">{skill.name}</span><span className="text-xs text-gray-500">{levelLabels[skill.level as SkillLevel] || skill.level}{skill.years ? ' (' + skill.years + 'y)' : ''}</span>
           </button>)}
         </div>
       </section>)}
     </div>
-    <SkillProjects skillId={selected} onProjectOpen={onProjectOpen} />
     {selected && <button type="button" className="text-sm underline" onClick={() => setSelected(null)}>Clear selection</button>}
   </div>;
 }

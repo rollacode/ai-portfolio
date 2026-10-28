@@ -31,9 +31,9 @@ function LiquidLink({ href, primary, children }: { href: string; primary?: boole
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      whileHover={still ? {} : { y: -2 }}
-      whileTap={still ? {} : { scale: 0.98 }}
-      transition={{ ...hoverSwell, scale: press }}
+      whileHover={still ? {} : { y: -2, transition: hoverSwell }}
+      whileTap={still ? {} : { scale: 0.98, transition: press }}
+      transition={hoverSwell}
       className={`inline-flex items-center justify-center gap-2 rounded-[10px] border px-4 py-2.5 text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-lime-500 ${
         primary
           ? 'border-lime-600 bg-lime-600 text-white dark:border-lime-400 dark:bg-lime-400 dark:text-black'
@@ -46,7 +46,7 @@ function LiquidLink({ href, primary, children }: { href: string; primary?: boole
 }
 
 function Trailer({ video, name, loop }: { video: NonNullable<Spotlight['video']>; name: string; loop?: Spotlight['loop'] }) {
-  const { enabled } = useConversationContext();
+  const { enabled, panelIdentity } = useConversationContext();
   const ref = useRef<HTMLVideoElement>(null);
   const opener = useRef<HTMLButtonElement>(null);
   const [expanded, setExpanded] = useState(false);
@@ -66,7 +66,7 @@ function Trailer({ video, name, loop }: { video: NonNullable<Spotlight['video']>
   return (
     <div className="space-y-3">
       {!expanded ? <>
-        <ProjectLoop media={enabled ? loop : undefined} fallback={video.poster} alt={name + ' product demonstration'} />
+        <ProjectLoop active={!panelIdentity || panelIdentity.type === 'spotlight'} media={enabled ? loop : undefined} fallback={video.poster} alt={name + ' product demonstration'} />
         <button ref={opener} type="button" onClick={() => setExpanded(true)} className="rounded-lg border border-gray-300 px-4 py-3 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500 dark:border-gray-700">Watch full trailer</button>
       </> : <div className="space-y-3" onKeyDown={e => { if (e.key === 'Escape') close(); }}>
         <video ref={ref} tabIndex={0} controls playsInline preload="none" poster={video.poster} aria-label={name + ' full trailer'} className="aspect-video w-full rounded-[14px_22px_14px_22px] bg-black" onError={() => setFailed(true)}>
@@ -97,9 +97,9 @@ export default function SpotlightPanel() {
           aria-hidden="true"
           initial={false}
           animate={{ scale: 1 }}
-          whileHover={still ? {} : { scale: 1.03 }}
-          whileTap={still ? {} : { scale: 0.98 }}
-          transition={{ ...hoverSwell, scale: press }}
+          whileHover={still ? {} : { scale: 1.03, transition: hoverSwell }}
+          whileTap={still ? {} : { scale: 0.98, transition: press }}
+          transition={hoverSwell}
         >
           <path d={THRESHOLD} fill="currentColor" fillRule="evenodd" />
         </motion.svg>
@@ -150,8 +150,8 @@ export default function SpotlightPanel() {
             {capabilities.map((item) => (
               <motion.div
                 key={item.title}
-                whileHover={still ? {} : { y: -3 }}
-                transition={{ ...hoverSwell, scale: press }}
+                whileHover={still ? {} : { y: -3, transition: hoverSwell }}
+                transition={hoverSwell}
                 className="rounded-[14px_18px_14px_18px] border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900"
               >
                 <p className="font-semibold text-gray-900 dark:text-gray-100">{item.title}</p>
