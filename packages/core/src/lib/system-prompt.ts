@@ -77,6 +77,7 @@ export interface Project {
   links?: Record<string, string>;
   skillIds?: string[];
   writeup?: string;
+  role?: string;
 }
 
 export interface Recommendation {
@@ -180,9 +181,17 @@ function formatSkills(skills: Record<string, Skill[]>): string {
   return lines.join('\n');
 }
 
-function formatProjects(projects: Project[]): string {
+export interface PromptContentOptions { includeProjectWriteups?: boolean; projectSummaryLines?: number }
+
+function formatProjects(projects: Project[], options: PromptContentOptions): string {
   const lines: string[] = ['# Projects Index (use these slugs with show_project tool)'];
   for (const p of projects) {
+    if (options.projectSummaryLines !== undefined) {
+      const singleLine = (text: string) => text.replace(/\s+/g, ' ').trim();
+      lines.push(`\n## ${singleLine(p.name)} [slug: "${p.slug}"]`);
+      lines.push([p.role, p.description, ...p.highlights, p.period, `Stack: ${p.stack.join(', ')}`].filter(Boolean).map(v => singleLine(v!)).join(' · '));
+      continue;
+    }
     lines.push(`\n## ${p.name} [slug: "${p.slug}"]`);
     lines.push(`Period: ${p.period}`);
     lines.push(`Stack: ${p.stack.join(', ')}`);
@@ -197,7 +206,7 @@ function formatProjects(projects: Project[]): string {
       const linkParts = Object.entries(p.links).map(([k, v]) => `${k}: ${v}`);
       lines.push(`Links: ${linkParts.join(' | ')}`);
     }
-    if (p.writeup) {
+    if (p.writeup && options.includeProjectWriteups !== false) {
       lines.push(`\n### Deep Dive\n${p.writeup}`);
     }
   }
@@ -222,8 +231,14 @@ function formatRecommendations(recs: Recommendation[]): string {
  * Load portfolio content from a directory. Uses process.cwd()/portfolio by default.
  * @param basePath - optional base path; portfolio dir is basePath/portfolio
  */
-export function loadPortfolioContent(basePath?: string): string {
-  const portfolioDir = path.join(basePath ?? process.cwd(), 'portfolio');
+const contentCache = new Map<string, string>();
+/** Development bypasses the cache; production can explicitly invalidate after a data refresh. */
+export function clearPortfolioContentCache(): void { contentCache.clear(); }
+
+export function loadPortfolioContent(basePath?: string, options: PromptContentOptions = {}): string {
+  const portfolioDir = path.resolve(basePath ?? process.cwd(), 'portfolio');
+  const key = JSON.stringify([portfolioDir, options.includeProjectWriteups ?? true, options.projectSummaryLines ?? null]);
+  if (process.env.NODE_ENV !== 'development' && contentCache.has(key)) return contentCache.get(key)!;
 
   const config = loadJSON<PortfolioConfig>(portfolioDir, 'config.json');
   const experience = loadJSON<ExperienceEntry[]>(portfolioDir, 'experience.json');
@@ -237,10 +252,15 @@ export function loadPortfolioContent(basePath?: string): string {
   if (config?.strengths?.length) sections.push(formatStrengths(config.strengths));
   if (experience) sections.push(formatExperience(experience));
   if (skills) sections.push(formatSkills(skills));
-  if (projects) sections.push(formatProjects(projects));
+  if (projects) sections.push(formatProjects(projects, options));
   if (recommendations) sections.push(formatRecommendations(recommendations));
 
-  return sections.filter(Boolean).join('\n\n---\n\n');
+  const content = sections.filter(Boolean).join('\n\n---\n\n');
+  if (process.env.NODE_ENV !== 'development') {
+    if (contentCache.size >= 32) contentCache.delete(contentCache.keys().next().value!);
+    contentCache.set(key, content);
+  }
+  return content;
 }
 
 /**
@@ -272,11 +292,12 @@ export function buildSystemPrompt(
     portfolioContent: string;
   }) => string,
   basePath?: string,
+  options?: PromptContentOptions,
 ): string {
   const config = loadPortfolioConfig(basePath);
   const name = config.name;
   const firstName = config.firstName || name.split(' ')[0];
-  const portfolioContent = loadPortfolioContent(basePath);
+  const portfolioContent = loadPortfolioContent(basePath, options);
 
   const personality =
     config.agent?.personality ??
