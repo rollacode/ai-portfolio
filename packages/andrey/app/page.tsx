@@ -9,15 +9,12 @@ export default function Home() {
       <div className="print:hidden showtime-hide">
         <DotField />
       </div>
-      <div className="domios-signature fixed top-4 left-4 z-[80] print:hidden showtime-hide">
-        <PoweredByDomios />
-      </div>
       <div className="fixed top-4 right-4 z-[80] print:hidden showtime-hide">
         <Toolbar />
       </div>
 
       <main className="w-full h-screen">
-        <Chat />
+        <Chat credit={<PoweredByDomios />} />
       </main>
     </div>
   );
