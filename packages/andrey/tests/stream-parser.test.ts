@@ -308,6 +308,8 @@ describe('parseStream', () => {
 
       expect(events).toEqual([
         { type: 'tool_call', id: 'call_no_done', name: 'show_resume', arguments: {} },
+        { type: 'error', message: 'Response interrupted before completion' },
+        { type: 'done' },
       ]);
     });
 
@@ -417,5 +419,24 @@ describe('parseStream', () => {
 
       expect(events).toEqual([{ type: 'done' }]);
     });
+  });
+});
+
+describe('fragmented metadata and UTF-8', () => {
+  it('decodes UTF-8 split at every byte and additive metadata without dispatching tools early', async () => {
+    const data = 'data: {"choices":[{"delta":{"content":"Привет 👋"}}]}\n\n' +
+      'data: {"conversation_event":{"type":"tool_start","id":"e","requestId":"r","toolCallId":"t","name":"show_project"}}\n\n' + 'data: [DONE]';
+    const bytes = new TextEncoder().encode(data);
+    const stream = new ReadableStream({ start(c) { for (const byte of bytes) c.enqueue(Uint8Array.of(byte)); c.close(); } });
+    const events = await collectEvents(new Response(stream));
+    expect(events).toEqual([{ type: 'text', content: 'Привет 👋' }, { type: 'tool_start', id: 'e', requestId: 'r', toolCallId: 't', name: 'show_project' }, { type: 'done' }]);
+  });
+  it('dispatches a repeated tool id only once and merges fragmented names', async () => {
+    const call = (name: string, args: string, id?: string) => sseData({ tool_calls: [{ index: 0, ...(id ? { id } : {}), function: { name, arguments: args } }] });
+    const finish = 'data: {"choices":[{"finish_reason":"tool_calls"}]}\n\n';
+    const response = makeResponse(call('show_', '', 'same') + call('project', '{}') + finish + call('show_project', '{}', 'same') + finish + 'data: [DONE]\n\n');
+    const events = await collectEvents(response);
+    expect(events.filter(e => e.type === 'tool_call')).toEqual([{ type: 'tool_call', id: 'same', name: 'show_project', arguments: {} }]);
+    expect(events.filter(e => e.type === 'done')).toHaveLength(1);
   });
 });
