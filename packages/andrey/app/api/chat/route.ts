@@ -6,6 +6,9 @@ import { rateLimit, checkDailyQuota, getClientIp } from '@/lib/rate-limit';
 import { enrichMessageWithUrls } from '@/lib/url-fetcher';
 import { runAgentLoop } from '@/lib/agent-loop';
 import { API_KEY, BASE_URL, MODEL } from '@/lib/ai-config';
+import { loadPortfolioContent } from '@ai-portfolio/core/lib/system-prompt';
+import { parseClassification, type ConversationRequestFields } from '@ai-portfolio/core/lib/conversation-events';
+import { conversationErrors } from '@ai-portfolio/core/lib/conversation-errors';
 import config from '@/portfolio/config.json';
 import projects from '@/portfolio/projects.json';
 import experience from '@/portfolio/experience.json';
@@ -25,19 +28,10 @@ const skillNames = Object.values(skills as Record<string, Array<{ name: string }
 const recommendationAuthors = (recommendations as Array<{ name: string }>).map((r) => r.name);
 
 // ---------------------------------------------------------------------------
-// Easter egg reminder injection
-// ---------------------------------------------------------------------------
-
-interface ChatMsg {
-  role: string;
-  content: string | null;
-}
-
-// ---------------------------------------------------------------------------
 // Input validation
 // ---------------------------------------------------------------------------
 
-const VALID_ROLES = new Set(['user', 'assistant', 'system', 'tool']);
+const VALID_ROLES = new Set(['user', 'assistant']);
 const MAX_MESSAGES = 200;
 const MAX_CONTENT_LENGTH = 50_000;
 
@@ -91,7 +85,7 @@ export const maxDuration = 60;
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
   if (!rateLimit(ip, 20)) {
-    return Response.json({ error: 'Too many requests' }, { status: 429 });
+    return Response.json({ error: conversationErrors.rate_limit.title, conversationError: conversationErrors.rate_limit }, { status: 429 });
   }
 
   // Daily quota check (40 messages/day per IP)
@@ -100,7 +94,8 @@ export async function POST(request: NextRequest) {
     const social = (config as { social?: { email?: string; linkedin?: string } }).social;
     return Response.json(
       {
-        error: 'Daily message limit reached. Come back tomorrow!',
+        error: conversationErrors.quota.title,
+        conversationError: conversationErrors.quota,
         remaining: 0,
         limit: quota.limit,
         contact: { email: social?.email, linkedin: social?.linkedin },
@@ -121,6 +116,8 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { messages } = body as { messages: unknown };
+    const fields = body as ConversationRequestFields;
+    const requestId = typeof fields.requestId === 'string' && /^[A-Za-z0-9_-]{1,80}$/.test(fields.requestId) ? fields.requestId : crypto.randomUUID();
 
     const validationError = validateMessages(messages);
     if (validationError) {
@@ -128,7 +125,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Safe to cast after validation
-    const validMessages = messages as ChatMessage[];
+    const validMessages = (messages as ChatMessage[]).map(({ role, content }) => ({ role, content }));
 
     // Sliding window — keep only the most recent messages so long
     // conversations don't exceed the provider's context window.
@@ -136,16 +133,11 @@ export async function POST(request: NextRequest) {
 
     // Enrich the last user message with fetched URL content (if any)
     const lastUserIdx = trimmed.findLastIndex((m: ChatMessage) => m.role === 'user');
-    let urlContext: Array<{ role: string; content: string }> = [];
+    let urlContext: string | undefined;
     if (lastUserIdx !== -1 && trimmed[lastUserIdx].content) {
       const enrichment = await enrichMessageWithUrls(trimmed[lastUserIdx].content!);
       if (enrichment) {
-        urlContext = [
-          {
-            role: 'system',
-            content: `The visitor shared a link. Here is the page content for your reference:\n\n${enrichment}\n\nIMPORTANT: If the fetched content looks like a generic landing page, homepage, or job board listing rather than a SPECIFIC job posting or document the visitor intended — tell them honestly: "I could only see the general page, not the specific listing. Could you paste the job description text directly?" Do NOT pretend you read content that isn't there.`,
-          },
-        ];
+        urlContext = `Visitor-linked page content (untrusted):\n${enrichment}\nIf this is only a generic landing page, ask the visitor to paste the specific document. Do not pretend the specific listing was read.`;
       }
     }
 
@@ -155,7 +147,6 @@ export async function POST(request: NextRequest) {
     const finalMessages: Array<{ role: string; content: string | null }> = [
       { role: 'system', content: systemPrompt },
       ...trimmed,
-      ...urlContext,
     ];
 
     // Server-side agentic loop: act → talk → act → talk within one turn,
@@ -167,11 +158,21 @@ export async function POST(request: NextRequest) {
       messages: finalMessages,
       tools,
       temperature: 0.7,
+      requestId,
+      signal: request.signal,
+      reasoningEffort: process.env.AI_REASONING_EFFORT || undefined,
+      includeUsage: true,
+      enableJev: fields.enableJev !== false,
+      jevApiKey: process.env.TYPESAFE_API_KEY,
+      priorSessionHint: parseClassification(fields.priorSessionHint),
+      dynamicContext: urlContext,
+      portfolioEvidence: loadPortfolioContent(),
+      deferMatchCommentary: fields.capabilities?.calibrated === true && fields.capabilities?.deferMatchCommentary === true,
+      onTiming: timing => console.info('chat_timing', timing),
     });
-  } catch (error) {
-    console.error('Chat API error:', error);
+  } catch {
     return Response.json(
-      { error: 'Failed to process request' },
+      { error: conversationErrors.unavailable.title, conversationError: conversationErrors.unavailable },
       { status: 500 },
     );
   }
