@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { reducedMotionCrossfade, press } from '../../lib/motion';
 import { usePortfolioData } from '../../context/PortfolioDataContext';
 
 interface ChatInputProps {
@@ -10,6 +11,7 @@ interface ChatInputProps {
   animatePlaceholder?: boolean;
   prefillText?: string;
   onPrefillConsumed?: () => void;
+  focusOnMount?: boolean;
 }
 
 const STATIC_PLACEHOLDER = 'Ask me anything...';
@@ -26,12 +28,16 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-export default function ChatInput({ onSend, disabled, animatePlaceholder, prefillText, onPrefillConsumed }: ChatInputProps) {
+export default function ChatInput({ onSend, disabled, animatePlaceholder, prefillText, onPrefillConsumed, focusOnMount }: ChatInputProps) {
+  const reduced = useReducedMotion();
   const { config } = usePortfolioData();
   const [input, setInput] = useState('');
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    if (focusOnMount && (document.activeElement === document.body || document.activeElement?.tagName === 'BUTTON')) textareaRef.current?.focus({ preventScroll: true });
+  }, [focusOnMount]);
 
   // Prefill input from external source (e.g. skill click)
   useEffect(() => {
@@ -39,7 +45,7 @@ export default function ChatInput({ onSend, disabled, animatePlaceholder, prefil
       setInput(prefillText);
       onPrefillConsumed?.();
       // Focus the textarea so user can immediately type or send
-      setTimeout(() => textareaRef.current?.focus(), 100);
+      textareaRef.current?.focus({ preventScroll: true });
     }
   }, [prefillText, onPrefillConsumed]);
 
@@ -50,12 +56,12 @@ export default function ChatInput({ onSend, disabled, animatePlaceholder, prefil
 
   // Rotate placeholder in welcome mode
   useEffect(() => {
-    if (!animatePlaceholder || suggestions.length === 0) return;
+    if (!animatePlaceholder || reduced || suggestions.length === 0) return;
     const interval = setInterval(() => {
       setPlaceholderIndex((i) => (i + 1) % suggestions.length);
     }, ROTATE_INTERVAL);
     return () => clearInterval(interval);
-  }, [animatePlaceholder, suggestions.length]);
+  }, [animatePlaceholder, suggestions.length, reduced]);
 
   // Auto-resize textarea
   useEffect(() => {
@@ -69,11 +75,12 @@ export default function ChatInput({ onSend, disabled, animatePlaceholder, prefil
     if (input.trim() && !disabled) {
       onSend(input.trim());
       setInput('');
+      textareaRef.current?.focus({ preventScroll: true });
     }
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault();
       handleSend();
     }
@@ -87,7 +94,7 @@ export default function ChatInput({ onSend, disabled, animatePlaceholder, prefil
     <div className="relative flex items-end gap-2 w-full px-3 py-3
                     bg-neutral-50/80 dark:bg-neutral-950/80 backdrop-blur-sm
                     border border-gray-300 dark:border-neutral-700 rounded-2xl
-                    focus-within:border-gray-400 dark:focus-within:border-neutral-500
+                    focus-within:border-blue-500 dark:focus-within:border-blue-400
                     transition-all duration-200">
 
       {/* Animated placeholder overlay */}
@@ -96,10 +103,10 @@ export default function ChatInput({ onSend, disabled, animatePlaceholder, prefil
           <AnimatePresence mode="wait">
             <motion.span
               key={currentPlaceholder}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.25, ease: 'easeInOut' }}
+              initial={false}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={reducedMotionCrossfade}
               className="text-base text-gray-400 dark:text-gray-500 whitespace-nowrap"
             >
               {currentPlaceholder}
@@ -114,7 +121,9 @@ export default function ChatInput({ onSend, disabled, animatePlaceholder, prefil
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={handleKeyDown}
         enterKeyHint="send"
-        disabled={disabled}
+        aria-label="Message"
+        aria-disabled={disabled}
+        readOnly={disabled}
         rows={1}
         className="flex-1 resize-none bg-transparent text-base
                    focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed
@@ -122,17 +131,19 @@ export default function ChatInput({ onSend, disabled, animatePlaceholder, prefil
       />
 
       <motion.button
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.9 }}
+        aria-label="Send message"
+        whileHover={reduced ? undefined : { scale: 1.03 }}
+        whileTap={reduced ? undefined : { scale: 0.98 }}
+        transition={press}
         onClick={handleSend}
         disabled={disabled || !input.trim()}
         className="flex-shrink-0 w-8 h-8 flex items-center justify-center
-                   rounded-lg text-gray-400 dark:text-gray-500 hover:text-white dark:hover:text-white
+                   rounded-lg text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500
                    disabled:opacity-20
                    transition-colors duration-150"
       >
         {disabled ? (
-          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+          <svg aria-hidden="true" className="w-4 h-4" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>

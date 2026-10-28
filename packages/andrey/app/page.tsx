@@ -15,7 +15,7 @@ export default function Home() {
       </div>
 
       <main className="w-full h-screen">
-        <Chat credit={<PoweredByDomios />} />
+        <Chat enhancedExperience credit={<PoweredByDomios />} />
       </main>
       <div className="print:hidden showtime-hide">
         <SocialProof />
