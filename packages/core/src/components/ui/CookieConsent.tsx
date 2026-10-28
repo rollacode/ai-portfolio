@@ -16,7 +16,7 @@ export default function CookieConsent() {
   useEffect(() => {
     try { setVisible(!localStorage.getItem(STORAGE_KEY)); }
     catch { setVisible(true); }
-    return () => document.documentElement.style.removeProperty('--consent-inset');
+    return () => { document.documentElement.style.removeProperty('--consent-inset'); };
   }, []);
 
   useLayoutEffect(() => {
