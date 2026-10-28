@@ -18,13 +18,33 @@ const AFTERGLOW_HALF_LIFE_MS = 550;
 const MARK_PULSE_MS = 720;
 const WAVE_SOURCE = '.domios-credit';
 
-type Wave = { x: number; y: number; startedAt: number };
+// A keystroke is a tap, not an announcement: a small, quick ring under the letter that was just typed.
+const KEY_WAVE = { reach: 150, durationMs: 1000, strength: 0.58, band: 18 };
+const KEY_COOLDOWN_MS = 45;
+
+type Wave = { x: number; y: number; startedAt: number; reach: number; durationMs: number; strength: number; band: number };
 
 function waveAt(wave: Wave, now: number, x: number, y: number) {
-  const progress = (now - wave.startedAt) / WAVE_DURATION_MS;
+  const progress = (now - wave.startedAt) / wave.durationMs;
   if (progress < 0 || progress >= 1) return 0;
-  const band = (Math.hypot(x - wave.x, y - wave.y) - WAVE_REACH * progress) / WAVE_BAND;
-  return Math.exp(-0.5 * band * band) * (1 - progress) * WAVE_STRENGTH;
+  const band = (Math.hypot(x - wave.x, y - wave.y) - wave.reach * progress) / wave.band;
+  return Math.exp(-0.5 * band * band) * (1 - progress) * wave.strength;
+}
+
+let measureContext: CanvasRenderingContext2D | null = null;
+/** Where the caret sits after an input, in viewport pixels: the current line's text is measured in the field's own font. */
+function caretPoint(field: HTMLTextAreaElement | HTMLInputElement) {
+  const style = getComputedStyle(field);
+  measureContext ??= document.createElement('canvas').getContext('2d');
+  if (!measureContext) return null;
+  measureContext.font = `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+  const before = field.value.slice(0, field.selectionStart ?? field.value.length);
+  const lines = before.split('\n');
+  const box = field.getBoundingClientRect();
+  const lineHeight = parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.4;
+  const x = box.left + parseFloat(style.paddingLeft) + measureContext.measureText(lines[lines.length - 1]).width - field.scrollLeft;
+  const y = box.top + parseFloat(style.paddingTop) + lineHeight * (lines.length - 0.5) - field.scrollTop;
+  return { x: Math.min(Math.max(x, box.left), box.right), y: Math.min(Math.max(y, box.top), box.bottom) };
 }
 
 /**
@@ -94,7 +114,7 @@ export default function DotField() {
     const draw = (now: number) => {
       const elapsed = lastFrame ? Math.min(100, now - lastFrame) : 0;
       lastFrame = now;
-      waves = waves.filter((wave) => now - wave.startedAt < WAVE_DURATION_MS);
+      waves = waves.filter((wave) => now - wave.startedAt < wave.durationMs);
       let charged = false;
       context.clearRect(0, 0, width, height);
       context.fillStyle = accent;
@@ -122,19 +142,33 @@ export default function DotField() {
       if (draw(now) && !document.hidden) frame = requestAnimationFrame(tick);
       else lastFrame = 0;
     };
+    const launch = (wave: Wave) => {
+      accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#58a6ff';
+      waves = [...waves, wave];
+      if (!frame) frame = requestAnimationFrame(tick);
+    };
+    let lastKey = -Infinity;
+    const typed = (event: Event) => {
+      const field = event.target;
+      if (!(field instanceof HTMLTextAreaElement || field instanceof HTMLInputElement) || field.type === 'password') return;
+      const now = performance.now();
+      if (motion.matches || document.hidden || now - lastKey < KEY_COOLDOWN_MS) return;
+      const point = caretPoint(field);
+      if (!point) return;
+      lastKey = now;
+      launch({ ...point, startedAt: now, ...KEY_WAVE });
+    };
     const emit = (source: Element) => {
       const now = performance.now();
       if (motion.matches || document.hidden || now - lastWave < WAVE_COOLDOWN_MS) return;
       lastWave = now;
-      accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#58a6ff';
       const mark = source.querySelector('.domios-credit__mark') ?? source;
       mark.animate(
         [{ filter: 'brightness(1)' }, { filter: 'brightness(1.6)', offset: 0.25 }, { filter: 'brightness(1)' }],
         { duration: MARK_PULSE_MS, easing: 'cubic-bezier(.16, 1, .3, 1)' },
       );
       const box = mark.getBoundingClientRect();
-      waves = [...waves, { x: box.left + box.width / 2, y: box.top + box.height / 2, startedAt: now }];
-      if (!frame) frame = requestAnimationFrame(tick);
+      launch({ x: box.left + box.width / 2, y: box.top + box.height / 2, startedAt: now, reach: WAVE_REACH, durationMs: WAVE_DURATION_MS, strength: WAVE_STRENGTH, band: WAVE_BAND });
     };
     const answer = (event: PointerEvent | FocusEvent) => {
       const source = (event.target as Element | null)?.closest?.(WAVE_SOURCE);
@@ -145,11 +179,13 @@ export default function DotField() {
     window.addEventListener('resize', measure);
     document.addEventListener('pointerover', answer);
     document.addEventListener('focusin', answer);
+    document.addEventListener('input', typed, true);
     return () => {
       cancelAnimationFrame(frame);
       window.removeEventListener('resize', measure);
       document.removeEventListener('pointerover', answer);
       document.removeEventListener('focusin', answer);
+      document.removeEventListener('input', typed, true);
     };
   }, []);
 

@@ -31,7 +31,7 @@ describe('shared motion and honest data contract', () => {
   });
   it('only delivered pilot slugs reference real committed assets', () => {
     const loops = (projects as Project[]).filter(project => project.loop);
-    expect(loops.map(project => project.slug).sort()).toEqual(['ai-portfolio', 'domios', 'sos-portal']);
+    expect(loops.map(project => project.slug).sort()).toEqual(['ai-portfolio', 'domios']);
     for (const project of loops) {
       expect(project.loop).toEqual({
         mp4: '/loops/' + project.slug + '/loop.mp4',
@@ -70,7 +70,8 @@ describe('shared motion and honest data contract', () => {
     expect(facts.textContent).toContain('6');
     expect(mount.querySelector('video')).toBeNull();
     expect(mount.querySelector('source')).toBeNull();
-    expect(mount.querySelector('[data-loop-state] img')?.getAttribute('src')).toBe('/loops/sos-portal/poster.webp');
+    // Mobile projects show real screens as a still row of phones; no video is involved at all.
+    expect(mount.querySelector('[aria-label="SOS Portal - COVID-19 Teleconsultation screens"] img')?.getAttribute('src')).toBe('/screenshots/sos-portal/doctor-dashboard-mobile.webp');
     act(() => root.unmount()); mount.remove();
   });
 });

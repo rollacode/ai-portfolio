@@ -92,9 +92,8 @@
     "tagline": "Agents live here.",
     "summary": "Domios is a distributed OS for AI agents: the place where Claude Code, Codex, OpenCode and local models live, work and coordinate as one team. It's not a terminal with AI bolted on. It's the infrastructure agents need, wrapped in a terminal because that's where developers already work. Andrey conceived it and builds it every day, with agents doing the work under his review.",
     "video": {
-      "mp4": "https://domios.dev/media/trailer.mp4",
-      "webm": "https://domios.dev/media/trailer.webm",
-      "poster": "https://domios.dev/media/trailer-poster.webp"
+      "mp4": "/loops/domios-film/film.mp4",
+      "poster": "/loops/domios-film/poster.webp"
     },
     "proof": {
       "title": "Domios is built inside Domios.",
@@ -119,12 +118,30 @@
       }
     ],
     "capabilities": [
-      { "title": "Teams and plans", "body": "Give a goal, get tasks, isolated work lanes, reports and reviewed results." },
-      { "title": "Shared memory", "body": "Agents share facts, decisions and skills across all your connected machines in a searchable knowledge graph. Dreams consolidates it." },
-      { "title": "Mesh", "body": "Pair your computers and send commands, agents and reports between them." },
-      { "title": "Desktop to phone", "body": "Continue with the same agents from your phone over your private Tailnet." },
-      { "title": "Telegram bridge", "body": "Message your agents and get replies and notifications wherever you are." },
-      { "title": "Schedules and sessions", "body": "Recurring agent jobs, plus searching and resuming any past conversation." }
+      {
+        "title": "Teams and plans",
+        "body": "Give a goal, get tasks, isolated work lanes, reports and reviewed results."
+      },
+      {
+        "title": "Shared memory",
+        "body": "Agents share facts, decisions and skills across all your connected machines in a searchable knowledge graph. Dreams consolidates it."
+      },
+      {
+        "title": "Mesh",
+        "body": "Pair your computers and send commands, agents and reports between them."
+      },
+      {
+        "title": "Desktop to phone",
+        "body": "Continue with the same agents from your phone over your private Tailnet."
+      },
+      {
+        "title": "Telegram bridge",
+        "body": "Message your agents and get replies and notifications wherever you are."
+      },
+      {
+        "title": "Schedules and sessions",
+        "body": "Recurring agent jobs, plus searching and resuming any past conversation."
+      }
     ],
     "openSource": "Domios is open source under AGPL-3.0. Download it, run it, read the code, or build on it.",
     "loop": {

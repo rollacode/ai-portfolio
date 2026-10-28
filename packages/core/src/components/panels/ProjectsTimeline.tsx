@@ -7,6 +7,7 @@ import { useConversationContext } from '../../context/ConversationContext';
 import { brandSpring, liquidSettle, reducedMotionCrossfade } from '../../lib/motion';
 import type { ProjectLoopMedia } from '../../types/portfolio';
 import ProjectLoop from './ProjectLoop';
+import DeviceStrip from './DeviceStrip';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -20,6 +21,8 @@ interface Project {
   period: string;
   screenshots: string[];
   loop?: ProjectLoopMedia;
+  phones?: string[];
+  phoneFrame?: boolean;
   description: string;
   highlights: string[];
   links: Record<string, string>;
@@ -232,7 +235,10 @@ function CompactProjectCard({ project, isHighlighted, onProjectOpen, still, acti
       {media && (
         // Above the card-wide open target, so the loop keeps its own hover pause.
         <div className="relative z-[1] self-start">
-          {project.loop ? (
+          {project.phones?.length ? (
+            <DeviceStrip size="card" framed={project.phoneFrame !== false} label={project.name + ' screens'} onOpen={() => onProjectOpen?.(project.slug)}
+              screens={project.phones.map(src => ({ src, index: project.screenshots.indexOf(src) })).filter(screen => screen.index >= 0)} />
+          ) : project.loop ? (
             <ProjectLoop active={active} surfaceId={'project-media-source-' + project.slug} media={project.loop}
               fallback={project.screenshots[0] ? '/screenshots/' + project.screenshots[0] : undefined}
               layoutId={!still ? 'project-media-' + project.slug : undefined} alt={project.name + ' product preview'} onOpen={() => onProjectOpen?.(project.slug)} />

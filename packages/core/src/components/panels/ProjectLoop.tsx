@@ -29,6 +29,23 @@ export function playEligibleMedia(video: Pick<HTMLVideoElement, 'play' | 'pause'
   return () => { cancelled = true; video.pause(); };
 }
 
+const SETTLE_MS = 520;
+
+/** Eases a video's playback rate between two speeds (liquid-settle curve); returns a cancel. */
+export function rampPlayback(video: HTMLVideoElement, from: number, to: number, ms: number, done?: () => void) {
+  let frame = 0;
+  const start = performance.now();
+  const step = (now: number) => {
+    const t = Math.min(1, (now - start) / ms);
+    const eased = 1 - Math.pow(1 - t, 3);
+    try { video.playbackRate = from + (to - from) * eased; } catch { /* some engines clamp very low rates */ }
+    if (t < 1) frame = requestAnimationFrame(step);
+    else done?.();
+  };
+  frame = requestAnimationFrame(step);
+  return () => cancelAnimationFrame(frame);
+}
+
 interface ProjectLoopProps {
   media?: ProjectLoopMedia;
   fallback?: string;
@@ -87,13 +104,22 @@ export default function ProjectLoop({ media, fallback, alt, active = true, layou
   useEffect(() => {
     const element = video.current;
     if (!element) return;
-    if (!eligible) { element.pause(); setPlaying(false); return; }
+    // Reaching for a playing loop brakes it to a stop instead of cutting it; leaving lets it speed back up.
+    if (!eligible && inspecting && relevant && !element.paused) {
+      return rampPlayback(element, element.playbackRate, 0.06, SETTLE_MS, () => { element.pause(); setPlaying(false); });
+    }
+    if (!eligible) { element.pause(); element.playbackRate = 1; setPlaying(false); return; }
     failedSources.current.clear();
-    return playEligibleMedia(element, error => {
+    const resuming = element.currentTime > 0;
+    let stopRamp: (() => void) | undefined;
+    if (resuming) element.playbackRate = 0.2;
+    const stopPlay = playEligibleMedia(element, error => {
       if (error instanceof DOMException && error.name === 'NotSupportedError' && media?.webm && !mp4Attempted.current) {
         mp4Attempted.current = true; setMp4Only(true); setPlaying(false); setHasFrame(false);
       } else { setFailed(true); setPlaying(false); }
     });
+    if (resuming) stopRamp = rampPlayback(element, 0.2, 1, SETTLE_MS);
+    return () => { stopRamp?.(); stopPlay(); };
   }, [eligible, mediaKey, mp4Only]);
 
   const sourceFailed = (source: string) => {

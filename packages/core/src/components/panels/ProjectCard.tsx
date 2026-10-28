@@ -8,6 +8,7 @@ import { useConversationContext } from '../../context/ConversationContext';
 import { brandSpring, liquidSettle, hoverSwell, press, reducedMotionCrossfade, DURATION_MS } from '../../lib/motion';
 import type { ProjectLoopMedia } from '../../types/portfolio';
 import ProjectLoop from './ProjectLoop';
+import DeviceStrip from './DeviceStrip';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -25,6 +26,8 @@ export interface ProjectData {
   links: Record<string, string>;
   writeup?: string;
   loop?: ProjectLoopMedia;
+  phones?: string[];
+  phoneFrame?: boolean;
 }
 
 type HighlightField = 'stack' | 'highlights' | 'description' | 'links' | null;
@@ -235,7 +238,8 @@ function LivingProjectDetail({ project, highlightField, onScreenshotClick, onClo
   }, [project.slug, still]);
   const linked = Object.entries(project.links);
   const primaryLink = project.links.appStore ? 'appStore' : project.links.website ? 'website' : linked[0]?.[0];
-  const filmstrip = project.screenshots.map((src, index) => ({ src, index })).filter(item => project.loop || item.index !== 0);
+  const phoneScreens = (project.phones ?? []).map(src => ({ src, index: project.screenshots.indexOf(src) })).filter(screen => screen.index >= 0);
+  const filmstrip = project.screenshots.map((src, index) => ({ src, index })).filter(item => project.loop || phoneScreens.length > 0 || item.index !== 0);
   const arrival = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: still ? { duration: 0 } : liquidSettle } };
   return <article data-project-slug={project.slug} className="space-y-6 pb-8">
     <header className="space-y-2">
@@ -246,10 +250,14 @@ function LivingProjectDetail({ project, highlightField, onScreenshotClick, onClo
       <p className="flex flex-wrap gap-x-3 gap-y-1 text-xs leading-relaxed text-gray-500"><span>{project.period}</span>{project.role && <span>{project.role}</span>}</p>
     </header>
 
-    {project.loop ? <ProjectLoop media={project.loop} layoutId={!still ? 'project-media-' + project.slug : undefined} alt={project.name + ' product preview'} active={active && landed} /> :
+    {/* The loops are 720p: kept to a comfortable width so they stay crisp instead of stretching across the panel. */}
+    {phoneScreens.length > 0 ? <DeviceStrip screens={phoneScreens} framed={project.phoneFrame !== false} label={project.name + ' screens'} onOpen={index => onScreenshotClick?.(project.slug, index)} /> :
+    project.loop ? <div className="max-w-xl"><ProjectLoop media={project.loop} layoutId={!still ? 'project-media-' + project.slug : undefined} alt={project.name + ' product preview'} active={active && landed} /></div> :
       project.screenshots[0] && <motion.div layoutId={!still ? 'project-media-' + project.slug : undefined} transition={brandSpring} className="aspect-video overflow-hidden rounded-[18px_24px_18px_24px] bg-gray-100 dark:bg-gray-900">
-        <button id={'project-screenshot-' + project.slug + '-0'} type="button" aria-label="Open project screenshots" onClick={() => onScreenshotClick?.(project.slug, 0)} className="block h-full w-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500">
-          <motion.img src={'/screenshots/' + project.screenshots[0]} alt={project.name + ' product preview'} width={1280} height={720} className="h-full w-full object-cover" initial={still ? false : { scale: 1 }} animate={{ scale: 1.04 }} transition={still ? { duration: 0 } : { duration: 6, delay: (DURATION_MS.morphLand + DURATION_MS.settle + DURATION_MS.readingHold) / 1000, ease: 'linear' }} />
+        <button id={'project-screenshot-' + project.slug + '-0'} type="button" aria-label="Open project screenshots" onClick={() => onScreenshotClick?.(project.slug, 0)} className="relative block h-full w-full overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500">
+          {/* Any aspect ratio fits whole: a phone screen sits contained over a soft, blurred wash of itself instead of being cropped. */}
+          <img src={'/screenshots/' + project.screenshots[0]} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-40 blur-2xl" />
+          <motion.img src={'/screenshots/' + project.screenshots[0]} alt={project.name + ' product preview'} width={1280} height={720} className="relative h-full w-full object-contain p-4 drop-shadow-[0_18px_30px_rgba(0,0,0,0.35)]" initial={still ? false : { scale: 1 }} animate={{ scale: 1.03 }} transition={still ? { duration: 0 } : { duration: 6, delay: (DURATION_MS.morphLand + DURATION_MS.settle + DURATION_MS.readingHold) / 1000, ease: 'linear' }} />
         </button>
       </motion.div>}
 
@@ -260,8 +268,9 @@ function LivingProjectDetail({ project, highlightField, onScreenshotClick, onClo
         <div aria-label="Project screenshots" className="flex snap-x gap-3 overflow-x-auto pb-1">
           {filmstrip.map(({ src, index }) => <motion.button key={src} id={'project-screenshot-' + project.slug + '-' + index} type="button" aria-label={'Open screenshot ' + (index + 1)}
             onClick={() => onScreenshotClick?.(project.slug, index)} whileHover={still ? {} : { scale: 1.03, transition: hoverSwell }} whileTap={still ? {} : { scale: .98, transition: press }}
-            className="h-20 w-32 shrink-0 snap-start overflow-hidden rounded-[10px_14px_10px_14px] border border-gray-900/10 bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-500 dark:border-gray-100/10 dark:bg-gray-900">
-            <Image src={'/screenshots/' + src} alt="" width={256} height={160} sizes="128px" loading="lazy" className="h-full w-full object-cover" />
+            className="h-28 shrink-0 snap-start overflow-hidden rounded-[10px_14px_10px_14px] border border-gray-900/10 bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-500 dark:border-gray-100/10 dark:bg-gray-900">
+            {/* Each frame keeps its own shape: phone screens stay tall, desktop screens stay wide. */}
+            <img src={'/screenshots/' + src} alt="" loading="lazy" className="h-full w-auto max-w-[14rem] object-contain" />
           </motion.button>)}
         </div>
         <button type="button" onClick={() => onScreenshotClick?.(project.slug, 0)} className="text-xs text-gray-500 transition-colors hover:text-lime-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500 dark:hover:text-lime-400">View all {project.screenshots.length} screenshots</button>
