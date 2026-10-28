@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { usePortfolioData } from '../../context/PortfolioDataContext';
+import { useConversationContext } from '../../context/ConversationContext';
+import { brandSpring, liquidSettle, reducedMotionCrossfade } from '../../lib/motion';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -31,6 +33,8 @@ interface ProjectsTimelineProps {
   onActionConsumed?: () => void;
   filter?: string;
   skillId?: string;
+  onProjectOpen?: (slug: string) => void;
+  onClearFilter?: () => void;
 }
 
 /* ------------------------------------------------------------------ */
@@ -95,39 +99,7 @@ function shouldShowYear(list: Project[], index: number): boolean {
 /* ------------------------------------------------------------------ */
 
 function TimelineDot({ isHighlighted }: { isHighlighted: boolean }) {
-  return (
-    <div className="relative flex items-center justify-center">
-      <AnimatePresence>
-        {isHighlighted && (
-          <motion.div
-            className="absolute w-8 h-8 rounded-full border-2 border-lime-400"
-            initial={{ scale: 0.5, opacity: 1 }}
-            animate={{ scale: [1, 1.8, 1], opacity: [0.8, 0, 0.8] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-          />
-        )}
-      </AnimatePresence>
-
-      {isHighlighted && (
-        <motion.div
-          className="absolute w-5 h-5 rounded-full bg-lime-500/40 blur-sm"
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 0.3 }}
-        />
-      )}
-
-      <motion.div
-        className={`relative z-10 w-3.5 h-3.5 rounded-full border-2 transition-colors duration-300 ${
-          isHighlighted
-            ? 'bg-lime-400 border-lime-400 shadow-[0_0_12px_rgba(132,204,22,0.6)]'
-            : 'bg-gray-400 border-gray-400 dark:bg-neutral-600 dark:border-neutral-500'
-        }`}
-        animate={isHighlighted ? { scale: [1, 1.2, 1] } : { scale: 1 }}
-        transition={isHighlighted ? { duration: 0.8, repeat: Infinity, ease: 'easeInOut' } : {}}
-      />
-    </div>
-  );
+  return <span className={'block h-3.5 w-3.5 rounded-full border-2 ' + (isHighlighted ? 'border-lime-500 bg-lime-500' : 'border-gray-400 bg-gray-400 dark:bg-neutral-600')} />;
 }
 
 /* ------------------------------------------------------------------ */
@@ -138,20 +110,19 @@ function ProjectTimelineCard({
   project,
   index,
   isHighlighted,
+  onProjectOpen,
 }: {
+  onProjectOpen?: (slug: string) => void;
   project: Project;
   index: number;
   isHighlighted: boolean;
 }) {
+  const { enabled } = useConversationContext();
+  const still = useReducedMotion();
   return (
     <motion.div
-      initial={{ opacity: 0, x: -20, y: 12 }}
-      animate={{ opacity: 1, x: 0, y: 0 }}
-      transition={{
-        delay: index * 0.08,
-        duration: 0.5,
-        ease: [0.25, 0.46, 0.45, 0.94],
-      }}
+      initial={false}
+      transition={still ? reducedMotionCrossfade : liquidSettle}
       className={`
         relative rounded-xl p-5 transition-all duration-500
         bg-gray-100/80 dark:bg-white/[0.06]
@@ -162,25 +133,13 @@ function ProjectTimelineCard({
         }
       `}
     >
-      {/* Highlight pulse overlay */}
-      <AnimatePresence>
-        {isHighlighted && (
-          <motion.div
-            className="absolute inset-0 rounded-xl border-2 border-lime-400/50 pointer-events-none"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: [0, 1, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-          />
-        )}
-      </AnimatePresence>
-
       {/* Header */}
       <div className="mb-3">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="min-w-0 flex-1">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
-              {project.name}
-            </h3>
+            <motion.h3 layoutId={enabled && !still ? 'project-title-' + project.slug : undefined} transition={brandSpring} className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
+              {enabled && onProjectOpen ? <button id={'project-source-' + project.slug} type="button" className="text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-lime-500" onClick={() => onProjectOpen(project.slug)}>{project.name}<span className="sr-only"> — open project</span></button> : project.name}
+            </motion.h3>
             {project.role && (
               <p className="text-xs font-medium text-lime-600 dark:text-lime-400 mt-0.5">
                 {project.role}
@@ -195,6 +154,13 @@ function ProjectTimelineCard({
         </div>
       </div>
 
+      {enabled && project.screenshots[0] && (
+        <motion.div layoutId={!still ? 'project-media-' + project.slug : undefined} transition={brandSpring} className="mb-4 aspect-video overflow-hidden rounded-[14px_22px_14px_22px] bg-gray-100 dark:bg-neutral-900">
+          <button type="button" aria-label={'Open ' + project.name} className="h-full w-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500" onClick={() => onProjectOpen?.(project.slug)}>
+            <img src={'/screenshots/' + project.screenshots[0]} alt={project.name + ' product preview'} width={1280} height={720} loading="lazy" className="h-full w-full object-contain" />
+          </button>
+        </motion.div>
+      )}
       {/* Description */}
       <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300 mb-4">
         {project.description}
@@ -243,7 +209,10 @@ export default function ProjectsTimeline({
   onActionConsumed,
   filter,
   skillId,
+  onProjectOpen,
+  onClearFilter,
 }: ProjectsTimelineProps) {
+  const still = useReducedMotion();
   const { projects: projectsData } = usePortfolioData();
   const allProjects = useMemo(() => sortProjectsByPeriod(projectsData as unknown as Project[]), [projectsData]);
   const [highlightedSlug, setHighlightedSlug] = useState<string | null>(null);
@@ -271,7 +240,7 @@ export default function ProjectsTimeline({
     }
 
     return result;
-  }, [filter, skillId]);
+  }, [filter, skillId, allProjects]);
   const highlightTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const setEntryRef = useCallback(
@@ -292,7 +261,7 @@ export default function ProjectsTimeline({
     if (type === 'scroll_to_project' && slug) {
       const el = entryRefs.current.get(slug);
       if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'center' });
       }
       onActionConsumed?.();
     }
@@ -300,7 +269,7 @@ export default function ProjectsTimeline({
     if (type === 'highlight_project' && slug) {
       const el = entryRefs.current.get(slug);
       if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'center' });
       }
 
       setHighlightedSlug(slug);
@@ -345,7 +314,7 @@ export default function ProjectsTimeline({
       {/* Filter indicator */}
       {isFiltered && (
         <motion.div
-          initial={{ opacity: 0, y: -6 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
           className="mb-4"
@@ -368,11 +337,11 @@ export default function ProjectsTimeline({
       {/* Empty state */}
       {filteredProjects.length === 0 && (
         <motion.p
-          initial={{ opacity: 0 }}
+          initial={false}
           animate={{ opacity: 1 }}
           className="text-sm text-gray-400 dark:text-gray-500 text-center py-12"
         >
-          No matching projects found.
+          No matching projects found. <button type="button" className="underline" onClick={onClearFilter}>Show all projects</button>
         </motion.p>
       )}
 
@@ -382,11 +351,7 @@ export default function ProjectsTimeline({
           {/* The vertical timeline line */}
           <div className="absolute left-[7px] top-0 bottom-0 w-0.5">
             <div className="absolute inset-0 bg-gradient-to-b from-lime-500/50 via-lime-500/20 to-gray-600/20 dark:from-lime-500/40 dark:via-lime-500/15 dark:to-gray-700/20 rounded-full" />
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-b from-lime-400/30 to-transparent rounded-full blur-[2px]"
-              animate={{ opacity: [0.3, 0.7, 0.3] }}
-              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-            />
+
           </div>
 
           {/* Entries */}
@@ -401,7 +366,7 @@ export default function ProjectsTimeline({
                   {/* Year marker */}
                   {showYear && (
                     <motion.div
-                      initial={{ opacity: 0 }}
+                      initial={false}
                       animate={{ opacity: 1 }}
                       transition={{ delay: index * 0.06 }}
                       className="flex items-center gap-3 mb-4 pl-7"
@@ -425,6 +390,7 @@ export default function ProjectsTimeline({
                     {/* Card */}
                     <div className="flex-1 min-w-0">
                       <ProjectTimelineCard
+                        onProjectOpen={onProjectOpen}
                         project={project}
                         index={index}
                         isHighlighted={isHighlighted}

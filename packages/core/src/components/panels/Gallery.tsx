@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import Image from 'next/image';
+import { useConversationContext } from '../../context/ConversationContext';
+import { liquidSettle, hoverSwell, press, reducedMotionCrossfade } from '../../lib/motion';
 import { usePortfolioData } from '../../context/PortfolioDataContext';
 
 /* ------------------------------------------------------------------ */
@@ -39,6 +41,24 @@ export default function Gallery({
   onClose,
 }: GalleryProps) {
   const { projects } = usePortfolioData();
+  const { enabled } = useConversationContext();
+  const still = useReducedMotion();
+  const dialog = useRef<HTMLDivElement>(null);
+  const closeButton = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!enabled) return;
+    closeButton.current?.focus();
+    const trap = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab') return;
+      const buttons = Array.from(dialog.current?.querySelectorAll<HTMLButtonElement>('button') || []);
+      if (!buttons.length) return;
+      const first = buttons[0], last = buttons[buttons.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', trap);
+    return () => document.removeEventListener('keydown', trap);
+  }, [enabled]);
   const project = (projects as ProjectData[]).find((p) => p.slug === slug);
   const screenshots = project?.screenshots ?? [];
 
@@ -56,7 +76,7 @@ export default function Gallery({
       // Scroll thumbnail into view
       const thumb = thumbRefs.current[focusIndex];
       if (thumb) {
-        thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        thumb.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'nearest', inline: 'center' });
       }
 
       const timer = setTimeout(() => {
@@ -77,7 +97,7 @@ export default function Gallery({
       // Scroll thumbnail into view
       const thumb = thumbRefs.current[next];
       if (thumb) {
-        thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        thumb.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'nearest', inline: 'center' });
       }
     },
     [screenshots.length],
@@ -103,27 +123,33 @@ export default function Gallery({
   /* Empty state --------------------------------------------------- */
   if (!project || screenshots.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-400 dark:text-gray-500 text-sm">
-        No screenshots available for this project.
+      <div role="dialog" aria-label="Gallery unavailable" className="fixed inset-0 z-[90] flex flex-col items-center justify-center gap-4 bg-white p-6 dark:bg-black">
+        <p>No screenshots available for this project.</p><button type="button" onClick={onClose} className="underline">Return to project</button>
       </div>
     );
   }
 
-  const currentSrc = `/screenshots/${slug}/${screenshots[currentIndex].split('/').pop()}`;
+  const currentSrc = '/screenshots/' + screenshots[Math.min(currentIndex, screenshots.length - 1)];
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
+      ref={dialog}
+      role="dialog"
+      aria-modal="true"
+      aria-label={project.name + ' screenshots'}
+      initial={still ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.2 }}
+      transition={still ? reducedMotionCrossfade : liquidSettle}
       className="fixed inset-0 z-[90] flex flex-col bg-black/90"
       onClick={onClose}
     >
       {/* Close button */}
       <motion.button
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
+        ref={closeButton}
+        whileHover={still ? {} : { scale: 1.03 }}
+        whileTap={still ? {} : { scale: 0.98 }}
+        transition={{ ...hoverSwell, scale: press }}
         onClick={(e) => {
           e.stopPropagation();
           onClose?.();
@@ -165,10 +191,10 @@ export default function Gallery({
         <AnimatePresence mode="wait">
           <motion.div
             key={currentIndex}
-            initial={{ opacity: 0, scale: 0.92 }}
+            initial={still ? false : { opacity: 0 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.92 }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
+            exit={{ opacity: 0 }}
+            transition={still ? reducedMotionCrossfade : liquidSettle}
             className={`relative w-full max-w-3xl h-full rounded-xl overflow-hidden
                        ${glowing ? 'ring-2 ring-lime-400 shadow-[0_0_32px_rgba(132,204,22,0.5)]' : ''}`}
           >
