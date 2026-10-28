@@ -35,6 +35,7 @@ export function useChatStream({ messages, setMessages, panelState, setPanelState
   const controller = useRef<AbortController | null>(null);
   const assistantIndex = useRef(-1);
   const hasText = useRef(false);
+  const sideEffects = useRef(new Set<string>());
   const [error, setError] = useState<ConversationError | null>(null);
   const [receipts, setReceipts] = useState<Record<string, ClaimReceipt[]>>({});
   const [corrections, setCorrections] = useState<Record<string, string[]>>({});
@@ -71,6 +72,7 @@ export function useChatStream({ messages, setMessages, panelState, setPanelState
     setCorrections({});
     setError(null);
     hasText.current = false;
+    sideEffects.current.clear();
     refresh();
   }, [lifecycle, actionQueue, refresh]);
   useEffect(() => {
@@ -106,11 +108,12 @@ export function useChatStream({ messages, setMessages, panelState, setPanelState
     refresh();
   }, [enhancedExperience, lifecycle, appendToTurn, refresh]);
 
-  const runRequest = useCallback(async (requestHistory: Message[], visibleHistory: Message[]) => {
+  const runRequest = useCallback(async (requestHistory: Message[], visibleHistory: Message[], retry = false) => {
     if (lifecycle.status === 'loading') return;
     const priorHint = enhancedExperience ? parseClassification(lifecycle.classification) : undefined;
     const id = crypto.randomUUID();
     lifecycle.begin(id);
+    if (!retry) sideEffects.current.clear();
     assistantIndex.current = -1;
     hasText.current = false;
     setError(null);
@@ -123,6 +126,7 @@ export function useChatStream({ messages, setMessages, panelState, setPanelState
     let meaningful = false;
     let done = false;
     let requestedPanel = false;
+    const metadataIds = new Set<string>();
     const timeout = setTimeout(() => { timedOut = true; abort.abort(); }, 30_000);
     const fail = (code: ConversationErrorCode) => {
       failed = true;
@@ -148,7 +152,10 @@ export function useChatStream({ messages, setMessages, panelState, setPanelState
       // The deadline covers the entire stream, including a hung body.
       for await (const event of parseStream(response) as AsyncIterable<StreamEvent | ConversationEvent>) {
         if (!lifecycle.current(id)) break;
-        if ('requestId' in event && event.requestId !== id) continue;
+        if ('requestId' in event) {
+          if (event.requestId !== id || metadataIds.has(event.id)) continue;
+          metadataIds.add(event.id);
+        }
         switch (event.type) {
           case 'reasoning': break; // Never interpret or reveal provider reasoning.
           case 'classification':
@@ -184,6 +191,11 @@ export function useChatStream({ messages, setMessages, panelState, setPanelState
             }
             if (!lifecycle.dispatch(id, event.id, event.name, event.arguments, projectSlugs)) break;
             meaningful = true;
+            if (['remember_visitor', 'set_theme', 'play_game', 'start_showtime'].includes(event.name)) {
+              const signature = JSON.stringify([event.name, Object.entries(event.arguments).sort(([a], [b]) => a.localeCompare(b))]);
+              if (sideEffects.current.has(signature)) break;
+              sideEffects.current.add(signature);
+            }
             const result = handleToolCall(event.name, event.arguments);
             appendToTurn(id, message => ({ ...message, toolCalls: [...(message.toolCalls || []), { name: event.name, arguments: event.arguments }] }));
             if (result.showtime) onShowtime?.(result.showtime.topic, result.showtime.intent);
@@ -251,7 +263,7 @@ export function useChatStream({ messages, setMessages, panelState, setPanelState
     const requestHistory = retryHistory(history.current);
     if (!requestHistory) return;
     // Preserve partial answers already read, and reuse the original visitor turn.
-    void runRequest(requestHistory, history.current.filter(m => !m.isError));
+    void runRequest(requestHistory, history.current.filter(m => !m.isError), true);
   }, [lifecycle, runRequest, error]);
 
   const conversation: ConversationContextValue = {

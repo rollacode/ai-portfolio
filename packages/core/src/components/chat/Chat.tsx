@@ -166,11 +166,11 @@ export default function Chat({ credit, enhancedExperience = false }: { credit?: 
             </h1>
             <div data-welcome-input className="w-full max-w-3xl px-4">
               <ChatInput onSend={sendMessage} disabled={isLoading} animatePlaceholder prefillText={prefillText} onPrefillConsumed={() => setPrefillText('')} />
-              <p data-welcome-meta className="text-[10px] text-center text-gray-400 dark:text-gray-600 mt-2">
+              <p data-welcome-meta className="text-[11px] flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-gray-500 dark:text-gray-400 mt-3">
                 {credit ?? <>{firstName}&apos;s portfolio agent</>}
                 {config.social?.github && (
                   <>
-                    {' · '}
+
                     <a
                       href={config.social.github}
                       target="_blank"
@@ -183,7 +183,7 @@ export default function Chat({ credit, enhancedExperience = false }: { credit?: 
                 )}
                 {config.social?.linkedin && (
                   <>
-                    {' · '}
+
                     <a
                       href={config.social.linkedin}
                       target="_blank"
@@ -194,9 +194,9 @@ export default function Chat({ credit, enhancedExperience = false }: { credit?: 
                     </a>
                   </>
                 )}
-                {' · '}
+
                 <Link href="/privacy" className="hover:text-gray-300 transition-colors">Privacy</Link>
-                {' · '}
+
                 <Link href="/terms" className="hover:text-gray-300 transition-colors">Terms</Link>
               </p>
             </div>
@@ -228,7 +228,7 @@ export default function Chat({ credit, enhancedExperience = false }: { credit?: 
             className="flex flex-col h-screen print:hidden"
             style={layout === 'split' ? { marginLeft: 'calc(100vw - 500px)' } : undefined}
           >
-            <div className="flex-1 overflow-y-auto pb-32 pt-6">
+            <div className="flex-1 overflow-y-auto pt-6" style={{ paddingBottom: 'calc(8rem + var(--consent-inset, 0px))' }}>
               <div className={`mx-auto px-4 space-y-4 ${layout === 'split' ? 'max-w-[500px]' : 'max-w-3xl'}`}>
                 {messages.map((msg, i) => {
                   if (msg.role === 'assistant' && !msg.content && !msg.toolCalls?.length) return null;
@@ -249,11 +249,11 @@ export default function Chat({ credit, enhancedExperience = false }: { credit?: 
                 })}
                 {showLoading && <TypingIndicator thinkingStatus={thinkingStatus} />}
                 {error && (
-                  <div role="alert" className="rounded-tl-2xl rounded-br-2xl border border-gray-300 dark:border-neutral-700 p-4 text-sm">
+                  <div role="alert" className="rounded-[14px_18px_14px_18px] border border-gray-900/10 dark:border-gray-100/10 bg-gray-50/70 dark:bg-gray-900/40 p-5 text-sm">
                     <p className="font-medium">{error.title}</p>
                     <p className="mt-1 text-gray-600 dark:text-neutral-400">{error.detail}</p>
-                    {error.retryable && <button onClick={retryLast} disabled={isLoading} className="mt-3 text-blue-600 dark:text-blue-400 underline focus-visible:outline focus-visible:outline-2">Retry</button>}
-                    {error.code === 'quota' && <button onClick={() => navigatePanel({ open: true, type: 'contact' }, true)} className="mt-3 text-blue-600 dark:text-blue-400 underline">Contact details</button>}
+                    {error.retryable && <button onClick={retryLast} disabled={isLoading} className="mt-4 inline-flex min-h-11 items-center rounded-[10px_14px_10px_14px] bg-lime-600/10 px-4 text-lime-600 dark:text-lime-400 font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-500">Retry</button>}
+                    {error.code === 'quota' && <button onClick={() => navigatePanel({ open: true, type: 'contact' }, true)} className="mt-3 text-lime-600 dark:text-lime-400 underline">Contact details</button>}
                   </div>
                 )}
                 <div ref={messagesEndRef} />
@@ -263,15 +263,15 @@ export default function Chat({ credit, enhancedExperience = false }: { credit?: 
 
           <div
             className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none print:hidden"
-            style={layout === 'split' ? { paddingLeft: 'calc(100vw - 500px)' } : undefined}
+            style={{ bottom: 'var(--consent-inset, 0px)', ...(layout === 'split' ? { paddingLeft: 'calc(100vw - 500px)' } : {}) }}
           >
             <div className={`mx-auto px-4 pb-4 pt-2 pointer-events-auto ${layout === 'split' ? 'max-w-[500px]' : 'max-w-3xl'}`}>
               <ChatInput onSend={sendMessage} disabled={isLoading} prefillText={prefillText} onPrefillConsumed={() => setPrefillText('')} focusOnMount />
-              <p className="text-[10px] text-center text-gray-400 dark:text-gray-600 mt-2">
+              <p className="text-[11px] flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-gray-500 dark:text-gray-400 mt-3">
                 {credit ?? <>{firstName}&apos;s portfolio agent</>}
                 {config.social?.github && (
                   <>
-                    {' · '}
+
                     <a
                       href={config.social.github}
                       target="_blank"
@@ -284,7 +284,7 @@ export default function Chat({ credit, enhancedExperience = false }: { credit?: 
                 )}
                 {config.social?.linkedin && (
                   <>
-                    {' · '}
+
                     <a
                       href={config.social.linkedin}
                       target="_blank"
@@ -295,9 +295,9 @@ export default function Chat({ credit, enhancedExperience = false }: { credit?: 
                     </a>
                   </>
                 )}
-                {' · '}
+
                 <Link href="/privacy" className="hover:text-gray-300 transition-colors">Privacy</Link>
-                {' · '}
+
                 <Link href="/terms" className="hover:text-gray-300 transition-colors">Terms</Link>
               </p>
             </div>

@@ -37,7 +37,7 @@ export default function ChatInput({ onSend, disabled, animatePlaceholder, prefil
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     if (focusOnMount && (document.activeElement === document.body || document.activeElement?.tagName === 'BUTTON')) textareaRef.current?.focus({ preventScroll: true });
-  }, [focusOnMount]);
+  }, [focusOnMount, disabled]);
 
   // Prefill input from external source (e.g. skill click)
   useEffect(() => {
@@ -93,8 +93,8 @@ export default function ChatInput({ onSend, disabled, animatePlaceholder, prefil
   return (
     <div className="relative flex items-end gap-2 w-full px-3 py-3
                     bg-neutral-50/80 dark:bg-neutral-950/80 backdrop-blur-sm
-                    border border-gray-300 dark:border-neutral-700 rounded-2xl
-                    focus-within:border-blue-500 dark:focus-within:border-blue-400
+                    border border-gray-900/10 dark:border-gray-100/10 rounded-[18px_24px_18px_24px]
+                    focus-within:border-lime-500 dark:focus-within:border-lime-400
                     transition-all duration-200">
 
       {/* Animated placeholder overlay */}
@@ -138,7 +138,7 @@ export default function ChatInput({ onSend, disabled, animatePlaceholder, prefil
         onClick={handleSend}
         disabled={disabled || !input.trim()}
         className="flex-shrink-0 w-8 h-8 flex items-center justify-center
-                   rounded-lg text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500
+                   rounded-lg text-gray-600 dark:text-gray-400 hover:text-lime-600 dark:hover:text-lime-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500
                    disabled:opacity-20
                    transition-colors duration-150"
       >

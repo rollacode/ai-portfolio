@@ -103,7 +103,7 @@ export default function ContactCard() {
       initial={reduced ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={reducedMotionCrossfade}
-      className="rounded-tl-2xl rounded-br-2xl rounded-tr-lg rounded-bl-lg border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 space-y-5"
+      className="rounded-[14px_18px_14px_18px] border border-gray-900/10 dark:border-gray-100/10 bg-white dark:bg-neutral-900 p-6 space-y-5"
     >
       {/* Name & bio */}
       <div>
@@ -112,15 +112,15 @@ export default function ContactCard() {
         </h3>
         {bio && (
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-            {bio}
+            {bio.replaceAll(' · ', '. ')}
           </p>
         )}
       </div>
 
       {suggestContact && (
-        <div className="border-l-2 border-blue-500 pl-3 text-sm">
+        <div className="border-l-2 border-lime-500 pl-3 text-sm">
           <p className="text-gray-700 dark:text-gray-300">Have a role or project in mind?</p>
-          <a href={contactHref} className="mt-2 inline-block text-blue-600 dark:text-blue-400 underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500">
+          <a href={contactHref} className="mt-2 inline-block text-lime-600 dark:text-lime-400 underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500">
             {social.email ? 'Share a few details by email' : 'Continue on LinkedIn'}
           </a>
         </div>
@@ -140,9 +140,8 @@ export default function ContactCard() {
       {/* Partner / Works with */}
       {config.partner && (
         <>
-          <div className="h-px bg-gray-100 dark:bg-neutral-800" />
           <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-3">
+            <p className="text-xs font-medium text-gray-400 dark:text-gray-500 mb-3">
               Works with
             </p>
             <a
@@ -185,9 +184,9 @@ export default function ContactCard() {
               <button
                 key={key}
                 onClick={handleCopyEmail}
-                className="group flex items-center gap-3 w-full text-left text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                className="group flex items-center gap-3 w-full text-left text-sm text-gray-700 dark:text-gray-300 hover:text-lime-600 dark:hover:text-lime-400 transition-colors"
               >
-                <span className="flex-shrink-0 text-gray-400 dark:text-gray-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                <span className="flex-shrink-0 text-gray-400 dark:text-gray-500 group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors">
                   <IconComponent />
                 </span>
                 <span className="truncate">{value}</span>
@@ -199,7 +198,7 @@ export default function ContactCard() {
                       transition={reducedMotionCrossfade}
                       role="status"
                       aria-label="Email copied"
-                      className="text-blue-500"
+                      className="text-lime-500"
                     >
                       <CheckIcon />
                     </motion.span>
@@ -219,9 +218,9 @@ export default function ContactCard() {
               href={value}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              className="group flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300 hover:text-lime-600 dark:hover:text-lime-400 transition-colors"
             >
-              <span className="flex-shrink-0 text-gray-400 dark:text-gray-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              <span className="flex-shrink-0 text-gray-400 dark:text-gray-500 group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors">
                 <IconComponent />
               </span>
               <span className="truncate">{label}</span>

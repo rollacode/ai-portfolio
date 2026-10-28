@@ -9,6 +9,7 @@ import { ConversationProvider } from '../../core/src/context/ConversationContext
 import ContactCard from '../../core/src/components/panels/ContactCard';
 import ChatInput from '../../core/src/components/chat/ChatInput';
 import TypingIndicator from '../../core/src/components/chat/TypingIndicator';
+import CookieConsent from '../../core/src/components/ui/CookieConsent';
 import type { Message } from '../../core/src/hooks/types';
 import type { PanelState } from '../../core/src/lib/tool-handler';
 import { handleToolCall } from '../../core/src/lib/tool-handler';
@@ -47,9 +48,9 @@ function Harness({ enhanced = true }: { enhanced?: boolean }) {
   stablePanel = panelState;
   current = useChatStream({ messages, setMessages, panelState, setPanelState, actionQueue: queue,
     enhancedExperience: enhanced, projectSlugs: ['domios', 'rekap'] });
-  return React.createElement(ConversationProvider, { value: current.conversation },
+  return React.createElement(ConversationProvider, { value: current.conversation, children: React.createElement(React.Fragment, null,
     current.showLoading ? React.createElement(TypingIndicator, { thinkingStatus: current.thinkingStatus }) : null,
-    current.error ? React.createElement('div', { role: 'alert' }, current.error.title) : null);
+    current.error ? React.createElement('div', { role: 'alert' }, current.error.title) : null) });
 }
 async function mount(enhanced = true) { await act(async () => { root.render(React.createElement(Harness, { enhanced })); }); }
 async function send(content = 'Show Domios') {
@@ -284,12 +285,94 @@ describe('request hook with controlled streams (no production requests)', () => 
     expect(current.conversation.classification).toBeUndefined();
     expect(handleToolCall).not.toHaveBeenCalled();
   });
+  it('does not repeat completed side effects when retry recovers an interrupted response', async () => {
+    events = [
+      { type: 'tool_call', id: 'theme-first', name: 'set_theme', arguments: { theme: 'toggle' } },
+      { type: 'error', message: 'provider interruption' },
+    ];
+    await mount(); await send('Toggle the theme'); await flush();
+    const dark = document.documentElement.classList.contains('dark');
+    expect(handleToolCall).toHaveBeenCalledTimes(1);
+    expect(current.error?.code).toBe('interrupted');
+    events = [
+      { type: 'tool_call', id: 'theme-retry-new-id', name: 'set_theme', arguments: { theme: 'toggle' } },
+      { type: 'text', content: 'Theme changed.' }, { type: 'done' },
+    ];
+    await act(async () => current.retryLast());
+    expect(document.documentElement.classList.contains('dark')).toBe(dark);
+    expect(handleToolCall).toHaveBeenCalledTimes(1);
+    expect(visibleMessages.filter(m => m.role === 'user')).toHaveLength(1);
+    localStorage.clear();
+    document.documentElement.classList.remove('dark');
+  });
+  it('times out a hung pre-header request and releases input for recovery', async () => {
+    vi.useFakeTimers();
+    fetchMock.mockImplementation((_url, options) => new Promise((_resolve, reject) => {
+      options.signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')));
+    }));
+    await mount(); await send();
+    expect(current.showLoading).toBe(true);
+    await act(async () => { await vi.advanceTimersByTimeAsync(30_000); await requestPromise; });
+    expect(current.error?.code).toBe('timeout');
+    expect(current.error?.retryable).toBe(true);
+    expect(current.isLoading).toBe(false);
+    expect(visibleMessages).toHaveLength(1);
+  });
+  it('consumes real runtime SSE metadata and text without a reasoning delta', async () => {
+    const actual = await vi.importActual<typeof import('../../core/src/lib/stream-parser')>('../../core/src/lib/stream-parser');
+    vi.mocked(parseStream).mockImplementation(actual.parseStream);
+    let stream!: ReadableStreamDefaultController<Uint8Array>;
+    fetchMock.mockImplementation((_url, options) => {
+      const requestId = JSON.parse(options.body).requestId;
+      return Promise.resolve(new Response(new ReadableStream({ start(controller) {
+        stream = controller;
+        for (const event of [
+          { type: 'classification', id: 'classification', requestId, classification: classification(2.5) },
+          { type: 'tool_start', id: 'start', requestId, toolCallId: 'real', name: 'show_contact' },
+        ]) controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ conversation_event: event })}\n\n`));
+      } })));
+    });
+    await mount(); await send('Contact details');
+    expect(current.conversation.pendingTool?.name).toBe('show_contact');
+    expect(current.conversation.classification?.leadScore).toBe(2.5);
+    expect(container.textContent).toContain('Looking through projects…');
+    expect(handleToolCall).not.toHaveBeenCalled();
+    await act(async () => {
+      const data = { choices: [{ delta: { tool_calls: [{ index: 0, id: 'real', function: { name: 'show_contact', arguments: '{}' } }] }, finish_reason: 'tool_calls' }] };
+      stream.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(data)}\n\ndata: [DONE]\n\n`));
+      stream.close();
+      await requestPromise;
+    });
+    expect(handleToolCall).toHaveBeenCalledExactlyOnceWith('show_contact', {});
+    expect(current.conversation.pendingTool).toBeUndefined();
+    expect(current.error).toBeNull();
+    expect(stablePanel.type).toBe('contact');
+  });
 });
 
 describe('contact and keyboard surfaces', () => {
+  it('reserves consent space and returns keyboard focus without accepting storage', async () => {
+    localStorage.clear();
+    const bounds = vi.spyOn(HTMLDivElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLDivElement) {
+      return this.hasAttribute('data-consent-card') ? new DOMRect(12, 600, 366, 120) : new DOMRect();
+    });
+    await act(async () => root.render(React.createElement(React.Fragment, null,
+      React.createElement(ChatInput, { onSend: vi.fn() }), React.createElement(CookieConsent))));
+    expect(container.querySelector('[aria-label="Privacy choices"]')).not.toBeNull();
+    expect(parseFloat(document.documentElement.style.getPropertyValue('--consent-inset'))).toBeGreaterThan(120);
+    const decline = [...container.querySelectorAll('button')].find(button => button.textContent === 'Decline')!;
+    await act(async () => decline.click());
+    expect(localStorage.getItem('storage-consent')).toBe('declined');
+    expect(document.activeElement).toBe(container.querySelector('textarea'));
+    await act(async () => root.unmount());
+    expect(document.documentElement.style.getPropertyValue('--consent-inset')).toBe('');
+    root = createRoot(container);
+    bounds.mockRestore();
+    localStorage.clear();
+  });
   it.each([2.5, 4, 2.49, undefined, NaN, 5])('only offers configured next action for valid high lead %s', async score => {
     const value = classification(score);
-    await act(async () => root.render(React.createElement(ConversationProvider, { value: { enabled: true, classification: value } }, React.createElement(ContactCard))));
+    await act(async () => root.render(React.createElement(ConversationProvider, { value: { enabled: true, classification: value }, children: React.createElement(ContactCard) })));
     const link = [...container.querySelectorAll('a')].find(a => a.textContent === 'Share a few details by email');
     expect(Boolean(link)).toBe(relevantContact(value));
     if (link) expect(link.getAttribute('href')).toBe('mailto:configured@example.test');
