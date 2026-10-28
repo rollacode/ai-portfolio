@@ -35,7 +35,7 @@ const base = { currentAction: null, onActionConsumed: vi.fn(), onAnimationComple
 function panel(state: PanelState, context: ConversationContextValue) {
   act(() => root.render(wrap(h(ContentPanel, { ...base, panelState: state }), context)));
 }
-const findButton = (text: string) => Array.from(mount.querySelectorAll('button')).find(button => button.textContent?.includes(text))!;
+const findButton = (text: string) => Array.from(mount.querySelectorAll('button')).find(button => button.textContent?.includes(text) || button.getAttribute('aria-label')?.includes(text))!;
 beforeEach(() => {
   (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
   callbacks = []; reduced = false;
@@ -97,7 +97,7 @@ describe('living panel continuity and queue readiness', () => {
     source.focus();
     act(() => source.click());
     expect(scroll.scrollTop).toBe(0);
-    expect(mount.textContent).toContain('Back to projects');
+    expect(findButton('Back to projects')).toBeTruthy();
     act(() => findButton('Back to projects').click());
     expect(mount.querySelector('[data-panel-scroll]')).toBe(scroll);
     expect(scroll.scrollTop).toBe(411);
@@ -205,12 +205,12 @@ describe('living panel continuity and queue readiness', () => {
   it('Spotlight does not mount full trailer until explicit click and returns focus', async () => {
     act(() => root.render(wrap(h(SpotlightPanel))));
     expect(mount.querySelector('video')).toBeNull();
-    act(() => findButton('Watch full trailer').click());
+    act(() => findButton('Watch the trailer').click());
     expect(mount.querySelector('video')?.controls).toBe(true);
     expect(mount.querySelector('video')?.loop).toBe(false);
-    act(() => findButton('Return to preview').click());
+    act(() => findButton('Back to the preview').click());
     act(() => vi.advanceTimersByTime(32));
-    expect(document.activeElement?.textContent).toBe('Watch full trailer');
+    expect(document.activeElement?.textContent).toContain('Watch the trailer');
   });
   it('keeps no-argument readiness for the default path, including same-type project replacement', () => {
     panel({ open: true, type: 'project', slug: 'domios' }, { enabled: false });
