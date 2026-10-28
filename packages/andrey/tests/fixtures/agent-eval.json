@@ -1,0 +1,392 @@
+{
+  "version": 1,
+  "productionSourceSha": "205199c5c38f8d13dc34e1486eee91fcf356ad9c",
+  "limits": {
+    "cases": 13,
+    "repetitions": 2,
+    "maxTurnsPerVariant": 26,
+    "maxVariants": 3,
+    "maxTurnsPerBatch": 78,
+    "deadlineMs": 60000,
+    "maxRounds": 6
+  },
+  "cases": [
+    {
+      "id": "hello",
+      "input": "Hello",
+      "history": [],
+      "requiredTools": [],
+      "firstSubstantiveTool": null,
+      "allowedPanels": [],
+      "forbiddenTools": [],
+      "factSources": [],
+      "requiredText": [
+        "Hello|Hi|Hey"
+      ],
+      "forbiddenText": [],
+      "maxWords": 160,
+      "browserPass": "Greeting visible; no panel"
+    },
+    {
+      "id": "domios",
+      "input": "What is Domios?",
+      "history": [],
+      "requiredTools": [
+        {
+          "name": "show_spotlight",
+          "arguments": {}
+        }
+      ],
+      "firstSubstantiveTool": "show_spotlight",
+      "allowedPanels": [
+        "show_spotlight"
+      ],
+      "forbiddenTools": [],
+      "factSources": [
+        "projects.json#domios.writeup",
+        "config.json#spotlight"
+      ],
+      "requiredText": [
+        "local|same machine",
+        "roadmap|planned|not yet"
+      ],
+      "forbiddenText": [
+        "(?:memory|memories) (?:is |are )?(?:already )?(?:synced|synchronized|shared) across (?:all |different |multiple )?(?:machines|computers)"
+      ],
+      "maxWords": null,
+      "browserPass": "Domios spotlight; local memory and cross-machine roadmap text"
+    },
+    {
+      "id": "rekap",
+      "input": "Tell me about REKAP",
+      "history": [],
+      "requiredTools": [
+        {
+          "name": "show_project",
+          "arguments": {
+            "slug": "rekap"
+          }
+        }
+      ],
+      "firstSubstantiveTool": null,
+      "allowedPanels": [
+        "show_project"
+      ],
+      "forbiddenTools": [],
+      "factSources": [
+        "projects.json#rekap"
+      ],
+      "requiredText": [
+        "REKAP"
+      ],
+      "forbiddenText": [],
+      "maxWords": null,
+      "browserPass": "REKAP project panel and grounded text"
+    },
+    {
+      "id": "python",
+      "input": "What Python skills does he have?",
+      "history": [],
+      "requiredTools": [
+        {
+          "name": "show_skills",
+          "arguments": {}
+        },
+        {
+          "name": "highlight_skill",
+          "argumentPatterns": {
+            "name": "Python"
+          }
+        }
+      ],
+      "firstSubstantiveTool": null,
+      "allowedPanels": [
+        "show_skills",
+        "highlight_skill"
+      ],
+      "forbiddenTools": [
+        "show_insight",
+        "show_tech_radar",
+        "focus_radar_section"
+      ],
+      "factSources": [
+        "skills.json#python-django-fastapi"
+      ],
+      "requiredText": [
+        "Python",
+        "Django|FastAPI"
+      ],
+      "forbiddenText": [],
+      "maxWords": null,
+      "browserPass": "Skills panel with Python highlighted; no insight/radar"
+    },
+    {
+      "id": "leadership",
+      "input": "Has he led teams?",
+      "history": [],
+      "requiredTools": [
+        {
+          "name": "show_projects",
+          "arguments": {
+            "filter": "leadership"
+          }
+        }
+      ],
+      "firstSubstantiveTool": null,
+      "allowedPanels": [
+        "show_projects"
+      ],
+      "forbiddenTools": [],
+      "factSources": [
+        "projects.json#sos-portal",
+        "projects.json#performica"
+      ],
+      "requiredText": [
+        "SOS",
+        "17",
+        "Performica"
+      ],
+      "forbiddenText": [],
+      "maxWords": null,
+      "browserPass": "Leadership projects with SOS 17-person team and Performica facts"
+    },
+    {
+      "id": "job",
+      "input": "We at ExampleCo need a Senior Python Engineer. Requirements: Python, FastAPI, Redis, Kafka; lead two engineers. Please assess this role.",
+      "history": [],
+      "requiredTools": [
+        {
+          "name": "match_job",
+          "arguments": {
+            "role": "Senior Python Engineer",
+            "company": "ExampleCo"
+          }
+        }
+      ],
+      "firstSubstantiveTool": "match_job",
+      "allowedPanels": [
+        "match_job"
+      ],
+      "forbiddenTools": [],
+      "factSources": [
+        "skills.json",
+        "projects.json"
+      ],
+      "requiredText": [],
+      "forbiddenText": [],
+      "maxWords": null,
+      "browserPass": "Job Match panel remains active; original JD retained",
+      "originalDescription": true,
+      "singlePanel": true
+    },
+    {
+      "id": "identity",
+      "input": "I am Alex, CTO at ExampleCo. We need help with LLM architecture.",
+      "history": [],
+      "requiredTools": [
+        {
+          "name": "remember_visitor",
+          "arguments": {
+            "name": "Alex",
+            "role": "CTO",
+            "company": "ExampleCo"
+          }
+        }
+      ],
+      "firstSubstantiveTool": null,
+      "allowedPanels": null,
+      "forbiddenTools": [],
+      "factSources": [
+        "config.json",
+        "projects.json#domios"
+      ],
+      "requiredText": [
+        "LLM|architecture|architectural",
+        "consult|assess|review|design|training"
+      ],
+      "forbiddenText": [],
+      "maxWords": null,
+      "browserPass": "Correct synthetic identity and relevant consulting response"
+    },
+    {
+      "id": "followup",
+      "input": "What would he do for us first?",
+      "history": [
+        {
+          "role": "user",
+          "content": "I am Alex, CTO at ExampleCo. We need help with LLM architecture."
+        },
+        {
+          "role": "assistant",
+          "content": "Thanks Alex. As CTO at ExampleCo, you could work with Andrey on an LLM architecture assessment, system design and team training."
+        }
+      ],
+      "requiredTools": [],
+      "firstSubstantiveTool": null,
+      "allowedPanels": null,
+      "forbiddenTools": [],
+      "factSources": [
+        "config.json",
+        "projects.json#domios"
+      ],
+      "requiredText": [
+        "assess|audit|review|discovery|requirements",
+        "architect|training|LLM"
+      ],
+      "forbiddenText": [
+        "what(?:'s| is) your name|which company|looking for (?:a )?job|hire him as (?:an? )?employee"
+      ],
+      "maxWords": null,
+      "browserPass": "Context retained; assessment/architecture/training response; no identity request"
+    },
+    {
+      "id": "trax",
+      "input": "Расскажи об опыте работы в Trax",
+      "history": [],
+      "requiredTools": [
+        {
+          "name": "show_timeline",
+          "arguments": {}
+        },
+        {
+          "oneOf": [
+            {
+              "name": "scroll_timeline_to",
+              "arguments": {
+                "company": "Trax Retail"
+              }
+            },
+            {
+              "name": "highlight_period",
+              "arguments": {
+                "company": "Trax Retail"
+              }
+            }
+          ]
+        }
+      ],
+      "firstSubstantiveTool": null,
+      "allowedPanels": [
+        "show_timeline",
+        "scroll_timeline_to",
+        "highlight_period"
+      ],
+      "forbiddenTools": [],
+      "factSources": [
+        "experience.json#Trax Retail",
+        "projects.json#trax-retail"
+      ],
+      "requiredText": [
+        "[А-Яа-яЁё]{3,}",
+        "Trax"
+      ],
+      "forbiddenText": [],
+      "maxWords": null,
+      "browserPass": "Timeline targeted at Trax Retail and Russian prose"
+    },
+    {
+      "id": "contact",
+      "input": "How can I contact Andrey?",
+      "history": [],
+      "requiredTools": [
+        {
+          "name": "show_contact",
+          "arguments": {}
+        }
+      ],
+      "firstSubstantiveTool": null,
+      "allowedPanels": [
+        "show_contact"
+      ],
+      "forbiddenTools": [],
+      "factSources": [
+        "config.json#social"
+      ],
+      "requiredText": [],
+      "forbiddenText": [],
+      "maxWords": null,
+      "browserPass": "Contact panel; links only from checked-in social/contact data",
+      "checkedContactLinksOnly": true
+    },
+    {
+      "id": "kafka",
+      "input": "Does he have production Kafka experience?",
+      "history": [],
+      "requiredTools": [],
+      "firstSubstantiveTool": null,
+      "allowedPanels": null,
+      "forbiddenTools": [],
+      "factSources": [
+        "skills.json",
+        "projects.json",
+        "experience.json"
+      ],
+      "requiredText": [
+        "no (?:documented|explicit|evidence)|not (?:documented|listed|confirmed)|doesn.t (?:list|mention)|can.t (?:confirm|claim)|cannot (?:confirm|claim)|absen|unverified"
+      ],
+      "forbiddenText": [
+        "(?:has|built|managed|deployed) (?:extensive |production )?Kafka (?:experience|pipelines|clusters)|Kafka expert"
+      ],
+      "maxWords": null,
+      "browserPass": "Explicit lack of Kafka evidence; no invented expertise"
+    },
+    {
+      "id": "snake",
+      "input": "Show me the Snake game",
+      "history": [],
+      "requiredTools": [
+        {
+          "name": "play_game",
+          "arguments": {
+            "game": "snake"
+          }
+        }
+      ],
+      "firstSubstantiveTool": null,
+      "allowedPanels": [
+        "play_game"
+      ],
+      "forbiddenTools": [],
+      "factSources": [
+        "../lib/tools.ts#play_game"
+      ],
+      "requiredText": [],
+      "forbiddenText": [],
+      "maxWords": null,
+      "browserPass": "Snake game panel"
+    },
+    {
+      "id": "sos",
+      "input": "Give me a deep dive on SOS Portal",
+      "history": [],
+      "requiredTools": [
+        {
+          "name": "show_project",
+          "arguments": {
+            "slug": "sos-portal"
+          }
+        }
+      ],
+      "firstSubstantiveTool": null,
+      "allowedPanels": [
+        "show_project",
+        "highlight_project_detail"
+      ],
+      "forbiddenTools": [],
+      "factSources": [
+        "projects.json#sos-portal"
+      ],
+      "requiredText": [
+        "healthcare|teleconsult|COVID",
+        "Brazil",
+        "17",
+        "lead|led",
+        "ASP.NET",
+        "React Native"
+      ],
+      "forbiddenText": [],
+      "maxWords": null,
+      "browserPass": "SOS Portal panel with full writeup; healthcare/Brazil/team/role/stack in chat"
+    }
+  ]
+}
