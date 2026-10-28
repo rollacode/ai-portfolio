@@ -1,335 +1,269 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { parseStream } from '../lib/stream-parser';
-import { handleToolCall, type PanelState, type PanelAction } from '../lib/tool-handler';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { parseStream, type StreamEvent } from '../lib/stream-parser';
+import { handleToolCall, type PanelState } from '../lib/tool-handler';
 import type { ActionQueue } from '../lib/action-queue';
 import type { Message } from './types';
 import { track } from '../lib/analytics';
-
-// -----------------------------------------------------------------------------
-// Args
-// -----------------------------------------------------------------------------
+import { ChatLifecycle, loadingLabel, retryHistory, validToolArguments } from '../lib/chat-lifecycle';
+import { parseClassification, type ConversationEvent, type ClaimReceipt, type ConversationRequestFields } from '../lib/conversation-events';
+import { getConversationError, type ConversationError, type ConversationErrorCode } from '../lib/conversation-errors';
+import type { ConversationContextValue } from '../context/ConversationContext';
 
 interface UseChatStreamArgs {
   messages: Message[];
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
+  panelState: PanelState;
   setPanelState: React.Dispatch<React.SetStateAction<PanelState>>;
   actionQueue: ActionQueue;
   onShowtime?: (topic: string, intent: string) => void;
+  enhancedExperience?: boolean;
+  projectSlugs?: readonly string[];
 }
 
-// -----------------------------------------------------------------------------
-// Return type
-// -----------------------------------------------------------------------------
+export function useChatStream({ messages, setMessages, panelState, setPanelState, actionQueue,
+  onShowtime, enhancedExperience = false, projectSlugs }: UseChatStreamArgs) {
+  const [lifecycle] = useState(() => new ChatLifecycle());
+  const [requestIds] = useState(() => new WeakMap<Message, string>());
+  const [, redraw] = useState(0);
+  const refresh = useCallback(() => redraw(n => n + 1), []);
+  const history = useRef(messages);
+  history.current = messages;
+  const panel = useRef(panelState);
+  panel.current = panelState;
+  const controller = useRef<AbortController | null>(null);
+  const assistantIndex = useRef(-1);
+  const hasText = useRef(false);
+  const [error, setError] = useState<ConversationError | null>(null);
+  const [receipts, setReceipts] = useState<Record<string, ClaimReceipt[]>>({});
+  const [corrections, setCorrections] = useState<Record<string, string[]>>({});
 
-interface UseChatStreamReturn {
-  sendMessage: (content: string) => Promise<void>;
-  retryLast: () => void;
-  isLoading: boolean;
-  thinkingStatus: string | null;
-}
+  const updateMessages = useCallback((update: (previous: Message[]) => Message[]) => {
+    // Keep the event-handler snapshot synchronous, including rapid Retry clicks.
+    history.current = update(history.current);
+    setMessages(history.current);
+  }, [setMessages]);
 
-// -----------------------------------------------------------------------------
-// Internal helpers (message state updaters)
-// -----------------------------------------------------------------------------
-
-function appendAssistantText(
-  setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
-  text: string,
-) {
-  setMessages((prev) => {
-    const updated = [...prev];
-    const last = updated[updated.length - 1];
-    if (last?.role === 'assistant') {
-      updated[updated.length - 1] = { ...last, content: last.content + text };
+  const navigatePanel = useCallback((next: PanelState, force = false) => {
+    lifecycle.dismissPending();
+    panel.current = next;
+    if (lifecycle.panel(next, force)) {
+      actionQueue.setPanelIdentity(lifecycle.identity);
     }
-    return updated;
-  });
-}
+    setPanelState(next);
+    refresh();
+  }, [lifecycle, actionQueue, setPanelState, refresh]);
 
-function appendToolCall(
-  setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
-  name: string,
-  args: Record<string, any>,
-) {
-  setMessages((prev) => {
-    const updated = [...prev];
-    const last = updated[updated.length - 1];
-    if (last?.role === 'assistant') {
-      const toolCalls = [...(last.toolCalls ?? []), { name, arguments: args }];
-      updated[updated.length - 1] = { ...last, toolCalls };
+  useEffect(() => {
+    if (lifecycle.panel(panelState)) {
+      actionQueue.setPanelIdentity(lifecycle.identity);
+      refresh();
     }
-    return updated;
-  });
-}
+  }, [panelState, lifecycle, actionQueue, refresh]);
 
-function appendError(
-  setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
-  message: string,
-) {
-  setMessages((prev) => {
-    const last = prev[prev.length - 1];
-    if (last?.role === 'assistant' && last.content === '') {
-      return [...prev.slice(0, -1), { role: 'assistant' as const, content: message, isError: true }];
-    }
-    return [...prev, { role: 'assistant' as const, content: message, isError: true }];
-  });
-}
+  const resetSession = useCallback(() => {
+    controller.current?.abort();
+    controller.current = null;
+    lifecycle.reset();
+    actionQueue.setPanelIdentity(lifecycle.identity);
+    setReceipts({});
+    setCorrections({});
+    setError(null);
+    hasText.current = false;
+    refresh();
+  }, [lifecycle, actionQueue, refresh]);
+  useEffect(() => {
+    window.addEventListener('clear-chat', resetSession);
+    return () => {
+      window.removeEventListener('clear-chat', resetSession);
+      controller.current?.abort();
+      lifecycle.reset();
+      actionQueue.clear();
+    };
+  }, [resetSession, lifecycle, actionQueue]);
 
-function markLastAsError(
-  setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
-  suffix: string,
-) {
-  setMessages((prev) => {
-    const updated = [...prev];
-    const last = updated[updated.length - 1];
-    if (last?.role === 'assistant') {
-      updated[updated.length - 1] = { ...last, content: last.content + '\n\n' + suffix, isError: true };
-    }
-    return updated;
-  });
-}
-
-// -----------------------------------------------------------------------------
-// Reasoning status extraction
-// -----------------------------------------------------------------------------
-
-const REASONING_PATTERNS: Array<[RegExp, string]> = [
-  [/\b(?:url|link|fetch|page|website|site|http)\b/i, 'reading the link...'],
-  [/\b(?:job|vacanc|role|position|hiring|recruit)\b/i, 'reviewing the job...'],
-  [/\b(?:skill|match|requirement|stack|tech)\b/i, 'analyzing skills...'],
-  [/\b(?:project|portfolio|built|developed)\b/i, 'checking projects...'],
-  [/\b(?:experience|worked|company|employer)\b/i, 'checking experience...'],
-  [/\b(?:recommend|suggest)\b/i, 'finding recommendations...'],
-  [/\b(?:compar|versus|differ)\b/i, 'comparing options...'],
-  [/\b(?:resume|cv|summary)\b/i, 'preparing resume...'],
-  [/\b(?:contact|email|phone|reach)\b/i, 'finding contact info...'],
-];
-
-function extractThinkingStatus(reasoning: string): string {
-  // Check the last ~500 chars for recency
-  const recent = reasoning.slice(-500);
-  for (const [pattern, label] of REASONING_PATTERNS) {
-    if (pattern.test(recent)) return label;
-  }
-  // Check full text as fallback
-  for (const [pattern, label] of REASONING_PATTERNS) {
-    if (pattern.test(reasoning)) return label;
-  }
-  return 'thinking...';
-}
-
-// -----------------------------------------------------------------------------
-// Hook
-// -----------------------------------------------------------------------------
-
-export function useChatStream({
-  messages,
-  setMessages,
-  setPanelState,
-  actionQueue,
-  onShowtime,
-}: UseChatStreamArgs): UseChatStreamReturn {
-  const [isLoading, setIsLoading] = useState(false);
-  const [lastUserMessage, setLastUserMessage] = useState<string | null>(null);
-  const [thinkingStatus, setThinkingStatus] = useState<string | null>(null);
-
-  // ---------------------------------------------------------------------------
-  // Process a single tool call result
-  // ---------------------------------------------------------------------------
-
-  const processToolCall = useCallback(
-    (name: string, args: Record<string, any>) => {
-      appendToolCall(setMessages, name, args);
-      const result = handleToolCall(name, args);
-
-      // Handle showtime — launch dramatic storytelling mode
-      if (result.showtime) {
-        onShowtime?.(result.showtime.topic, result.showtime.intent);
-        return;
+  const appendToTurn = useCallback((id: string, update: (message: Message) => Message) => {
+    if (id !== lifecycle.requestId) return;
+    updateMessages(previous => {
+      const next = [...previous];
+      if (assistantIndex.current < 0) {
+        assistantIndex.current = next.length;
+        next.push({ role: 'assistant', content: '' });
       }
-
-      // Handle set_theme immediately — it's a side effect, not a panel action
-      if (result.action?.type === 'set_theme') {
-        const html = document.documentElement;
-        const theme = result.action.theme;
-        if (theme === 'fallout') {
-          html.classList.add('dark', 'fallout');
-          localStorage.setItem('theme', 'fallout');
-        } else {
-          html.classList.remove('fallout');
-          if (theme === 'toggle') {
-            html.classList.toggle('dark');
-          } else if (theme === 'dark') {
-            html.classList.add('dark');
-          } else {
-            html.classList.remove('dark');
-          }
-          localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
-        }
-        return;
+      const index = assistantIndex.current;
+      if (next[index]?.role === 'assistant') {
+        next[index] = update(next[index]);
+        requestIds.set(next[index], id);
       }
-
-      if (result.panelState) {
-        // When switching panel type, reset action queue so queued actions
-        // from the old panel don't fire on the new one
-        setPanelState((prev) => {
-          const next = { ...prev, ...result.panelState };
-          if (next.type !== prev.type && prev.open && next.open) {
-            // Panel type is changing while staying open — reset queue
-            actionQueue.clear();
-            actionQueue.setPanelReady(false);
-          }
-          return next;
-        });
-      }
-      if (result.action) actionQueue.enqueue(result.action);
-    },
-    [setMessages, setPanelState, actionQueue, onShowtime],
-  );
-
-  // ---------------------------------------------------------------------------
-  // Send message
-  // ---------------------------------------------------------------------------
-
-  const sendMessage = useCallback(
-    async (content: string) => {
-      const userMessage: Message = { role: 'user', content };
-      const updatedHistory = [...messages, userMessage];
-      setMessages((prev) => [...prev, userMessage]);
-      setIsLoading(true);
-      setLastUserMessage(content);
-
-      track('message_sent', {
-        message: content,
-        message_length: content.length,
-        message_index: updatedHistory.length,
-      });
-
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 30_000); // 30s timeout
-
-      try {
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: updatedHistory }),
-          signal: controller.signal,
-        });
-
-        if (!response.ok) {
-          if (response.status === 429) {
-            try {
-              const body = await response.json();
-              if (body.remaining === 0 && body.limit) {
-                // Daily quota exhausted — show friendly message with contact links from API
-                const email = body.contact?.email;
-                const linkedin = body.contact?.linkedin;
-                const contactLines: string[] = [];
-                if (email) contactLines.push(`- Email: [${email}](mailto:${email})`);
-                if (linkedin) contactLines.push(`- LinkedIn: [${linkedin.replace('https://', '')}](${linkedin})`);
-                const contactBlock = contactLines.length > 0
-                  ? `\n\nIf you'd like to continue the conversation, reach out directly:\n\n${contactLines.join('\n')}\n`
-                  : '';
-                appendError(
-                  setMessages,
-                  `Daily message limit reached! Thanks for the interest though — really appreciate it.${contactBlock}\nThe limit resets tomorrow, so feel free to come back!`
-                );
-              } else {
-                appendError(setMessages, "I'm getting a lot of questions! Please wait a moment and try again.");
-              }
-            } catch {
-              appendError(setMessages, "I'm getting a lot of questions! Please wait a moment and try again.");
-            }
-          } else {
-            appendError(setMessages, "Sorry, I'm having trouble connecting. Please try again.");
-          }
-          return;
-        }
-
-        // Response received — clear the connection timeout (stream can take longer)
-        clearTimeout(timeout);
-
-        setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
-        let hadContent = false;
-        let accumulatedReasoning = '';
-
-        for await (const event of parseStream(response)) {
-          switch (event.type) {
-            case 'reasoning':
-              accumulatedReasoning += event.content;
-              setThinkingStatus(extractThinkingStatus(accumulatedReasoning));
-              break;
-            case 'text':
-              if (!hadContent) setThinkingStatus(null);
-              hadContent = true;
-              appendAssistantText(setMessages, event.content);
-              break;
-            case 'tool_call':
-              if (!hadContent) setThinkingStatus(null);
-              hadContent = true;
-              processToolCall(event.name, event.arguments);
-              break;
-            case 'error':
-              setThinkingStatus(null);
-              hadContent
-                ? markLastAsError(setMessages, 'Sorry, the response was interrupted. Please try again.')
-                : appendError(setMessages, event.message);
-              break;
-            case 'done':
-              setThinkingStatus(null);
-              break;
-          }
-        }
-      } catch (err) {
-        clearTimeout(timeout);
-
-        const isTimeout = err instanceof DOMException && err.name === 'AbortError';
-        if (isTimeout) {
-          appendError(setMessages, "Response is taking too long — the AI server might be overloaded. Please try again in a moment.");
-        } else {
-          console.error('Error sending message:', err);
-          setMessages((prev) => {
-            const last = prev[prev.length - 1];
-            if (last?.role === 'assistant' && last.content.length > 0 && !last.isError) {
-              const updated = [...prev];
-              updated[updated.length - 1] = {
-                ...last,
-                content: last.content + '\n\nSorry, the response was interrupted. Please try again.',
-                isError: true,
-              };
-              return updated;
-            }
-            return prev;
-          });
-          setMessages((prev) => {
-            const last = prev[prev.length - 1];
-            if (last?.isError) return prev;
-            return [...prev, { role: 'assistant' as const, content: "Sorry, I'm having trouble connecting. Please try again.", isError: true }];
-          });
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [messages, setMessages, processToolCall],
-  );
-
-  // ---------------------------------------------------------------------------
-  // Retry last message
-  // ---------------------------------------------------------------------------
-
-  const retryLast = useCallback(() => {
-    if (!lastUserMessage || isLoading) return;
-    setMessages((prev) => {
-      const trimmed = [...prev];
-      while (trimmed.length && trimmed[trimmed.length - 1].role === 'assistant' && trimmed[trimmed.length - 1].isError) trimmed.pop();
-      if (trimmed.length && trimmed[trimmed.length - 1].role === 'user') trimmed.pop();
-      return trimmed;
+      return next;
     });
-    setTimeout(() => sendMessage(lastUserMessage), 50);
-  }, [lastUserMessage, isLoading, sendMessage, setMessages]);
+  }, [lifecycle, updateMessages, requestIds]);
 
-  return { sendMessage, retryLast, isLoading, thinkingStatus };
+  const onFitCommentary = useCallback((id: string, text: string) => {
+    if (!enhancedExperience || !lifecycle.fitCommentary(id, text)) return;
+    appendToTurn(id, message => ({ ...message, content: message.content + (message.content ? '\n\n' : '') + text }));
+    refresh();
+  }, [enhancedExperience, lifecycle, appendToTurn, refresh]);
+
+  const runRequest = useCallback(async (requestHistory: Message[], visibleHistory: Message[]) => {
+    if (lifecycle.status === 'loading') return;
+    const priorHint = enhancedExperience ? parseClassification(lifecycle.classification) : undefined;
+    const id = crypto.randomUUID();
+    lifecycle.begin(id);
+    assistantIndex.current = -1;
+    hasText.current = false;
+    setError(null);
+    updateMessages(() => visibleHistory);
+    refresh(); // Feedback is visible before fetch resolves or headers arrive.
+    const abort = new AbortController();
+    controller.current = abort;
+    let timedOut = false;
+    let failed = false;
+    let meaningful = false;
+    let done = false;
+    let requestedPanel = false;
+    const timeout = setTimeout(() => { timedOut = true; abort.abort(); }, 30_000);
+    const fail = (code: ConversationErrorCode) => {
+      failed = true;
+      if (lifecycle.current(id)) setError(getConversationError(code));
+    };
+    try {
+      const fields: ConversationRequestFields = enhancedExperience ? {
+        requestId: id, ...(priorHint?.available ? { priorSessionHint: priorHint } : {}),
+        capabilities: { calibrated: true, deferMatchCommentary: true },
+      } : {};
+      const response = await fetch('/api/chat', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: requestHistory, ...fields }), signal: abort.signal,
+      });
+      if (!lifecycle.current(id)) return;
+      if (!response.ok) {
+        if (response.status === 429) {
+          const body = await response.json().catch(() => null);
+          fail(body?.remaining === 0 ? 'quota' : 'rate_limit');
+        } else fail('unavailable');
+        return;
+      }
+      // The deadline covers the entire stream, including a hung body.
+      for await (const event of parseStream(response) as AsyncIterable<StreamEvent | ConversationEvent>) {
+        if (!lifecycle.current(id)) break;
+        if ('requestId' in event && event.requestId !== id) continue;
+        switch (event.type) {
+          case 'reasoning': break; // Never interpret or reveal provider reasoning.
+          case 'classification':
+            if (enhancedExperience) lifecycle.classify(id, event.classification);
+            break;
+          case 'tool_start':
+            if (enhancedExperience && lifecycle.startTool(id, event.toolCallId, event.name)) {
+              actionQueue.setPanelIdentity({ type: lifecycle.pendingTool!.panelType, generation: lifecycle.pendingTool!.generation });
+            }
+            break;
+          case 'claim_receipt':
+            if (enhancedExperience) setReceipts(previous => ({ ...previous, [id]: [...(previous[id] || []).filter(r => r.claimId !== event.claimId), event] }));
+            break;
+          case 'correction':
+            if (enhancedExperience) {
+              setCorrections(previous => ({ ...previous, [id]: [...(previous[id] || []), event.text] }));
+              setReceipts(previous => ({ ...previous, [id]: (previous[id] || []).filter(r => event.claimId ? r.claimId !== event.claimId : false) }));
+              // Append visibly; never erase text that has already been read.
+              appendToTurn(id, message => ({ ...message, content: message.content + '\n\n' + event.text }));
+            }
+            break;
+          case 'text':
+            if (!event.content) break;
+            meaningful = true;
+            hasText.current = true;
+            appendToTurn(id, message => ({ ...message, content: message.content + event.content }));
+            break;
+          case 'tool_call': {
+            if (!validToolArguments(event.name, event.arguments, projectSlugs)) {
+              lifecycle.pendingTool = undefined;
+              fail('interrupted');
+              break;
+            }
+            if (!lifecycle.dispatch(id, event.id, event.name, event.arguments, projectSlugs)) break;
+            meaningful = true;
+            const result = handleToolCall(event.name, event.arguments);
+            appendToTurn(id, message => ({ ...message, toolCalls: [...(message.toolCalls || []), { name: event.name, arguments: event.arguments }] }));
+            if (result.showtime) onShowtime?.(result.showtime.topic, result.showtime.intent);
+            if (result.action?.type === 'set_theme') {
+              const html = document.documentElement;
+              const theme = result.action.theme;
+              if (theme === 'fallout') html.classList.add('dark', 'fallout');
+              else {
+                html.classList.remove('fallout');
+                if (theme === 'toggle') html.classList.toggle('dark');
+                else html.classList.toggle('dark', theme === 'dark');
+              }
+              localStorage.setItem('theme', theme === 'fallout' ? theme : html.classList.contains('dark') ? 'dark' : 'light');
+            } else {
+              if (result.panelState) {
+                const explicit = event.name.startsWith('show_') || ['match_job', 'compare_projects', 'play_game'].includes(event.name);
+                const base = result.panelState.type === panel.current.type ? panel.current : { open: false, type: null };
+                const next = { ...base, ...result.panelState } as PanelState;
+                const same = next.type === panel.current.type && next.slug === panel.current.slug;
+                // Housekeeping/narration must not replace the requested panel.
+                if (!enhancedExperience || !requestedPanel || explicit || same && event.name !== 'hide_panel') {
+                  navigatePanel(next, explicit);
+                  if (explicit) requestedPanel = true;
+                }
+              }
+              if (result.action && (!requestedPanel || !result.panelState || result.panelState.type === panel.current.type)) {
+                actionQueue.enqueue(result.action, lifecycle.identity);
+              }
+            }
+            break;
+          }
+          case 'error':
+            if ('error' in event && event.error.code === 'jev_unavailable') break;
+            fail('error' in event ? event.error.code : meaningful ? 'interrupted' : 'unavailable');
+            break;
+          case 'done': done = true; break;
+        }
+        refresh();
+        if (failed) break;
+      }
+      if (!failed && !done) fail('interrupted');
+      else if (!failed && !meaningful) fail('empty');
+    } catch {
+      if (lifecycle.current(id)) fail(timedOut ? 'timeout' : typeof navigator !== 'undefined' && !navigator.onLine ? 'offline' : meaningful ? 'interrupted' : 'network');
+    } finally {
+      clearTimeout(timeout);
+      if (lifecycle.current(id)) {
+        lifecycle.finish(id, failed);
+        // Clear pending shell and restore readiness for the last stable content.
+        actionQueue.setPanelIdentity(lifecycle.identity);
+        controller.current = null;
+        refresh();
+      }
+    }
+  }, [lifecycle, enhancedExperience, updateMessages, refresh, appendToTurn, actionQueue, projectSlugs, onShowtime, navigatePanel]);
+
+  const sendMessage = useCallback(async (content: string) => {
+    if (!content.trim() || lifecycle.status === 'loading') return;
+    const next = [...history.current, { role: 'user' as const, content }];
+    track('message_sent', { message: content, message_length: content.length, message_index: next.length });
+    await runRequest(next, next);
+  }, [lifecycle, runRequest]);
+  const retryLast = useCallback(() => {
+    if (lifecycle.status === 'loading' || !error?.retryable) return;
+    const requestHistory = retryHistory(history.current);
+    if (!requestHistory) return;
+    // Preserve partial answers already read, and reuse the original visitor turn.
+    void runRequest(requestHistory, history.current.filter(m => !m.isError));
+  }, [lifecycle, runRequest, error]);
+
+  const conversation: ConversationContextValue = {
+    enabled: enhancedExperience, activeRequestId: lifecycle.requestId,
+    requestStatus: lifecycle.status, classification: lifecycle.classification,
+    pendingTool: lifecycle.pendingTool,
+    panelIdentity: lifecycle.pendingTool ? { type: lifecycle.pendingTool.panelType, generation: lifecycle.pendingTool.generation } : lifecycle.identity,
+    receiptsByRequest: receipts, correctionsByRequest: corrections, onFitCommentary,
+  };
+  return { sendMessage, retryLast, isLoading: lifecycle.status === 'loading',
+    showLoading: lifecycle.status === 'loading' && !hasText.current,
+    thinkingStatus: loadingLabel(lifecycle.classification, lifecycle.toolName),
+    error, conversation, navigatePanel, resetSession,
+    getMessageRequestId: (message: Message) => requestIds.get(message) };
 }
