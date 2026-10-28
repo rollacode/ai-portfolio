@@ -47,6 +47,8 @@ function LiquidLink({ href, primary, children }: { href: string; primary?: boole
 
 function Trailer({ video, name, loop }: { video: NonNullable<Spotlight['video']>; name: string; loop?: Spotlight['loop'] }) {
   const { enabled, panelIdentity } = useConversationContext();
+  const still = useReducedMotion();
+  const give = brandSpring;
   const ref = useRef<HTMLVideoElement>(null);
   const opener = useRef<HTMLButtonElement>(null);
   const [expanded, setExpanded] = useState(false);
@@ -65,16 +67,24 @@ function Trailer({ video, name, loop }: { video: NonNullable<Spotlight['video']>
   const close = () => { setExpanded(false); setFailed(false); requestAnimationFrame(() => opener.current?.focus({ preventScroll: true })); };
   return (
     <div className="space-y-3">
-      {!expanded ? <>
+      {!expanded ? <div className="relative">
         <ProjectLoop active={!panelIdentity || panelIdentity.type === 'spotlight'} media={enabled ? loop : undefined} fallback={video.poster} alt={name + ' product demonstration'} />
-        <button ref={opener} type="button" onClick={() => setExpanded(true)} className="rounded-lg border border-gray-300 px-4 py-3 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500 dark:border-gray-700">Watch full trailer</button>
-      </> : <div className="space-y-3" onKeyDown={e => { if (e.key === 'Escape') close(); }}>
+        {/* The trailer invitation rests on the loop itself: a quiet glass pill, the play mark swelling on hover. */}
+        <motion.button ref={opener} type="button" onClick={() => setExpanded(true)}
+          whileHover={still ? undefined : { y: -2 }} whileTap={still ? undefined : { scaleX: 0.965, scaleY: 0.95 }} transition={give}
+          className="group/trailer absolute bottom-4 left-4 inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-black/45 py-1.5 pl-1.5 pr-4 text-sm font-medium text-white backdrop-blur-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-lime-400">
+          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-lime-400 text-black transition-transform duration-[380ms] [transition-timing-function:cubic-bezier(.3,1.6,.4,1)] group-hover/trailer:scale-110">
+            <svg viewBox="0 0 16 16" aria-hidden="true" className="ml-0.5 h-3 w-3"><path d="M4.5 2.8v10.4L13 8z" fill="currentColor" /></svg>
+          </span>
+          Watch the trailer
+        </motion.button>
+      </div> : <div className="space-y-3" onKeyDown={e => { if (e.key === 'Escape') close(); }}>
         <video ref={ref} tabIndex={0} controls playsInline preload="none" poster={video.poster} aria-label={name + ' full trailer'} className="aspect-video w-full rounded-[14px_22px_14px_22px] bg-black" onError={() => setFailed(true)}>
           <source src={video.mp4} type="video/mp4" />
           {video.webm && <source src={video.webm} type="video/webm" />}
         </video>
         {failed && <p role="status">The trailer is unavailable. You can return to the preview.</p>}
-        <button type="button" onClick={close} className="rounded-lg border border-gray-300 px-4 py-3 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500 dark:border-gray-700">Return to preview</button>
+        <button type="button" onClick={close} className="group/back -ml-2 inline-flex min-h-8 items-center gap-1.5 rounded-full px-2 text-xs text-gray-500 transition-colors hover:text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500 dark:hover:text-gray-100"><svg viewBox="0 0 16 16" aria-hidden="true" className="h-3.5 w-3.5 transition-transform duration-[380ms] [transition-timing-function:cubic-bezier(.3,1.6,.4,1)] group-hover/back:-translate-x-0.5"><path d="M10 3.5 5.5 8l4.5 4.5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>Back to the preview</button>
       </div>}
     </div>
   );

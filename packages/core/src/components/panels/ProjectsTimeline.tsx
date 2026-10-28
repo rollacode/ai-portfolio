@@ -122,6 +122,7 @@ function ProjectTimelineCard({
 }) {
   const { enabled, panelIdentity } = useConversationContext();
   const still = useReducedMotion();
+  if (enabled) return <CompactProjectCard project={project} isHighlighted={isHighlighted} onProjectOpen={onProjectOpen} still={!!still} active={!panelIdentity || panelIdentity.type === 'projects'} />;
   return (
     <motion.div
       initial={false}
@@ -204,6 +205,79 @@ function ProjectTimelineCard({
         </div>
       )}
     </motion.div>
+  );
+}
+
+const LIST_HIGHLIGHTS = 3;
+const LIST_STACK = 5;
+
+/** The list card for sites with the conversation layer: media beside a short read, the whole card opens the project. */
+function CompactProjectCard({ project, isHighlighted, onProjectOpen, still, active }: {
+  project: Project;
+  isHighlighted: boolean;
+  onProjectOpen?: (slug: string) => void;
+  still: boolean;
+  active: boolean;
+}) {
+  const media = project.loop || project.screenshots[0];
+  const extraStack = project.stack.length - LIST_STACK;
+  return (
+    <div
+      className={`group relative grid gap-5 rounded-[14px_18px_14px_18px] border p-4 transition-[border-color,box-shadow] duration-[380ms] [transition-timing-function:cubic-bezier(.16,1,.3,1)] md:grid-cols-[minmax(0,15rem)_minmax(0,1fr)] ${
+        isHighlighted
+          ? 'border-lime-500/45 shadow-[0_18px_40px_-26px_rgba(88,166,255,0.7)]'
+          : 'border-gray-200/70 hover:border-lime-500/35 dark:border-white/[0.08] dark:hover:border-lime-400/30'
+      }`}
+    >
+      {media && (
+        // Above the card-wide open target, so the loop keeps its own hover pause.
+        <div className="relative z-[1] self-start">
+          {project.loop ? (
+            <ProjectLoop active={active} surfaceId={'project-media-source-' + project.slug} media={project.loop}
+              fallback={project.screenshots[0] ? '/screenshots/' + project.screenshots[0] : undefined}
+              layoutId={!still ? 'project-media-' + project.slug : undefined} alt={project.name + ' product preview'} onOpen={() => onProjectOpen?.(project.slug)} />
+          ) : (
+            <motion.div layoutId={!still ? 'project-media-' + project.slug : undefined} transition={brandSpring} className="aspect-video overflow-hidden rounded-[12px_16px_12px_16px] bg-gray-100 dark:bg-neutral-900">
+              <button type="button" id={'project-media-source-' + project.slug} aria-label={'Open ' + project.name} className="h-full w-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500" onClick={() => onProjectOpen?.(project.slug)}>
+                <img src={'/screenshots/' + project.screenshots[0]} alt={project.name + ' product preview'} width={1280} height={720} loading="lazy" className="h-full w-full object-cover transition-transform duration-[520ms] [transition-timing-function:cubic-bezier(.3,1.6,.4,1)] group-hover:scale-[1.02]" />
+              </button>
+            </motion.div>
+          )}
+        </div>
+      )}
+      <div className="min-w-0">
+        <div className="flex items-baseline justify-between gap-3">
+          <motion.h3 layoutId={!still ? 'project-title-' + project.slug : undefined} transition={brandSpring} className="text-base font-semibold leading-snug tracking-[-0.015em] text-gray-900 dark:text-white">
+            {onProjectOpen ? (
+              <button id={'project-source-' + project.slug} type="button" className="text-left after:absolute after:inset-0 after:rounded-[inherit] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-lime-500" onClick={() => onProjectOpen(project.slug)}>
+                {project.name}<span className="sr-only"> open project</span>
+              </button>
+            ) : project.name}
+          </motion.h3>
+          <span className="flex-shrink-0 text-xs tabular-nums text-gray-500 dark:text-gray-500">{project.period}</span>
+        </div>
+        {project.role && <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{project.role}</p>}
+        <p className="mt-2.5 line-clamp-2 text-sm leading-relaxed text-gray-700 dark:text-gray-300">{project.description}</p>
+        {project.highlights.length > 0 && (
+          <ul className="mt-3 space-y-1">
+            {project.highlights.slice(0, LIST_HIGHLIGHTS).map((item) => (
+              <li key={item} className="flex items-start gap-2 text-[13px] leading-snug text-gray-600 dark:text-gray-400">
+                <span className="mt-[7px] h-1 w-1 flex-shrink-0 rounded-full bg-lime-500/80" aria-hidden="true" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        {project.stack.length > 0 && (
+          <div className="relative z-[1] mt-3 flex flex-wrap gap-1.5">
+            {project.stack.slice(0, LIST_STACK).map((tech) => (
+              <span key={tech} className="rounded-full border border-gray-200 px-2 py-0.5 text-[11px] text-gray-600 dark:border-white/10 dark:text-gray-400">{tech}</span>
+            ))}
+            {extraStack > 0 && <span className="px-1 py-0.5 text-[11px] text-gray-500">+{extraStack}</span>}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
