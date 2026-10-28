@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "eval:agent": "vitest run tests/agent-eval.test.ts",
+    "eval:agent:live": "tsx scripts/eval-agent.ts"
   },
   "dependencies": {
     "@ai-portfolio/core": "workspace:*",
@@ -29,8 +31,10 @@
     "autoprefixer": "^10.4.20",
     "eslint": "^9",
     "eslint-config-next": "^15",
+    "jsdom": "^26.1.0",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
+    "tsx": "^4.23.15",
     "typescript": "^5",
     "vitest": "^4.0.18"
   }

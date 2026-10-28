@@ -36,7 +36,7 @@
     },
     {
       "title": "AI Native",
-      "description": "Created and develops Domios (formerly CodeTerm), a desktop home for AI agents with coordinated teams, shared local memory, a knowledge graph, connected machines and provider plugins. Also builds LLM features at REKAP and personal agent workflows with Rollo. Proudly AI-augmented: he applies 14+ years of engineering experience to architecture, review and delivery. The value is in knowing what to build and why."
+      "description": "Created and develops Domios (formerly CodeTerm), a desktop home for AI agents with coordinated teams of over 250 agents, memory shared across connected machines, a knowledge graph and provider plugins. Also builds LLM features at REKAP and personal agent workflows with Rollo. Proudly AI-augmented: he applies 14+ years of engineering experience to architecture, review and delivery. The value is in knowing what to build and why."
     },
     {
       "title": "Shipping Record",
@@ -120,7 +120,7 @@
     ],
     "capabilities": [
       { "title": "Teams and plans", "body": "Give a goal, get tasks, isolated work lanes, reports and reviewed results." },
-      { "title": "Shared memory", "body": "Agents on one machine share facts, decisions and skills in a searchable knowledge graph. Dreams consolidates it." },
+      { "title": "Shared memory", "body": "Agents share facts, decisions and skills across all your connected machines in a searchable knowledge graph. Dreams consolidates it." },
       { "title": "Mesh", "body": "Pair your computers and send commands, agents and reports between them." },
       { "title": "Desktop to phone", "body": "Continue with the same agents from your phone over your private Tailnet." },
       { "title": "Telegram bridge", "body": "Message your agents and get replies and notifications wherever you are." },
