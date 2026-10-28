@@ -6,4 +6,9 @@ import {
 import { buildSystemPromptText } from '@/prompts/system';
 
 export const loadPortfolioContent = () => coreLoadPortfolioContent();
-export const buildSystemPrompt = () => coreBuildSystemPrompt(buildSystemPromptText);
+// Chat alone uses compact project summaries. Panels and other consumers retain
+// the complete portfolio through loadPortfolioContent() above.
+export const buildSystemPrompt = () => coreBuildSystemPrompt(buildSystemPromptText, undefined, {
+  includeProjectWriteups: false,
+  projectSummaryLines: 2,
+});
