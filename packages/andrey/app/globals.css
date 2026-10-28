@@ -242,22 +242,24 @@ body:has([data-welcome]) .social-proof {
   box-shadow: 0 0 0 1.5px var(--accent);
 }
 
-.proof-card__name,
-.proof-card__byline {
+.proof-card__name {
   display: block;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-}
-
-.proof-card__name {
   font-size: 12px;
   font-weight: 600;
   color: var(--foreground);
 }
 
+/* A title is worth reading in full, so it may take a second line rather than an ellipsis. */
 .proof-card__byline {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
   font-size: 11px;
+  line-height: 1.35;
   color: color-mix(in srgb, var(--foreground) 50%, transparent);
 }
 
