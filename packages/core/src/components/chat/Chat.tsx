@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useMemo, useRef, useEffect, type ReactNode } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
 import TypingIndicator from './TypingIndicator';
@@ -36,7 +36,6 @@ const DEFAULT_PANEL_STATE: PanelState = { open: false, type: null };
 
 /** `credit` replaces the "<name>'s portfolio agent" label under the input. */
 export default function Chat({ credit, enhancedExperience = false }: { credit?: ReactNode; enhancedExperience?: boolean } = {}) {
-  const reduced = useReducedMotion();
   const { config, projects } = usePortfolioData();
 
   // Core state
@@ -155,7 +154,7 @@ export default function Chat({ credit, enhancedExperience = false }: { credit?: 
         {layout === 'welcome' && (
           <motion.div
             key="welcome"
-            initial={reduced ? false : { opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, transition: reducedMotionCrossfade }}
             className="fixed inset-0 flex flex-col items-center justify-center z-10 print:hidden"
@@ -207,6 +206,7 @@ export default function Chat({ credit, enhancedExperience = false }: { credit?: 
       {/* Mobile: collapsed chat tab + bottom sheet when panel is open */}
       {layout !== 'welcome' && !isDesktop && displayPanel.open && (
         <MobileChatSheet
+          key={conversation.panelIdentity?.generation}
           messages={messages}
           isLoading={isLoading}
           showLoading={showLoading}
@@ -214,6 +214,7 @@ export default function Chat({ credit, enhancedExperience = false }: { credit?: 
           error={error}
           onContact={() => navigatePanel({ open: true, type: 'contact' }, true)}
           getMessageRequestId={getMessageRequestId}
+          onNavigate={(state) => navigatePanel({ ...panelState, ...state }, true)}
           onSend={sendMessage}
           onRetry={retryLast}
           prefillText={prefillText}
@@ -236,7 +237,7 @@ export default function Chat({ credit, enhancedExperience = false }: { credit?: 
                   return (
                     <ChatMessage
                       key={i}
-                      {...{ requestId: getMessageRequestId(msg) }}
+                      {...{ requestId: getMessageRequestId(msg), onNavigate: (state: Partial<PanelState>) => navigatePanel({ ...panelState, ...state }, true) }}
                       role={msg.role}
                       content={msg.content}
                       toolCalls={msg.toolCalls}

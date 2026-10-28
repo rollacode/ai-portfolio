@@ -229,7 +229,7 @@ export function useChatStream({ messages, setMessages, panelState, setPanelState
           }
           case 'error':
             if ('error' in event && event.error.code === 'jev_unavailable') break;
-            fail('error' in event ? event.error.code : meaningful ? 'interrupted' : 'unavailable');
+            fail(timedOut ? 'timeout' : 'error' in event ? event.error.code : meaningful ? 'interrupted' : 'unavailable');
             break;
           case 'done': done = true; break;
         }

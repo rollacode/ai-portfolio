@@ -1,8 +1,24 @@
 import { tools } from './tools';
+import { useSyncExternalStore } from 'react';
 import type { Message } from '../hooks/types';
 import type { PanelState } from './tool-handler';
 import { parseClassification, type Classification, type PanelIdentity, type PendingTool } from './conversation-events';
 export type { Classification, PanelIdentity, PendingTool } from './conversation-events';
+
+const motionQuery = '(prefers-reduced-motion: reduce)';
+function reducedSnapshot() {
+  return typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia(motionQuery).matches;
+}
+function subscribeMotion(update: () => void) {
+  if (typeof window.matchMedia !== 'function') return () => {};
+  const query = window.matchMedia(motionQuery);
+  query.addEventListener('change', update);
+  return () => query.removeEventListener('change', update);
+}
+/** Respond to preference changes as well as the initial device setting. */
+export function useChatReducedMotion() {
+  return useSyncExternalStore(subscribeMotion, reducedSnapshot, () => false);
+}
 
 // Structural adapters to the frozen runtime contract; never persisted.
 const panelNames: Record<string, NonNullable<PanelState['type']>> = {
@@ -13,16 +29,16 @@ const panelNames: Record<string, NonNullable<PanelState['type']>> = {
   show_insight: 'insight', match_job: 'job-match', compare_projects: 'comparison',
 };
 const intentLabels: Record<string, string> = {
-  projects: 'Looking through projects…', project: 'Looking through projects…',
-  skills: 'Looking through skills…', experience: 'Looking through experience…',
-  timeline: 'Looking through experience…', contact: 'Finding contact details…',
-  job_match: 'Preparing the role comparison…', match: 'Preparing the role comparison…',
-  resume: 'Preparing the résumé…', recommendations: 'Finding recommendations…',
+  projects: 'Looking through projects', project: 'Looking through projects',
+  skills: 'Looking through skills', experience: 'Looking through experience',
+  timeline: 'Looking through experience', contact: 'Finding contact details',
+  job_match: 'Preparing the role comparison', match: 'Preparing the role comparison',
+  resume: 'Preparing the résumé', recommendations: 'Finding recommendations',
 };
 export function loadingLabel(classification?: Classification, toolName?: string): string {
   if (classification?.available && intentLabels[classification.intent]) return intentLabels[classification.intent];
   const panel = toolName && panelNames[toolName];
-  return panel ? `Opening ${panel.replace(/-/g, ' ')}…` : 'Waiting for a response…';
+  return panel ? `Opening ${panel.replace(/-/g, ' ')}` : 'Waiting for a response';
 }
 export function relevantContact(classification?: Classification): boolean {
   const score = classification?.leadScore;

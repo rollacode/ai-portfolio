@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { usePortfolioData } from '../../context/PortfolioDataContext';
 import { useConversationContext } from '../../context/ConversationContext';
-import { relevantContact } from '../../lib/chat-lifecycle';
+import { relevantContact, useChatReducedMotion } from '../../lib/chat-lifecycle';
 import { reducedMotionCrossfade } from '../../lib/motion';
 
 function GitHubIcon() {
@@ -74,7 +74,7 @@ export default function ContactCard() {
   const { config } = usePortfolioData();
   const [copied, setCopied] = useState(false);
   const { enabled, classification } = useConversationContext();
-  const reduced = useReducedMotion();
+  const reduced = useChatReducedMotion();
   const copyTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => () => { if (copyTimer.current) clearTimeout(copyTimer.current); }, []);
 

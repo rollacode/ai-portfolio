@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { useChatReducedMotion } from '../../lib/chat-lifecycle';
+import { motion, AnimatePresence } from 'framer-motion';
 import { press, reducedMotionCrossfade } from '../../lib/motion';
 import Link from 'next/link';
 
@@ -10,7 +11,7 @@ const STORAGE_KEY = 'storage-consent';
 export default function CookieConsent() {
   const [visible, setVisible] = useState(false);
   const card = useRef<HTMLDivElement>(null);
-  const reduced = useReducedMotion();
+  const reduced = useChatReducedMotion();
 
   useEffect(() => {
     try { setVisible(!localStorage.getItem(STORAGE_KEY)); }

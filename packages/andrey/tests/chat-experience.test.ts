@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import React, { act, useState } from 'react';
-import { createRoot, type Root } from 'react-dom/client';
+import { createRoot, hydrateRoot, type Root } from 'react-dom/client';
+import { renderToString } from 'react-dom/server';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useChatStream } from '../../core/src/hooks/useChatStream';
 import { ChatLifecycle, loadingLabel, relevantContact, validToolArguments } from '../../core/src/lib/chat-lifecycle';
@@ -10,12 +11,14 @@ import ContactCard from '../../core/src/components/panels/ContactCard';
 import ChatInput from '../../core/src/components/chat/ChatInput';
 import TypingIndicator from '../../core/src/components/chat/TypingIndicator';
 import CookieConsent from '../../core/src/components/ui/CookieConsent';
+import MobileChatSheet from '../../core/src/components/chat/MobileChatSheet';
 import type { Message } from '../../core/src/hooks/types';
 import type { PanelState } from '../../core/src/lib/tool-handler';
 import { handleToolCall } from '../../core/src/lib/tool-handler';
 import { parseStream } from '../../core/src/lib/stream-parser';
 
 vi.mock('../../core/src/lib/analytics', () => ({ track: vi.fn() }));
+const media = vi.hoisted(() => ({ reduced: false }));
 vi.mock('../../core/src/lib/stream-parser', () => ({ parseStream: vi.fn() }));
 vi.mock('../../core/src/lib/tool-handler', async importOriginal => {
   const original = await importOriginal<typeof import('../../core/src/lib/tool-handler')>();
@@ -59,6 +62,8 @@ async function send(content = 'Show Domios') {
 async function flush() { await act(async () => { await requestPromise; }); }
 
 beforeEach(() => {
+  media.reduced = false;
+  vi.stubGlobal('matchMedia', vi.fn(() => ({ matches: media.reduced, addEventListener: vi.fn(), removeEventListener: vi.fn() })));
   (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
   container = document.createElement('div');
   document.body.append(container);
@@ -75,10 +80,10 @@ afterEach(async () => { await act(async () => root.unmount()); container.remove(
 
 describe('chat lifecycle adapters', () => {
   it('uses current computed intent, then real name, then neutral, never reasoning', () => {
-    expect(loadingLabel(classification(), 'show_skills')).toBe('Looking through projects…');
-    expect(loadingLabel({ ...classification(), available: false }, 'show_skills')).toBe('Opening skills…');
-    expect(loadingLabel({ ...classification(), intent: 'raw private reasoning' })).toBe('Waiting for a response…');
-    expect(loadingLabel()).toBe('Waiting for a response…');
+    expect(loadingLabel(classification(), 'show_skills')).toBe('Looking through projects');
+    expect(loadingLabel({ ...classification(), available: false }, 'show_skills')).toBe('Opening skills');
+    expect(loadingLabel({ ...classification(), intent: 'raw private reasoning' })).toBe('Waiting for a response');
+    expect(loadingLabel()).toBe('Waiting for a response');
   });
   it('validates complete schema args and real project slugs', () => {
     expect(validToolArguments('show_project', {}, ['domios'])).toBe(false);
@@ -122,7 +127,7 @@ describe('request hook with controlled streams (no production requests)', () => 
     fetchMock.mockReturnValue(headers.promise);
     await mount();
     await send();
-    expect(container.querySelector('[role=status]')?.textContent).toBe('Waiting for a response…');
+    expect(container.querySelector('[role=status]')?.textContent).toBe('Waiting for a response');
     expect(visibleMessages).toEqual([{ role: 'user', content: 'Show Domios' }]);
     events = [{ type: 'text', content: 'Here is Domios.' }, { type: 'done' }];
     headers.resolve(new Response('ok'));
@@ -146,7 +151,7 @@ describe('request hook with controlled streams (no production requests)', () => 
     expect(current.conversation.pendingTool?.panelType).toBe('project');
     expect(stablePanel).toEqual({ open: false, type: null });
     expect(handleToolCall).not.toHaveBeenCalled();
-    expect(container.textContent).toContain('Opening project…');
+    expect(container.textContent).toContain('Opening project');
     args.resolve();
     await flush();
     expect(handleToolCall).toHaveBeenCalledExactlyOnceWith('show_project', { slug: 'domios' });
@@ -335,7 +340,7 @@ describe('request hook with controlled streams (no production requests)', () => 
     await mount(); await send('Contact details');
     expect(current.conversation.pendingTool?.name).toBe('show_contact');
     expect(current.conversation.classification?.leadScore).toBe(2.5);
-    expect(container.textContent).toContain('Looking through projects…');
+    expect(container.textContent).toContain('Looking through projects');
     expect(handleToolCall).not.toHaveBeenCalled();
     await act(async () => {
       const data = { choices: [{ delta: { tool_calls: [{ index: 0, id: 'real', function: { name: 'show_contact', arguments: '{}' } }] }, finish_reason: 'tool_calls' }] };
@@ -348,9 +353,49 @@ describe('request hook with controlled streams (no production requests)', () => 
     expect(current.error).toBeNull();
     expect(stablePanel.type).toBe('contact');
   });
+  it('keeps the timeout vocabulary when the real parser catches a hung body abort', async () => {
+    vi.useFakeTimers();
+    const actual = await vi.importActual<typeof import('../../core/src/lib/stream-parser')>('../../core/src/lib/stream-parser');
+    vi.mocked(parseStream).mockImplementation(actual.parseStream);
+    fetchMock.mockImplementation((_url, options) => Promise.resolve(new Response(new ReadableStream({ start(controller) {
+      options.signal.addEventListener('abort', () => controller.error(new DOMException('Aborted', 'AbortError')));
+    } }))));
+    await mount(); await send();
+    await act(async () => { await vi.advanceTimersByTimeAsync(30_000); await requestPromise; });
+    expect(current.error?.code).toBe('timeout');
+    expect(current.isLoading).toBe(false);
+    expect(visibleMessages).toHaveLength(1);
+  });
 });
 
 describe('contact and keyboard surfaces', () => {
+  it('hydrates the input with a stable tab order when reduced motion differs from SSR', async () => {
+    const element = React.createElement(ChatInput, { onSend: vi.fn() });
+    const html = renderToString(element);
+    await act(async () => root.unmount());
+    container.innerHTML = html;
+    media.reduced = true;
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+    await act(async () => { root = hydrateRoot(container, element); });
+    expect(container.querySelector('button')?.getAttribute('tabindex')).toBe('-1');
+    expect(errors.mock.calls.some(call => String(call[0]).includes('hydrated'))).toBe(false);
+    errors.mockRestore();
+  });
+  it('keeps a new phone panel clear with a live collapsed handle and explicit keyboard expansion', async () => {
+    await act(async () => root.render(React.createElement(MobileChatSheet, {
+      messages: [{ role: 'assistant', content: 'The latest answer.' }], isLoading: true, showLoading: false,
+      onSend: vi.fn(), onRetry: vi.fn(),
+    })));
+    expect(container.querySelector('textarea')).toBeNull();
+    expect(container.textContent).toContain('The latest answer.');
+    expect(container.querySelector('[role="status"]')?.textContent).toBe('Replying');
+    const open = container.querySelector<HTMLButtonElement>('[aria-label="Open chat"]')!;
+    await act(async () => open.click());
+    expect(container.querySelector('textarea')).not.toBeNull();
+    const collapse = container.querySelector<HTMLButtonElement>('[aria-label="Collapse chat"]')!;
+    await act(async () => collapse.click());
+    expect(document.activeElement).toBe(container.querySelector('[aria-label="Open chat"]'));
+  });
   it('reserves consent space and returns keyboard focus without accepting storage', async () => {
     localStorage.clear();
     const bounds = vi.spyOn(HTMLDivElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLDivElement) {

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { useChatReducedMotion } from '../../lib/chat-lifecycle';
+import { motion, AnimatePresence } from 'framer-motion';
 import { reducedMotionCrossfade, press } from '../../lib/motion';
 import { usePortfolioData } from '../../context/PortfolioDataContext';
 
@@ -29,7 +30,7 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 export default function ChatInput({ onSend, disabled, animatePlaceholder, prefillText, onPrefillConsumed, focusOnMount }: ChatInputProps) {
-  const reduced = useReducedMotion();
+  const reduced = useChatReducedMotion();
   const { config } = usePortfolioData();
   const [input, setInput] = useState('');
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
@@ -132,6 +133,7 @@ export default function ChatInput({ onSend, disabled, animatePlaceholder, prefil
 
       <motion.button
         aria-label="Send message"
+        tabIndex={disabled || !input.trim() ? -1 : 0}
         whileHover={reduced ? undefined : { scale: 1.03 }}
         whileTap={reduced ? undefined : { scale: 0.98 }}
         transition={press}
