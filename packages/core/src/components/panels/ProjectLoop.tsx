@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { brandSpring, liquidSettle, EASE } from '../../lib/motion';
+import { brandSpring, liquidSettle, EASE, morphSpring } from '../../lib/motion';
 import type { ProjectLoopMedia } from '../../types/portfolio';
 
 export interface LoopEligibility {
@@ -130,7 +130,7 @@ export default function ProjectLoop({ media, fallback, alt, active = true, layou
   const showVideo = (started || relevant) && !reducedMotion && !failed;
   return (
     <div ref={host} data-loop-state={failed ? 'unavailable' : inspecting && hasFrame ? 'inspecting' : playing ? 'playing' : 'still'}>
-      <motion.div id={surfaceId} layoutId={layoutId} transition={{ ...(reducedMotion ? { duration: 0 } : liquidSettle), layout: brandSpring }}
+      <motion.div id={surfaceId} layoutId={layoutId} transition={{ ...(reducedMotion ? { duration: 0 } : liquidSettle), layout: morphSpring }}
         role={onOpen ? 'button' : media && !reducedMotion ? 'group' : undefined}
         tabIndex={onOpen || media && !reducedMotion ? 0 : undefined}
         aria-label={onOpen ? 'Open ' + alt : media && !reducedMotion ? alt + '. Focus to pause the demonstration.' : undefined}

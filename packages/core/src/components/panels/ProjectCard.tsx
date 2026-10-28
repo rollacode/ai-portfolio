@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { motion, AnimatePresence, useReducedMotion, animate } from 'framer-motion';
 import { usePortfolioData } from '../../context/PortfolioDataContext';
 import { useConversationContext } from '../../context/ConversationContext';
-import { brandSpring, liquidSettle, hoverSwell, press, reducedMotionCrossfade, DURATION_MS } from '../../lib/motion';
+import { brandSpring, liquidSettle, hoverSwell, press, reducedMotionCrossfade, DURATION_MS, morphSpring } from '../../lib/motion';
 import type { ProjectLoopMedia } from '../../types/portfolio';
 import ProjectLoop from './ProjectLoop';
 import DeviceStrip from './DeviceStrip';
@@ -241,25 +241,40 @@ function LivingProjectDetail({ project, highlightField, onScreenshotClick, onClo
   const phoneScreens = (project.phones ?? []).map(src => ({ src, index: project.screenshots.indexOf(src) })).filter(screen => screen.index >= 0);
   const filmstrip = project.screenshots.map((src, index) => ({ src, index })).filter(item => project.loop || phoneScreens.length > 0 || item.index !== 0);
   const arrival = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: still ? { duration: 0 } : liquidSettle } };
+  const [title, ...rest] = project.name.split(' - ');
+  const subtitle = rest.join(' - ');
   return <article data-project-slug={project.slug} className="space-y-6 pb-8">
-    <header className="space-y-2">
+    <header className="relative">
       <div className="flex items-start justify-between gap-4">
-        <motion.h1 layoutId={!still ? 'project-title-' + project.slug : undefined} transition={brandSpring} className="text-2xl font-semibold leading-tight tracking-tight text-gray-950 dark:text-gray-50 md:text-3xl">{project.name}</motion.h1>
+        {/* Who and when, as one quiet pill, the way domios.dev introduces itself. */}
+        <p className="inline-flex max-w-full items-center gap-2.5 rounded-full border border-gray-900/10 bg-white/60 px-3 py-1.5 font-mono text-[10px] tracking-[0.06em] text-gray-500 backdrop-blur dark:border-white/10 dark:bg-white/[0.03] dark:text-gray-400">
+          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-lime-500" aria-hidden="true" />
+          <span className="truncate">{project.period}</span>
+          {project.role && <><span className="h-3 w-px shrink-0 bg-gray-900/10 dark:bg-white/10" aria-hidden="true" /><span className="truncate text-gray-700 dark:text-gray-300">{project.role}</span></>}
+        </p>
         {onClose && <DetailClose onClose={onClose} />}
       </div>
-      <p className="flex flex-wrap gap-x-3 gap-y-1 text-xs leading-relaxed text-gray-500"><span>{project.period}</span>{project.role && <span>{project.role}</span>}</p>
+      <motion.h1 layoutId={!still ? 'project-title-' + project.slug : undefined} transition={morphSpring} className="mt-5 text-[clamp(30px,3.6vw,46px)] font-medium leading-[1.08] tracking-[-0.045em] text-gray-950 [text-wrap:balance] dark:text-gray-50">
+        {title}{subtitle && <span className="block text-lime-600 dark:text-lime-400">{subtitle}</span>}
+      </motion.h1>
     </header>
 
-    {/* The loops are 720p: kept to a comfortable width so they stay crisp instead of stretching across the panel. */}
+    {/* The media stands on a stage: the Domios dot field with a soft accent light, so the work is presented, not pasted. */}
+    <div className="relative -mx-2 overflow-hidden rounded-[22px_28px_22px_28px] px-2 py-2 md:-mx-4 md:px-4 md:py-6">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 [background-image:radial-gradient(circle,rgba(127,140,155,0.28)_1px,transparent_1.4px)] [background-size:18px_18px] [mask-image:radial-gradient(60%_70%_at_50%_50%,#000,transparent_78%)]" />
+      <div aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 h-2/3 w-2/3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-lime-500/10 blur-3xl" />
+      <div className="relative">
     {phoneScreens.length > 0 ? <DeviceStrip screens={phoneScreens} framed={project.phoneFrame !== false} label={project.name + ' screens'} onOpen={index => onScreenshotClick?.(project.slug, index)} /> :
-    project.loop ? <div className="max-w-xl"><ProjectLoop media={project.loop} layoutId={!still ? 'project-media-' + project.slug : undefined} alt={project.name + ' product preview'} active={active && landed} /></div> :
-      project.screenshots[0] && <motion.div layoutId={!still ? 'project-media-' + project.slug : undefined} transition={brandSpring} className="aspect-video overflow-hidden rounded-[18px_24px_18px_24px] bg-gray-100 dark:bg-gray-900">
+    project.loop ? <div className="mx-auto max-w-2xl shadow-[0_30px_60px_-30px_rgba(11,16,22,0.55)] rounded-[18px_24px_18px_24px]"><ProjectLoop media={project.loop} layoutId={!still ? 'project-media-' + project.slug : undefined} alt={project.name + ' product preview'} active={active && landed} /></div> :
+      project.screenshots[0] && <motion.div layoutId={!still ? 'project-media-' + project.slug : undefined} transition={morphSpring} className="aspect-video overflow-hidden rounded-[18px_24px_18px_24px] bg-gray-100 dark:bg-gray-900">
         <button id={'project-screenshot-' + project.slug + '-0'} type="button" aria-label="Open project screenshots" onClick={() => onScreenshotClick?.(project.slug, 0)} className="relative block h-full w-full overflow-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500">
           {/* Any aspect ratio fits whole: a phone screen sits contained over a soft, blurred wash of itself instead of being cropped. */}
           <img src={'/screenshots/' + project.screenshots[0]} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-40 blur-2xl" />
           <motion.img src={'/screenshots/' + project.screenshots[0]} alt={project.name + ' product preview'} width={1280} height={720} className="relative h-full w-full object-contain p-4 drop-shadow-[0_18px_30px_rgba(0,0,0,0.35)]" initial={still ? false : { scale: 1 }} animate={{ scale: 1.03 }} transition={still ? { duration: 0 } : { duration: 6, delay: (DURATION_MS.morphLand + DURATION_MS.settle + DURATION_MS.readingHold) / 1000, ease: 'linear' }} />
         </button>
       </motion.div>}
+      </div>
+    </div>
 
     <motion.div data-project-body className="space-y-7" initial={still ? false : 'hidden'} animate="visible" variants={{
       hidden: { opacity: 0 }, visible: { opacity: 1, transition: still ? { duration: 0 } : { ...liquidSettle, delay: DURATION_MS.morphLand / 1000, delayChildren: DURATION_MS.morphLand / 1000, staggerChildren: DURATION_MS.detailStagger / 1000 } }
@@ -365,7 +380,7 @@ export default function ProjectCard({
     >
       {/* Header ---------------------------------------------------- */}
       <div>
-        <motion.h2 layoutId={enabled && !still ? 'project-title-' + slug : undefined} transition={brandSpring} className="text-xl font-bold text-gray-900 dark:text-white">{project.name}</motion.h2>
+        <motion.h2 layoutId={enabled && !still ? 'project-title-' + slug : undefined} transition={morphSpring} className="text-xl font-bold text-gray-900 dark:text-white">{project.name}</motion.h2>
         <div className="mt-0.5 flex items-center gap-2">
           <p className="text-xs font-medium text-gray-400 dark:text-gray-500">
             {project.period}

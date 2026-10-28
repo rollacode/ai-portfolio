@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { usePortfolioData } from '../../context/PortfolioDataContext';
 import { useConversationContext } from '../../context/ConversationContext';
-import { brandSpring, liquidSettle, reducedMotionCrossfade } from '../../lib/motion';
+import { brandSpring, liquidSettle, reducedMotionCrossfade, morphSpring } from '../../lib/motion';
 import type { ProjectLoopMedia } from '../../types/portfolio';
 import ProjectLoop from './ProjectLoop';
 import DeviceStrip from './DeviceStrip';
@@ -144,7 +144,7 @@ function ProjectTimelineCard({
       <div className="mb-3">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="min-w-0 flex-1">
-            <motion.h3 layoutId={enabled && !still ? 'project-title-' + project.slug : undefined} transition={brandSpring} className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
+            <motion.h3 layoutId={enabled && !still ? 'project-title-' + project.slug : undefined} transition={morphSpring} className="text-lg font-bold text-gray-900 dark:text-white leading-tight">
               {enabled && onProjectOpen ? <button id={'project-source-' + project.slug} type="button" className="text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-lime-500" onClick={() => onProjectOpen(project.slug)}>{project.name}<span className="sr-only"> open project</span></button> : project.name}
             </motion.h3>
             {project.role && (
@@ -165,7 +165,7 @@ function ProjectTimelineCard({
         <div className="mb-4">
           {project.loop ? <ProjectLoop active={!panelIdentity || panelIdentity.type === 'projects'} surfaceId={'project-media-source-' + project.slug} media={project.loop} fallback={project.screenshots[0] ? '/screenshots/' + project.screenshots[0] : undefined}
             layoutId={!still ? 'project-media-' + project.slug : undefined} alt={project.name + ' product preview'} onOpen={() => onProjectOpen?.(project.slug)} /> :
-            <motion.div layoutId={!still ? 'project-media-' + project.slug : undefined} transition={brandSpring} className="aspect-video overflow-hidden rounded-[18px_24px_18px_24px] bg-gray-100 dark:bg-neutral-900">
+            <motion.div layoutId={!still ? 'project-media-' + project.slug : undefined} transition={morphSpring} className="aspect-video overflow-hidden rounded-[18px_24px_18px_24px] bg-gray-100 dark:bg-neutral-900">
               <button type="button" id={'project-media-source-' + project.slug} aria-label={'Open ' + project.name} className="h-full w-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500" onClick={() => onProjectOpen?.(project.slug)}>
                 <img src={'/screenshots/' + project.screenshots[0]} alt={project.name + ' product preview'} width={1280} height={720} loading="lazy" className="h-full w-full object-cover" />
               </button>
@@ -243,7 +243,7 @@ function CompactProjectCard({ project, isHighlighted, onProjectOpen, still, acti
               fallback={project.screenshots[0] ? '/screenshots/' + project.screenshots[0] : undefined}
               layoutId={!still ? 'project-media-' + project.slug : undefined} alt={project.name + ' product preview'} onOpen={() => onProjectOpen?.(project.slug)} />
           ) : (
-            <motion.div layoutId={!still ? 'project-media-' + project.slug : undefined} transition={brandSpring} className="aspect-video overflow-hidden rounded-[12px_16px_12px_16px] bg-gray-100 dark:bg-neutral-900">
+            <motion.div layoutId={!still ? 'project-media-' + project.slug : undefined} transition={morphSpring} className="aspect-video overflow-hidden rounded-[12px_16px_12px_16px] bg-gray-100 dark:bg-neutral-900">
               <button type="button" id={'project-media-source-' + project.slug} aria-label={'Open ' + project.name} className="h-full w-full focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-500" onClick={() => onProjectOpen?.(project.slug)}>
                 <img src={'/screenshots/' + project.screenshots[0]} alt={project.name + ' product preview'} width={1280} height={720} loading="lazy" className="h-full w-full object-cover transition-transform duration-[520ms] [transition-timing-function:cubic-bezier(.3,1.6,.4,1)] group-hover:scale-[1.02]" />
               </button>
@@ -253,7 +253,7 @@ function CompactProjectCard({ project, isHighlighted, onProjectOpen, still, acti
       )}
       <div className="min-w-0">
         <div className="flex items-baseline justify-between gap-3">
-          <motion.h3 layoutId={!still ? 'project-title-' + project.slug : undefined} transition={brandSpring} className="text-base font-semibold leading-snug tracking-[-0.015em] text-gray-900 dark:text-white">
+          <motion.h3 layoutId={!still ? 'project-title-' + project.slug : undefined} transition={morphSpring} className="text-base font-semibold leading-snug tracking-[-0.015em] text-gray-900 dark:text-white">
             {onProjectOpen ? (
               <button id={'project-source-' + project.slug} type="button" className="text-left after:absolute after:inset-0 after:rounded-[inherit] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-lime-500" onClick={() => onProjectOpen(project.slug)}>
                 {project.name}<span className="sr-only"> open project</span>

@@ -39,6 +39,7 @@ it('batches receipts once after fit commentary commits, bound to the revised fin
  const host=document.createElement('div');document.body.append(host);const root=createRoot(host);
  await act(async()=>root.render(<Harness/>));
  expect(receiptRequests).toHaveLength(1);expect(receiptRequests[0].content).toContain('Grounded commentary');
- expect(host.querySelectorAll('button[aria-label="Supported by portfolio source"]')).toHaveLength(2);
+ // Both messages share the one batch; each shows a single quiet summary line instead of per-word marks.
+ expect([...host.querySelectorAll('button')].filter(b=>b.textContent?.includes('checked against the portfolio'))).toHaveLength(2);
  await act(async()=>root.unmount());host.remove();vi.unstubAllGlobals();
 });

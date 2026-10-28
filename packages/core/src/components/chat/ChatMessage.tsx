@@ -5,7 +5,7 @@ import { useConversationContext } from '../../context/ConversationContext';
 import { CALIBRATION, currentReceipt } from '../../lib/evidence/receipts';
 import { subscribeFitNarration, isFitNarrationSettled } from '../../lib/evidence/fit-narration';
 import { subscribeReceiptBatches, getReceiptBatch, requestReceiptBatch } from '../../lib/evidence/receipt-batches';
-import ReceiptDot from './ReceiptDot';
+import ReceiptSummary from './ReceiptSummary';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import type { PanelState } from '../../lib/tool-handler';
@@ -81,15 +81,11 @@ export default function ChatMessage({ requestId, onNavigate, role, content, tool
                           [&>ul>li]:border-l-2 [&>ul>li]:border-lime-500/40 [&>ul>li]:pl-3
                           [&>ul>li]:py-2 [&>ul>li]:rounded-r
                           [&>ul>li]:bg-white/[0.04] dark:[&>ul>li]:bg-white/[0.04]">
-            <ReactMarkdown components={{strong: ({node, children, ...props}) => {
-              const start = node?.position?.start.offset;
-              const end = node?.position?.end.offset;
-              const receipt = validReceipts.find(r => start !== undefined && end !== undefined && r.start === start + 2 && r.end === end - 2);
-              return <strong {...props}>{children}{receipt && <ReceiptDot receipt={receipt}/>}</strong>;
-            }}}>
+            <ReactMarkdown>
               {content}
             </ReactMarkdown>
           </div>
+          <ReceiptSummary receipts={validReceipts} />
 
           {corrections?.map((note,i)=><p key={i} role="note" className="mt-2 border-l-2 border-lime-500 pl-3 text-sm text-gray-600 dark:text-gray-300">Correction: {note}</p>)}
           {isError && onRetry && (
