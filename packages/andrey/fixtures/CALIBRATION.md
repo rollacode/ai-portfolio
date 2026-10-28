@@ -1,0 +1,19 @@
+# Claim calibration pilot
+
+The fixed fixture has 30 assertions (10 supported, 10 unsupported, 10 explicitly interpretive), split into 20 development and 10 held-out cases before scores were observed. The split is small and class counts are unequal within each split. No held-out tuning or label changes occurred. Source facts were checked against `portfolio/projects.json` (Domios and Trax) and `portfolio/skills.json` on production source 205199c. State is a synthetic, source-grounded snapshot, not visitor content. The full state, labels and typed raw answers are in `calibration-live.json`; the fixture hash is recorded there.
+
+One bounded real invocation of the proposed CLI called `jev-latest` 30 times with a 1500ms maximum per call. The service does not return a resolved immutable model version. The typed noul response supplies a support score only: confidence and probability maps are unavailable, recorded as null. No credit/auth/schema/deadline failures occurred in this run. An earlier CLI attempt lacked tsx; a second attempt had no runtime module and made no service calls. Neither was treated as calibration evidence.
+
+| Split | Human label | Total | >=0.7 | <=0.2 | Midrange | Unavailable |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| Development | Supported | 7 | 7 | 0 | 0 | 0 |
+| Development | Unsupported | 7 | 0 | 7 | 0 | 0 |
+| Development | Interpretive | 6 | 0 | 5 | 1 | 0 |
+| Held-out | Supported | 3 | 3 | 0 | 0 | 0 |
+| Held-out | Unsupported | 3 | 0 | 3 | 0 | 0 |
+| Held-out | Interpretive | 4 | 0 | 1 | 3 | 0 |
+
+The proposed 0.7 support threshold was not tuned. It had zero observed false-support cases in this tiny probe, including the held-out subset. This is not statistical certification or an empirical accuracy probability. The Orchestrator inspected this matrix and explicitly approved an Andrey-only pilot on 2026-10-28: supported marks at >=0.7 plus an exact source substring, no amber marks. `CALIBRATION.enabled` is true; the shared UI still requires the Andrey conversation capability. Anya remains off. The raw run artifact records marksEnabled=false because enablement occurred after that run and review; its immutable results were not rewritten. A future supported mark also requires an exact source substring, the current request ID, unchanged Markdown offsets and the accepted policy version. No low-score factual assertion can become 'my take'. Amber interpretation marks remain disabled: a low score alone does not identify an interpretation. Missing, malformed, revised, stale, unavailable and midrange results have no marks.
+
+Fit levels are a separate model evidence-strength scale from 0 to 4, not a hiring probability or an aggregate match. Each requirement selects a canonical source ID from the structured extraction catalog. That one requirement/source pair receives one named score question, and all questions share one bounded request. The continuous raw score in [0,4] drives the bar; the highest-probability supplied level determines the human label. The Orchestrator confirmed this correction against the verified Rust parser after a 293ms live diagnostic returned fractional scores. Partial/malformed batches make the whole board unavailable. A supplied validated model confidence can soften its bar; absent confidence is never synthesized.
+Original probe limitation accepted by Orchestrator: jev-latest alias recorded, resolved version unknown because the shared typed client omits wire metadata. No second 30-case run was performed. Later fit artifacts retain raw wire version jev-1.14.0. Latest fit stage timings are observational, not a claimed speed improvement: extraction8189.8ms, Jev206.2ms, commentary6964.0ms; board emitted before commentary, total15364.5ms. One score question per requirement, continuous raw score plus complete probability map, source IDs canonical and validated.
