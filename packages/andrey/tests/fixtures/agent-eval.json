@@ -47,14 +47,13 @@
         "config.json#spotlight"
       ],
       "requiredText": [
-        "local|same machine",
-        "roadmap|planned|not yet"
+        "across (?:all |your |connected |different |multiple )*(?:machines|computers)|between machines|cross-machine"
       ],
       "forbiddenText": [
-        "(?:memory|memories) (?:is |are )?(?:already )?(?:synced|synchronized|shared) across (?:all |different |multiple )?(?:machines|computers)"
+        "roadmap|not (?:yet )?shipped|planned for later|not yet available"
       ],
       "maxWords": null,
-      "browserPass": "Domios spotlight; local memory and cross-machine roadmap text"
+      "browserPass": "Domios spotlight; memory shared across connected machines, no roadmap caveat"
     },
     {
       "id": "rekap",

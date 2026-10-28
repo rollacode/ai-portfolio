@@ -63,7 +63,7 @@ describe('source provenance from the nested site directory',()=>{
 });
 const valid: Record<string,TraceEvent[]> = {
   hello:[text('Hi! What would you like to explore?')],
-  domios:[tool('show_spotlight'),text('Domios shares local memory on the same machine. Cross-machine memory is on the roadmap.')],
+  domios:[tool('show_spotlight'),text('Domios agents share memory across your connected machines.')],
   rekap:[tool('show_project',{slug:'rekap'}),text('REKAP provides meeting intelligence.')],
   python:[tool('show_skills'),tool('highlight_skill',{name:'Python / Django / FastAPI'}),text('Python, Django and FastAPI are listed skills.')],
   leadership:[tool('show_projects',{filter:'leadership'}),text('He led the SOS Portal team of 17 and co-founded Performica.')],
@@ -82,7 +82,7 @@ describe('red: deliberately wrong traces are rejected before green',()=>{
     ['rekap',[tool('show_project',{slug:'wrong'})],'missing tool/arguments'],
     ['identity',[tool('remember_visitor',{name:'Bob',role:'CTO',company:'ExampleCo'})],'missing tool/arguments'],
     ['domios',[text('Domios is great.'),...valid.domios],'first substantive'],
-    ['domios',[tool('show_spotlight'),text('Local memory is synced across different machines. Roadmap exists.')],'forbidden claim'],
+    ['domios',[tool('show_spotlight'),text('Memory is shared across machines, but that is still on the roadmap.')],'forbidden claim'],
     ['job',[...valid.job,tool('show_project',{slug:'rekap'})],'exactly one panel'],
     ['job',[tool('match_job',{role:'Senior Python Engineer',company:'ExampleCo',description:'Python job'})],'original full'],
     ['sos',[tool('show_project',{slug:'sos-portal'}),text('A great project.')],'missing text evidence'],
@@ -102,7 +102,7 @@ describe('green: independently authored valid traces',()=>{
   it.each(cases)('$id accepts valid behavior',c=>expect(gradeTrace(c,valid[c.id],contacts).failures).toEqual([]));
   it('freezes exactly 13 cases and their byte hash',()=>{
     expect(cases).toHaveLength(13);
-    expect(createHash('sha256').update(readFileSync('tests/fixtures/agent-eval.json','utf8').replace(/\r\n/g,'\n')).digest('hex')).toBe('12ed489da80afb998549e3d45119ec551b5c86491ea70b78270d846a3dab4037');
+    expect(createHash('sha256').update(readFileSync('tests/fixtures/agent-eval.json','utf8').replace(/\r\n/g,'\n')).digest('hex')).toBe('4e85c167562adbc5af1fd2aebdae2366f7e251be17d9c68f88027c147131f2ce');
     expect(cases.find(c=>c.id==='followup')!.history[0].content).toBe(cases.find(c=>c.id==='identity')!.input);
   });
   it('checks fixture facts against checked-in data',()=>{
@@ -111,7 +111,8 @@ describe('green: independently authored valid traces',()=>{
     expect(sos.description).toContain('Brazil');
     expect(sos.stack).toEqual(expect.arrayContaining(['ASP.NET','React Native']));
     expect(sos.writeup.length).toBeGreaterThan(sos.description.length);
-    expect(projects.find(p=>p.slug==='domios')!.writeup).toMatch(/same machine[\s\S]*roadmap/);
+    expect(projects.find(p=>p.slug==='domios')!.writeup).toMatch(/across all of your connected machines/);
+    expect(projects.find(p=>p.slug==='domios')!.writeup).not.toMatch(/roadmap/i);
     expect(projects.some(p=>p.slug==='rekap')).toBe(true);
     expect(projects.some(p=>p.slug==='performica')).toBe(true);
     expect(Object.values(skills).flat().some(s=>s.name.includes('Python'))).toBe(true);
@@ -167,7 +168,8 @@ describe('transport observation independent of model',()=>{
       const pending=runTurn(cases[0],1,[],'Synthetic');
       await vi.advanceTimersByTimeAsync(60000);
       const result=await pending;
-      expect(result.errors).toContain('deadline');expect(fetcher).toHaveBeenCalledTimes(1);expect(result.grade.pass).toBe(false);
+      // The shared loop's own bounded lifetime may answer first (as a 504) before the harness deadline.
+      expect(result.errors.some(e=>e==='deadline'||e==='loop HTTP 504')).toBe(true);expect(fetcher).toHaveBeenCalledTimes(1);expect(result.grade.pass).toBe(false);
     } finally {vi.useRealTimers();vi.unstubAllGlobals();}
   });
   it('retains usage-only SSE frames and unknown cache',async()=>{

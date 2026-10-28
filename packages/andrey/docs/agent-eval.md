@@ -6,7 +6,11 @@ heuristic is not semantic proof: the owner reviews the unedited synthetic transc
 Runtime, prompt and UI authors must not edit this corpus or bless their own output.
 
 Corpus: `tests/fixtures/agent-eval.json`, 13 cases, SHA-256 of UTF-8/LF bytes
-`12ed489da80afb998549e3d45119ec551b5c86491ea70b78270d846a3dab4037`.
+`4e85c167562adbc5af1fd2aebdae2366f7e251be17d9c68f88027c147131f2ce`.
+Revision 2 (owner decision): Domios memory is shared across connected machines, so the
+`domios` case now requires that and forbids a roadmap caveat. Revision 1 was
+`12ed489da80afb998549e3d45119ec551b5c86491ea70b78270d846a3dab4037`; live baselines
+recorded against it are not comparable by hash for that case.
 CRLF checkout bytes are normalized only for hashing. Inputs and expectations are frozen;
 changes require independent author and owner review, never a prompt-diet accommodation.
 `requiredTools` is ordered; `oneOf` allows equivalent targeted actions. `allowedPanels`

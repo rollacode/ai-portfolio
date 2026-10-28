@@ -27,7 +27,7 @@ const read = (name:string) => JSON.parse(fs.readFileSync(path.join(base,'portfol
 // Git autocrlf changes checkout bytes; freeze UTF-8 with LF exactly as committed.
 const fixture = fs.readFileSync(path.join(base,'tests/fixtures/agent-eval.json'),'utf8').replace(/\r\n/g,'\n');
 const corpus = JSON.parse(fixture.toString());
-const expectedHash = '12ed489da80afb998549e3d45119ec551b5c86491ea70b78270d846a3dab4037';
+const expectedHash = '4e85c167562adbc5af1fd2aebdae2366f7e251be17d9c68f88027c147131f2ce';
 const metrics = ['firstToolNameMs','firstCompleteValidToolMs','firstTextMs','endMs'] as const;
 type Turn = {
   caseId:string; repetition:number; events:TraceEvent[]; rounds:any[]; rawSse:string;

@@ -81,7 +81,9 @@ describe('ordered conversation policy (static supporting evidence)', () => {
     expect(policy).toContain('never to certify facts');
     expect(policy).toContain('never for contact details');
     expect(policy).toContain('do not routinely ask for identity');
-    expect(policy).toContain('cross-machine shared memory is roadmap');
+    expect(policy).toContain('shared among agents and across connected machines');
+    expect(policy).not.toContain('roadmap');
+    expect(policy).toContain('over 250 AI agents');
   });
 
   it('keeps lean-source deep dives honest and preserves supplied content verbatim', () => {
