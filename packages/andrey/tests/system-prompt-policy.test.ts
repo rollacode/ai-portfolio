@@ -37,10 +37,18 @@ describe('Andrey wrapper contract (local dependency adapter)', () => {
     }
   });
 
+  it('forwards an explicit portfolio base path with the chat diet options', () => {
+    const basePath = path.resolve('../andrey');
+    buildSystemPrompt(basePath);
+    expect(calls.build).toHaveBeenLastCalledWith(buildSystemPromptText, basePath, {
+      includeProjectWriteups: false, projectSummaryLines: 2,
+    });
+  });
+
   it('does not feed visitor or classifier state into the cached prefix', () => {
-    const buildWithIgnoredHint = buildSystemPrompt as (...args: unknown[]) => string;
-    const first = buildWithIgnoredHint({ visitorType: 'recruiter', language: 'ru', leadScore: 4 });
-    const second = buildWithIgnoredHint({ visitorType: 'developer', language: 'en', leadScore: 0 });
+    const buildWithIgnoredHint = buildSystemPrompt as (basePath?: string, ...args: unknown[]) => string;
+    const first = buildWithIgnoredHint(undefined, { visitorType: 'recruiter', language: 'ru', leadScore: 4 });
+    const second = buildWithIgnoredHint(undefined, { visitorType: 'developer', language: 'en', leadScore: 0 });
     expect(first).toBe(second);
     expect(calls.build.mock.calls.every(call => call.length === 3)).toBe(true);
     expect(first).not.toContain('leadScore');
