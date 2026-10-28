@@ -12,7 +12,7 @@ import {runAgentLoop} from '@ai-portfolio/core/lib/agent-loop';
 import {parseStream} from '@ai-portfolio/core/lib/stream-parser';
 import {getToolsWithContext} from '@ai-portfolio/core/lib/tools';
 import {buildSystemPrompt} from '../lib/system-prompt';
-import {gradeTrace,observeFrame,requestBody,distribution,type EvalCase,type TraceEvent} from './agent-eval-grader';
+import {gradeTrace,observeFrame,requestBody,distribution,estimateRoundUsd,type EvalCase,type TraceEvent} from './agent-eval-grader';
 
 const base = path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const git = (...args:string[]) => execFileSync('git',args,{cwd:base,encoding:'utf8'}).trim();
@@ -122,11 +122,7 @@ export async function runTurn(c:EvalCase,repetition:number,tools:ReturnType<type
   const knownCache=rounds.length>0 && rounds.every(r=>r.cachedTokens!==null);
   const cachedTokens=knownCache?rounds.reduce((s,r)=>s+r.cachedTokens,0):null;
   // Official grok-4.3 rates checked 2026-10-28; other canonical models remain unknown.
-  const estimated=rounds.map(r=>{
-    if(!r.returnedModels.length || !r.returnedModels.every((m:string)=>m==='grok-4.3') || r.cachedTokens===null || typeof r.usage?.prompt_tokens!=='number' || typeof r.usage?.completion_tokens!=='number')return null;
-    const long=r.usage.prompt_tokens>=200000?2:1;
-    return long*((r.usage.prompt_tokens-r.cachedTokens)*1.25+r.cachedTokens*.20+r.usage.completion_tokens*2.50)/1e6;
-  });
+  const estimated=rounds.map(r=>estimateRoundUsd(r.returnedModels,r.usage));
   const observed=rounds.map(r=>typeof r.usage?.cost_in_usd_ticks==='number'?r.usage.cost_in_usd_ticks/1e10:null);
   return {caseId:c.id,repetition,events,rounds,rawSse,firstToolNameMs,firstCompleteValidToolMs,firstTextMs,endMs:elapsed(),errors:[...new Set(errors)],grade:gradeTrace(c,events,Object.values(read('config').social)),cachedTokens,cacheState:cachedTokens===null?'unknown':cachedTokens>0?'warm':'cold',estimatedUsd:estimated.length && estimated.every(v=>v!==null)?estimated.reduce<number>((s,v)=>s+v!,0):null,observedUsd:observed.length && observed.every(v=>v!==null)?observed.reduce<number>((s,v)=>s+v!,0):null};
 }

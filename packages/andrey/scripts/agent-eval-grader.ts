@@ -57,11 +57,27 @@ export function observeFrame(frame: any) {
     cachedTokens: typeof frame.usage?.prompt_tokens_details?.cached_tokens === 'number' ? frame.usage.prompt_tokens_details.cached_tokens : null,
   };
 }
-export function requestBody(body: Record<string, unknown>, effort?: string) {
+export function requestBody<T extends Record<string, unknown>>(body: T, effort?: string) {
   return {...body, stream_options: {include_usage:true}, ...(effort ? {reasoning_effort:effort} : {})};
 }
 export function distribution(values: (number | null | undefined)[]) {
   const sorted = values.filter((v): v is number => typeof v === 'number' && Number.isFinite(v)).sort((a,b)=>a-b);
   const p = (fraction: number) => sorted.length ? sorted[Math.max(0,Math.ceil(sorted.length*fraction)-1)] : null;
   return {count:sorted.length, unknown:values.length-sorted.length, median:p(.5),p95:p(.95)};
+}
+
+/** Canonical-model estimate; returned billed ticks are preferred when available.
+ * xAI can count reasoning separately from completion_tokens; total_tokens retains it.
+ */
+export function estimateRoundUsd(models: string[], usage: any): number | null {
+  const cached = usage?.prompt_tokens_details?.cached_tokens;
+  if (!models.length || !models.every(m => m === 'grok-4.3') ||
+      typeof cached !== 'number' || typeof usage?.prompt_tokens !== 'number' ||
+      typeof usage?.completion_tokens !== 'number') return null;
+  if (usage.completion_tokens_details?.reasoning_tokens > 0 && typeof usage.total_tokens !== 'number') return null;
+  const output = typeof usage.total_tokens === 'number'
+    ? Math.max(usage.completion_tokens, usage.total_tokens - usage.prompt_tokens)
+    : usage.completion_tokens;
+  const multiplier = usage.prompt_tokens >= 200000 ? 2 : 1;
+  return multiplier * ((usage.prompt_tokens - cached) * 1.25 + cached * .20 + output * 2.50) / 1e6;
 }

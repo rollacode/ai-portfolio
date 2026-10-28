@@ -1,0 +1,104 @@
+name: Agent oracle
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      compare_candidate:
+        description: Also compare grok-4.3/none (26 extra synthetic turns)
+        type: boolean
+        default: false
+permissions:
+  contents: read
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.14.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @ai-portfolio/andrey eval:agent
+      - name: Existing chat and tool prompt contracts
+        run: pnpm --filter @ai-portfolio/andrey exec vitest run tests/api-chat.test.ts tests/spotlight.test.ts
+  live-current:
+    needs: offline
+    if: >-
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) ||
+      (github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)) ||
+      (github.event_name == 'workflow_dispatch' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch))
+    runs-on: ubuntu-latest
+    environment: agent-eval-live
+    timeout-minutes: 30
+    concurrency:
+      group: agent-eval-live-provider
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.14.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Actual deployed model gate (unavailable is a failure)
+        env:
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+          AI_BASE_URL: ${{ secrets.AI_BASE_URL }}
+          AI_MODEL: ${{ secrets.AI_MODEL }}
+          AI_REASONING_EFFORT: ${{ secrets.AI_REASONING_EFFORT }}
+        run: pnpm --filter @ai-portfolio/andrey eval:agent:live --out "$GITHUB_WORKSPACE/evidence/current.json" --repetitions 2
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: current-model-synthetic
+          path: evidence/
+          if-no-files-found: error
+  live-candidate:
+    needs: [offline, live-current]
+    if: >-
+      always() && needs.offline.result == 'success' && github.event_name == 'workflow_dispatch' &&
+      inputs.compare_candidate && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    environment: agent-eval-live
+    timeout-minutes: 30
+    concurrency:
+      group: agent-eval-live-provider
+      cancel-in-progress: false
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        include:
+          - model: grok-4.3
+            effort: none
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.14.0
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - uses: actions/download-artifact@v4
+        with:
+          name: current-model-synthetic
+          path: baseline
+      - name: Explicit candidate comparison; never changes deployment
+        env:
+          AI_API_KEY: ${{ secrets.AI_API_KEY }}
+          AI_BASE_URL: ${{ secrets.AI_BASE_URL }}
+          AI_MODEL: ${{ matrix.model }}
+          AI_REASONING_EFFORT: ${{ matrix.effort }}
+        run: pnpm --filter @ai-portfolio/andrey eval:agent:live --out "$GITHUB_WORKSPACE/evidence/grok-4.3-none.json" --baseline "$GITHUB_WORKSPACE/baseline/current.json" --repetitions 2
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: candidate-grok-4.3-none-synthetic
+          path: evidence/
+          if-no-files-found: error

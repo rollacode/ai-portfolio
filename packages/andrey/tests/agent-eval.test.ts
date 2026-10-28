@@ -17,9 +17,10 @@ import skills from '../portfolio/skills.json';
 import experience from '../portfolio/experience.json';
 import {handleToolCall} from '@ai-portfolio/core/lib/tool-handler';
 import {parseStream} from '@ai-portfolio/core/lib/stream-parser';
-import {gradeTrace,observeFrame,requestBody,distribution,type EvalCase,type TraceEvent} from '../scripts/agent-eval-grader';
+import {gradeTrace,observeFrame,requestBody,distribution,estimateRoundUsd,type EvalCase,type TraceEvent} from '../scripts/agent-eval-grader';
 import {runTurn} from '../scripts/eval-agent';
 import {getToolsWithContext} from '@ai-portfolio/core/lib/tools';
+import {parseArgs,selectPage} from '../scripts/browser-emulation.mjs';
 
 const cases = corpus.cases as EvalCase[];
 const contacts = Object.values(config.social);
@@ -84,11 +85,18 @@ describe('green: independently authored valid traces',()=>{
   });
 });
 describe('transport observation independent of model',()=>{
+  it('includes separately accounted reasoning in cost and refuses unknown canonical pricing',()=>{
+    const usage={prompt_tokens:21546,completion_tokens:35,total_tokens:21846,prompt_tokens_details:{cached_tokens:128},completion_tokens_details:{reasoning_tokens:265}};
+    expect(estimateRoundUsd(['grok-4.3'],usage)).toBeCloseTo(.0275481,10);
+    expect(estimateRoundUsd(['grok-3-mini-fast'],usage)).toBeNull();
+    expect(estimateRoundUsd(['grok-4.3'],{...usage,prompt_tokens_details:{}})).toBeNull();
+    expect(estimateRoundUsd(['grok-4.3'],{...usage,total_tokens:undefined})).toBeNull();
+  });
   it('runs the real loop/parser with local streamed adapter and usage-only frame',async()=>{
     const requests:any[]=[];
     const sse=(frames:any[])=>new Response(frames.map(f=>`data: ${JSON.stringify(f)}\n\n`).join('')+'data: [DONE]\n\n');
-    vi.stubGlobal('fetch',vi.fn(async(_url,init)=>{
-      requests.push(JSON.parse(init.body));
+    vi.stubGlobal('fetch',vi.fn(async(_url:unknown,init:RequestInit)=>{
+      requests.push(JSON.parse(String(init.body)));
       const delta=requests.length===1?{tool_calls:[{index:0,id:'synthetic',function:{name:'show_project',arguments:'{"slug":"rekap"}'}}]}:{content:'REKAP meeting intelligence.'};
       return sse([{model:'grok-4.3',choices:[{delta,finish_reason:requests.length===1?'tool_calls':'stop'}]},{model:'grok-4.3',choices:[],usage:{prompt_tokens:100,completion_tokens:10,prompt_tokens_details:{cached_tokens:80},cost_in_usd_ticks:1000}}]);
     }));
@@ -105,6 +113,28 @@ describe('transport observation independent of model',()=>{
       expect(result.firstTextMs).not.toBeNull();
     } finally {vi.unstubAllGlobals();}
   });
+  it('keeps upstream failures and the six-round bound visible',async()=>{
+    const fetcher=vi.fn(async()=>new Response('unavailable',{status:503}));
+    vi.stubGlobal('fetch',fetcher);
+    try {
+      const failed=await runTurn(cases[0],1,[],'Synthetic');
+      expect(failed.errors).toContain('upstream HTTP 503');expect(failed.grade.pass).toBe(false);
+      fetcher.mockImplementation(async()=>new Response('data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"s","function":{"name":"show_project","arguments":"{\\"slug\\":\\"rekap\\"}"}}]},"finish_reason":"tool_calls"}]}\n\ndata: [DONE]\n\n'));
+      const bounded=await runTurn(cases.find(c=>c.id==='rekap')!,1,getToolsWithContext(['rekap'],[],[]),'Synthetic');
+      expect(bounded.rounds).toHaveLength(6);expect(bounded.errors).toContain('round limit reached');expect(bounded.grade.pass).toBe(false);
+    } finally {vi.unstubAllGlobals();}
+  });
+  it('aborts a hung turn at 60 seconds with no retry',async()=>{
+    vi.useFakeTimers();
+    const fetcher=vi.fn(async(_url:unknown,init:RequestInit)=>new Promise<Response>((_resolve,reject)=>init.signal!.addEventListener('abort',()=>reject(new Error('aborted')),{once:true})));
+    vi.stubGlobal('fetch',fetcher);
+    try {
+      const pending=runTurn(cases[0],1,[],'Synthetic');
+      await vi.advanceTimersByTimeAsync(60000);
+      const result=await pending;
+      expect(result.errors).toContain('deadline');expect(fetcher).toHaveBeenCalledTimes(1);expect(result.grade.pass).toBe(false);
+    } finally {vi.useRealTimers();vi.unstubAllGlobals();}
+  });
   it('retains usage-only SSE frames and unknown cache',async()=>{
     const frame={model:'grok-4.3',choices:[],usage:{prompt_tokens:100,completion_tokens:5,prompt_tokens_details:{cached_tokens:80}}};
     expect(observeFrame(frame).cachedTokens).toBe(80);
@@ -117,6 +147,20 @@ describe('transport observation independent of model',()=>{
     expect(requestBody({model:'alias'},'none')).toEqual({model:'alias',reasoning_effort:'none',stream_options:{include_usage:true}});
     expect(requestBody({model:'alias'})).not.toHaveProperty('reasoning_effort');
     expect(distribution([null,1,4])).toEqual({count:2,unknown:1,median:1,p95:4});
+  });
+});
+describe('bounded emulation helper',()=>{
+  const args=['--endpoint','ws://127.0.0.1:1234/devtools/browser/test','--url','http://localhost:3000','--width','390','--height','844','--mobile','true','--scheme','dark','--motion','reduce'];
+  it('refuses wrong settings and remote endpoints before accepting the exact recipe',()=>{
+    expect(()=>parseArgs([...args.slice(0,-1),'forever'])).toThrow();
+    expect(()=>parseArgs(args.map(s=>s.replace('127.0.0.1','remote.example')))).toThrow();
+    expect(parseArgs(args)).toMatchObject({width:390,height:844,mobile:true,scheme:'dark',motion:'reduce'});
+  });
+  it('refuses missing or ambiguous pages before selecting one exact normalized URL',()=>{
+    const page={type:'page',url:'http://localhost:3000/',targetId:'synthetic'};
+    expect(()=>selectPage([],'http://localhost:3000')).toThrow();
+    expect(()=>selectPage([page,page],'http://localhost:3000')).toThrow();
+    expect(selectPage([page],'http://localhost:3000')).toBe(page);
   });
 });
 describe('existing handler contract without secondary API calls',()=>{
