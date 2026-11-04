@@ -35,7 +35,7 @@ export default function OpenGraphImage() {
         <img src={svgDataUri(rippleField())} width={size.width} height={size.height} alt="" style={{ position: 'absolute', inset: 0 }} />
         <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', padding: '72px 80px', width: 760 }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={svgDataUri(MARK_SVG)} width={76} height={76} alt="" style={{ borderRadius: 18, boxShadow: `0 0 0 1px ${BRAND.paper}22` }} />
+          <img src={svgDataUri(MARK_SVG)} width={88} height={88} alt="" />
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <div style={{ fontSize: 84, fontWeight: 700, letterSpacing: -2.5, lineHeight: 1 }}>{config.name}</div>
             <div style={{ marginTop: 22, fontSize: 38, color: BRAND.accent }}>{config.title}</div>
