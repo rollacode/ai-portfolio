@@ -36,13 +36,27 @@ export const viewport: Viewport = {
   maximumScale: 1,
 };
 
+const siteUrl = "https://rollacode.org";
+
 export const metadata: Metadata = {
+  // Absolute base so chats resolve the preview image and canonical link; icons and preview images come from app/ file conventions.
+  metadataBase: new URL(siteUrl),
   title,
   description,
+  applicationName: config.name,
+  authors: [{ name: config.name, url: siteUrl }],
+  creator: config.name,
+  keywords: ["Andrey Kovalev", "AI consultant", "LLM consultant", "AI agents", "Domios", "iOS", "Riga"],
+  alternates: { canonical: "/" },
   openGraph: {
     title,
     description,
-    type: "website",
+    url: "/",
+    siteName: config.name,
+    locale: "en_US",
+    type: "profile",
+    firstName: config.firstName,
+    lastName: config.name.split(" ").slice(1).join(" "),
   },
   twitter: {
     card: "summary_large_image",
